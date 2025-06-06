@@ -6,14 +6,15 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Menu, Search, Briefcase, Phone, MapPinIcon, MessageSquare } from "lucide-react";
+import { Menu, Search, Briefcase, Phone, MapPinIcon, MessageSquare, ClipboardPenLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "#services", label: "Layanan", icon: Briefcase },
-  { href: "#contact", label: "Kontak", icon: Phone },
-  { href: "#map", label: "Lokasi", icon: MapPinIcon },
-  { href: "#inquire", label: "Tanya Kami", icon: MessageSquare },
+  { href: "/#services", label: "Layanan", icon: Briefcase },
+  { href: "/pendaftaran", label: "No. Pendaftaran", icon: ClipboardPenLine },
+  { href: "/#contact", label: "Kontak", icon: Phone },
+  { href: "/#map", label: "Lokasi", icon: MapPinIcon },
+  { href: "/#inquire", label: "Tanya Kami", icon: MessageSquare },
 ];
 
 export function AppHeader() {
