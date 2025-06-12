@@ -4,7 +4,7 @@
 import Link from "next/link";
 import type { MouseEvent } from "react";
 import { useState, useEffect } from "react";
-import { usePathname } from 'next/navigation'; // Added usePathname
+import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -22,6 +22,9 @@ const navItems = [
 export function AppHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,16 +34,30 @@ export function AppHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery(""); // Clear input after search
+      if (isMobileSheetOpen) {
+        setIsMobileSheetOpen(false); // Close mobile sheet if open
+      }
+    }
+  };
+  
   const NavLink = ({ href, children, onClick: providedOnClick, className }: { href: string, children: React.ReactNode, onClick?: () => void, className?: string }) => {
-    const pathname = usePathname();
-
     const handleLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
       const isHomepage = pathname === '/';
-      const isHashLinkToHomepageSection = href.startsWith("/#");
+      const isHashLinkToHomepageSection = href.startsWith("/#") || href.startsWith("#");
+      let targetHref = href;
+
+      if (href.startsWith("/#")) { // For links like /#services
+         targetHref = href.substring(1); // Convert to #services
+      }
 
       if (isHomepage && isHashLinkToHomepageSection) {
         e.preventDefault();
-        const targetId = href.substring(2); // Remove "/#"
+        const targetId = targetHref.substring(1); // Remove #
         const targetElement = document.getElementById(targetId);
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: "smooth" });
@@ -56,7 +73,7 @@ export function AppHeader() {
     
     return (
       <Link
-        href={href}
+        href={href} // Use original href for NextLink navigation
         onClick={handleLinkClick}
         className={cn(
           "text-sm font-medium transition-colors hover:text-primary",
@@ -78,7 +95,6 @@ export function AppHeader() {
     >
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          {/* You can replace this with an SVG logo if you have one */}
           <span className="font-headline text-2xl font-bold text-primary">
             KUAKU
           </span>
@@ -90,14 +106,17 @@ export function AppHeader() {
               {item.label}
             </NavLink>
           ))}
-          <div className="relative ml-4">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <form onSubmit={handleSearchSubmit} className="relative ml-4">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               type="search"
               placeholder="Cari informasi..."
               className="h-9 w-full rounded-md bg-secondary/50 pl-9 pr-3 text-sm md:w-[200px] lg:w-[250px]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
+            <button type="submit" className="sr-only">Cari</button>
+          </form>
         </nav>
 
         <div className="md:hidden">
@@ -117,7 +136,7 @@ export function AppHeader() {
                 </Link>
                 <SheetClose asChild>
                    <Button variant="ghost" size="icon">
-                    <Menu className="h-6 w-6 rotate-90" /> {/* Using Menu and rotating it to resemble X */}
+                    <Menu className="h-6 w-6 rotate-90" />
                     <span className="sr-only">Tutup menu</span>
                   </Button>
                 </SheetClose>
@@ -130,14 +149,17 @@ export function AppHeader() {
                   </NavLink>
                 ))}
               </nav>
-              <div className="relative mt-6">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <form onSubmit={handleSearchSubmit} className="relative mt-6">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <Input
                   type="search"
                   placeholder="Cari informasi..."
                   className="h-10 w-full rounded-md bg-secondary/50 pl-9 pr-3"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
-              </div>
+                <button type="submit" className="sr-only">Cari</button>
+              </form>
             </SheetContent>
           </Sheet>
         </div>
