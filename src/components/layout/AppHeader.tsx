@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import type { MouseEvent } from "react"; // Imported MouseEvent
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,18 +30,35 @@ export function AppHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const NavLink = ({ href, children, onClick, className }: { href: string, children: React.ReactNode, onClick?: () => void, className?: string }) => (
-    <Link
-      href={href}
-      onClick={onClick}
-      className={cn(
-        "text-sm font-medium transition-colors hover:text-primary",
-        className
-      )}
-    >
-      {children}
-    </Link>
-  );
+  const NavLink = ({ href, children, onClick, className }: { href: string, children: React.ReactNode, onClick?: () => void, className?: string }) => {
+    const handleSmoothScroll = (e: MouseEvent<HTMLAnchorElement>) => {
+      if (href.startsWith("/#")) {
+        e.preventDefault();
+        const targetId = href.substring(2); // Remove "/#"
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+      if (onClick) {
+        onClick(); // For closing mobile sheet etc.
+      }
+    };
+    
+    return (
+      <Link
+        href={href}
+        onClick={handleSmoothScroll}
+        className={cn(
+          "text-sm font-medium transition-colors hover:text-primary",
+          className
+        )}
+      >
+        {children}
+      </Link>
+    );
+  };
+
 
   return (
     <header

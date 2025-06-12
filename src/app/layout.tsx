@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster"; // Added Toaster
 export const metadata: Metadata = {
   title: 'KUAKU - Layanan Informasi Terpadu',
   description: 'Selamat datang di KUAKU. Temukan informasi layanan, kontak, dan lainnya.',
+  icons: null, // Explicitly disable default icon generation
 };
 
 export default function RootLayout({
