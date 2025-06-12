@@ -1,27 +1,57 @@
+
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 import { ServiceCard } from "./ServiceCard";
-import { HeartHandshake, BookOpenText, FileText, Users } from "lucide-react";
+import { 
+  FileText, 
+  HeartHandshake, 
+  BookCopy, 
+  BookOpenCheck, 
+  Compass, 
+  UserCheck, 
+  HandCoins, 
+  BadgeCheck 
+} from "lucide-react";
 
 const services = [
   {
-    icon: HeartHandshake,
-    title: "Pendaftaran Nikah",
-    description: "Layanan pendaftaran dan pencatatan pernikahan secara resmi.",
-  },
-  {
-    icon: BookOpenText,
-    title: "Konsultasi Keluarga",
-    description: "Bimbingan dan konsultasi pra-nikah serta masalah keluarga.",
-  },
-  {
     icon: FileText,
-    title: "Pengurusan Dokumen",
-    description: "Bantuan pengurusan berbagai dokumen keagamaan dan sipil.",
+    title: "Pendaftaran & Rekomendasi Nikah",
+    description: "Layanan pendaftaran, pencatatan, dan rekomendasi pernikahan resmi.",
   },
   {
-    icon: Users,
-    title: "Kegiatan Sosial",
-    description: "Informasi dan partisipasi dalam kegiatan sosial keagamaan.",
+    icon: HeartHandshake,
+    title: "Bimbingan & Konsultasi Keluarga",
+    description: "Bimbingan pra-nikah, konseling, dan konsultasi masalah keluarga sakinah.",
+  },
+  {
+    icon: BookCopy,
+    title: "Duplikat & Legalisasi Buku Nikah",
+    description: "Pengurusan duplikat dan legalisasi akta nikah Anda secara resmi.",
+  },
+  {
+    icon: BookOpenCheck,
+    title: "Informasi & Manasik Haji",
+    description: "Informasi lengkap pendaftaran dan panduan pelaksanaan manasik haji.",
+  },
+  {
+    icon: Compass,
+    title: "Pengukuran Arah Kiblat",
+    description: "Layanan pengukuran arah kiblat akurat untuk masjid, mushola, dan pribadi.",
+  },
+  {
+    icon: UserCheck,
+    title: "Layanan Muallaf & Konversi Agama",
+    description: "Proses bimbingan, pencatatan syahadat, dan layanan bagi muallaf.",
+  },
+  {
+    icon: HandCoins,
+    title: "Informasi Zakat & Wakaf",
+    description: "Informasi mengenai pengelolaan, penyaluran, dan konsultasi zakat serta wakaf.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Sertifikasi Produk Halal",
+    description: "Bantuan, informasi, dan pendampingan terkait proses sertifikasi produk halal.",
   },
 ];
 
