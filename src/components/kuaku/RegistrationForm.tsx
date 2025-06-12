@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
+import { id as IndonesianLocale } from 'date-fns/locale'; // Changed import
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useFormStatus } from "react-dom";
 
@@ -136,7 +137,7 @@ export function RegistrationForm() {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, "PPP", { locale: require('date-fns/locale/id') }) : <span>Pilih tanggal</span>}
+                    {form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -157,7 +158,7 @@ export function RegistrationForm() {
                     toYear={new Date().getFullYear() - 17}
                     disabled={(date) => date > new Date(new Date().setFullYear(new Date().getFullYear() - 17)) || date < new Date("1900-01-01")}
                     initialFocus
-                    locale={require('date-fns/locale/id')}
+                    locale={IndonesianLocale} // Changed usage
                   />
                 </PopoverContent>
               </Popover>
