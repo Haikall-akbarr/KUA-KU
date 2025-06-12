@@ -8,36 +8,10 @@ import { AppFooter } from '@/components/layout/AppFooter';
 import { SectionWrapper } from '@/components/shared/SectionWrapper';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { searchableData, type SearchableItem } from '@/lib/search-data';
-import { useEffect, useState, type FormEvent, type MouseEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search as SearchIcon, ExternalLink } from 'lucide-react';
-
-const handleResultLinkClick = (e: MouseEvent<HTMLAnchorElement>, href: string, router: ReturnType<typeof useRouter>) => {
-  if (href.startsWith('/#')) {
-    e.preventDefault();
-    const targetId = href.substring(2); // Remove "/#"
-    router.push('/'); // Navigate to homepage first
-    
-    // Attempt to scroll after a short delay to allow homepage to render
-    setTimeout(() => {
-      const targetElement = document.getElementById(targetId);
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        // Fallback if element not found after initial delay (e.g., page still loading content)
-        setTimeout(() => {
-          const targetElementRetry = document.getElementById(targetId);
-          if (targetElementRetry) {
-            targetElementRetry.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 500);
-      }
-    }, 100);
-  }
-  // For direct page links like /pendaftaran, NextLink default behavior is fine
-};
-
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -122,8 +96,7 @@ export default function SearchPage() {
                   <CardHeader>
                     <CardTitle className="text-xl font-headline text-primary">
                       <Link 
-                        href={item.link} 
-                        onClick={(e) => handleResultLinkClick(e, item.link, router)}
+                        href={item.link}
                         className="hover:underline"
                       >
                         {item.title}
@@ -138,7 +111,7 @@ export default function SearchPage() {
                   </CardContent>
                   <CardFooter>
                     <Button asChild variant="outline" size="sm" className="w-full">
-                      <Link href={item.link} onClick={(e) => handleResultLinkClick(e, item.link, router)}>
+                      <Link href={item.link}>
                         Lihat Selengkapnya <ExternalLink className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
