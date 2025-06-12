@@ -2,8 +2,9 @@
 "use client";
 
 import Link from "next/link";
-import type { MouseEvent } from "react"; // Imported MouseEvent
+import type { MouseEvent } from "react";
 import { useState, useEffect } from "react";
+import { usePathname } from 'next/navigation'; // Added usePathname
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -30,9 +31,14 @@ export function AppHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const NavLink = ({ href, children, onClick, className }: { href: string, children: React.ReactNode, onClick?: () => void, className?: string }) => {
-    const handleSmoothScroll = (e: MouseEvent<HTMLAnchorElement>) => {
-      if (href.startsWith("/#")) {
+  const NavLink = ({ href, children, onClick: providedOnClick, className }: { href: string, children: React.ReactNode, onClick?: () => void, className?: string }) => {
+    const pathname = usePathname();
+
+    const handleLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
+      const isHomepage = pathname === '/';
+      const isHashLinkToHomepageSection = href.startsWith("/#");
+
+      if (isHomepage && isHashLinkToHomepageSection) {
         e.preventDefault();
         const targetId = href.substring(2); // Remove "/#"
         const targetElement = document.getElementById(targetId);
@@ -40,15 +46,18 @@ export function AppHeader() {
           targetElement.scrollIntoView({ behavior: "smooth" });
         }
       }
-      if (onClick) {
-        onClick(); // For closing mobile sheet etc.
+      // If not on homepage and it's a hash link to homepage, Next.js Link handles full navigation.
+      // If it's a direct page link (e.g., /pendaftaran), Next.js Link handles it.
+
+      if (providedOnClick) {
+        providedOnClick(); // For closing mobile sheet etc.
       }
     };
     
     return (
       <Link
         href={href}
-        onClick={handleSmoothScroll}
+        onClick={handleLinkClick}
         className={cn(
           "text-sm font-medium transition-colors hover:text-primary",
           className
