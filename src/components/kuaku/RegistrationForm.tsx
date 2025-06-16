@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { submitRegistrationForm, type RegistrationFormState } from "@/app/pendaftaran/actions";
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   fullName: z.string().min(3, { message: "Nama lengkap minimal 3 karakter." }),
@@ -50,7 +50,7 @@ function SubmitButton() {
 export function RegistrationForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [dateOfBirthOpen, setDateOfBirthOpen] = React.useState(false);
-  const { toast } = useToast(); // Initialize useToast
+  const { toast } = useToast();
 
   const initialState: RegistrationFormState = { message: "", success: false };
   const [state, formAction] = useActionState(submitRegistrationForm, initialState);
@@ -64,6 +64,10 @@ export function RegistrationForm() {
       dateOfBirth: undefined,
       phoneNumber: "",
       email: "",
+    },
+    // Keep form values even if defaultValues change after submission, unless reset explicitly
+    resetOptions: {
+      keepDirtyValues: true, // This might be relevant if defaultValues were dynamic
     },
   });
 
@@ -86,14 +90,25 @@ export function RegistrationForm() {
           ),
           variant: "default",
         });
-        form.reset();
-        formRef.current?.reset();
+        form.reset(); // Reset react-hook-form state
+        // formRef.current?.reset(); // Remove native form reset, rely on RHF reset
       } else {
         toast({
           title: "Gagal Mendaftar",
           description: state.message + (state.errors?._form ? ` ${state.errors._form.join(', ')}` : ''),
           variant: "destructive",
         });
+        // Ensure server-side errors are set to react-hook-form to be displayed
+        // and to mark fields as erroneous, which might help with visual state.
+        if (state.errors) {
+          Object.keys(state.errors).forEach((key) => {
+            const fieldName = key as keyof FormData;
+            const errorMessages = state.errors![fieldName as keyof typeof state.errors];
+            if (form.getFieldState(fieldName) && errorMessages) {
+              form.setError(fieldName, { type: 'server', message: errorMessages[0] });
+            }
+          });
+        }
       }
     }
   }, [state, toast, form]);
@@ -107,7 +122,6 @@ export function RegistrationForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {/* Removed inline Alert component, using toast instead */}
         <form
           ref={formRef}
           action={formAction}
@@ -155,10 +169,7 @@ export function RegistrationForm() {
                     selected={form.watch("dateOfBirth")}
                     onSelect={(date) => {
                         form.setValue("dateOfBirth", date || undefined, { shouldValidate: true });
-                        const hiddenInput = formRef.current?.elements.namedItem('dateOfBirth') as HTMLInputElement | null;
-                        if (hiddenInput) {
-                            hiddenInput.value = date ? format(date, "yyyy-MM-dd") : "";
-                        }
+                        // The hidden input will update automatically due to form.watch below
                         setDateOfBirthOpen(false);
                     }}
                     captionLayout="dropdown-buttons"
@@ -170,8 +181,10 @@ export function RegistrationForm() {
                   />
                 </PopoverContent>
               </Popover>
-              <input type="hidden" id="dateOfBirth" name="dateOfBirth" value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, "yyyy-MM-dd") : ""} />
+              {/* This hidden input sends the date to the server action, its value is reactive to form.watch */}
+              <input type="hidden" {...form.register("dateOfBirth")} value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, "yyyy-MM-dd") : ""} />
               {form.formState.errors.dateOfBirth && <p className="text-sm text-destructive">{form.formState.errors.dateOfBirth.message}</p>}
+              {/* Show server error for dateOfBirth if not already shown by client validation */}
               {state.errors?.dateOfBirth && !form.formState.errors.dateOfBirth && <p className="text-sm text-destructive">{state.errors.dateOfBirth[0]}</p>}
             </div>
           </div>
