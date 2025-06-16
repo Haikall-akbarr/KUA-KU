@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { id as IndonesianLocale } from 'date-fns/locale'; // Changed import
+import { id as IndonesianLocale } from 'date-fns/locale';
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useFormStatus } from "react-dom";
 
@@ -16,9 +16,9 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { submitRegistrationForm, type RegistrationFormState } from "@/app/pendaftaran/actions";
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 const formSchema = z.object({
   fullName: z.string().min(3, { message: "Nama lengkap minimal 3 karakter." }),
@@ -50,6 +50,7 @@ function SubmitButton() {
 export function RegistrationForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [dateOfBirthOpen, setDateOfBirthOpen] = React.useState(false);
+  const { toast } = useToast(); // Initialize useToast
 
   const initialState: RegistrationFormState = { message: "", success: false };
   const [state, formAction] = useActionState(submitRegistrationForm, initialState);
@@ -67,11 +68,35 @@ export function RegistrationForm() {
   });
 
   useEffect(() => {
-    if (state.success) {
-      form.reset();
-      formRef.current?.reset();
+    if (state.message) {
+      if (state.success) {
+        toast({
+          title: "Berhasil!",
+          description: (
+            <>
+              {state.message}
+              {state.registrationNumber && (
+                <>
+                  <br />
+                  Nomor Pendaftaran Anda: <strong className="font-bold text-primary">{state.registrationNumber}</strong>
+                  <br/>Harap simpan nomor ini baik-baik.
+                </>
+              )}
+            </>
+          ),
+          variant: "default",
+        });
+        form.reset();
+        formRef.current?.reset();
+      } else {
+        toast({
+          title: "Gagal Mendaftar",
+          description: state.message + (state.errors?._form ? ` ${state.errors._form.join(', ')}` : ''),
+          variant: "destructive",
+        });
+      }
     }
-  }, [state.success, form]);
+  }, [state, toast, form]);
 
   return (
     <Card className="max-w-2xl mx-auto shadow-lg">
@@ -82,23 +107,7 @@ export function RegistrationForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {state.message && (
-          <Alert variant={state.success ? "default" : "destructive"} className="mb-6">
-            <AlertTitle className={state.success ? "text-primary" : ""}>{state.success ? "Berhasil!" : "Gagal Mendaftar"}</AlertTitle>
-            <AlertDescription>
-              {state.message}
-              {state.success && state.registrationNumber && (
-                <>
-                  <br />
-                  Nomor Pendaftaran Anda: <strong className="font-bold text-primary">{state.registrationNumber}</strong>
-                  <br/>Harap simpan nomor ini baik-baik.
-                </>
-              )}
-              {!state.success && state.errors?._form && <p>{state.errors._form.join(', ')}</p>}
-            </AlertDescription>
-          </Alert>
-        )}
-
+        {/* Removed inline Alert component, using toast instead */}
         <form
           ref={formRef}
           action={formAction}
@@ -146,7 +155,6 @@ export function RegistrationForm() {
                     selected={form.watch("dateOfBirth")}
                     onSelect={(date) => {
                         form.setValue("dateOfBirth", date || undefined, { shouldValidate: true });
-                        // This hidden input ensures the FormData includes dateOfBirth
                         const hiddenInput = formRef.current?.elements.namedItem('dateOfBirth') as HTMLInputElement | null;
                         if (hiddenInput) {
                             hiddenInput.value = date ? format(date, "yyyy-MM-dd") : "";
@@ -158,11 +166,10 @@ export function RegistrationForm() {
                     toYear={new Date().getFullYear() - 17}
                     disabled={(date) => date > new Date(new Date().setFullYear(new Date().getFullYear() - 17)) || date < new Date("1900-01-01")}
                     initialFocus
-                    locale={IndonesianLocale} // Changed usage
+                    locale={IndonesianLocale}
                   />
                 </PopoverContent>
               </Popover>
-              {/* Hidden input for FormData compatibility with server action */}
               <input type="hidden" id="dateOfBirth" name="dateOfBirth" value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, "yyyy-MM-dd") : ""} />
               {form.formState.errors.dateOfBirth && <p className="text-sm text-destructive">{form.formState.errors.dateOfBirth.message}</p>}
               {state.errors?.dateOfBirth && !form.formState.errors.dateOfBirth && <p className="text-sm text-destructive">{state.errors.dateOfBirth[0]}</p>}
@@ -191,3 +198,5 @@ export function RegistrationForm() {
     </Card>
   );
 }
+
+    
