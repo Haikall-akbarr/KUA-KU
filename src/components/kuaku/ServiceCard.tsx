@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { LucideIcon } from "lucide-react";
@@ -7,11 +8,14 @@ interface ServiceCardProps {
   icon: LucideIcon;
   title: string;
   description: string;
+  isExternal?: boolean;
 }
 
-export function ServiceCard({ slug, icon: Icon, title, description }: ServiceCardProps) {
+export function ServiceCard({ slug, icon: Icon, title, description, isExternal = false }: ServiceCardProps) {
+  const href = isExternal ? `/${slug}` : `/layanan/${slug}`;
+  
   return (
-    <Link href={`/layanan/${slug}`} className="h-full block group">
+    <Link href={href} className="h-full block group">
       <Card className="h-full transform transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
         <CardHeader className="items-center text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">

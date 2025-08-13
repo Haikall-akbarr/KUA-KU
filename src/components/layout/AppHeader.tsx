@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,15 +12,14 @@ import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Menu, Search, Briefcase, Phone, MapPinIcon, MessageSquare, ClipboardPenLine, LogIn, LogOut, UserPlus } from "lucide-react";
+import { Menu, Search, Briefcase, Phone, MapPinIcon, Heart, LogIn, LogOut, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/#services", label: "Layanan", icon: Briefcase, protected: true },
-  { href: "/pendaftaran", label: "No. Pendaftaran", icon: ClipboardPenLine, protected: true },
+  { href: "/daftar-nikah", label: "Daftar Nikah", icon: Heart, protected: true },
   { href: "/#contact", label: "Kontak", icon: Phone, protected: true },
   { href: "/#map", label: "Lokasi", icon: MapPinIcon, protected: true },
-  { href: "/#inquire", label: "Tanya Kami", icon: MessageSquare, protected: true },
 ];
 
 const authNavItems = {

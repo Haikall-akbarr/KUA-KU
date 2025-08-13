@@ -13,6 +13,7 @@ import {
   FileEdit,
   FileCheck2,
   type LucideIcon,
+  Heart,
 } from "lucide-react";
 
 export interface Service {
@@ -20,6 +21,7 @@ export interface Service {
   icon: LucideIcon;
   title: string;
   description: string;
+  isExternal?: boolean;
   details?: {
     subtitle?: string;
     sections: {
@@ -35,7 +37,7 @@ export const services: Service[] = [
     slug: "rekomendasi-nikah-pria",
     icon: UserCheck,
     title: "Rekomendasi Nikah (Pria)",
-    description: "Layanan penerbitan surat rekomendasi nikah untuk calon pengantin pria.",
+    description: "Penerbitan surat rekomendasi nikah untuk calon pengantin pria.",
     details: {
       subtitle: "Surat rekomendasi nikah untuk calon pengantin pria yang akan melangsungkan pernikahan di luar wilayah kecamatan tempat tinggalnya.",
       sections: [
@@ -95,7 +97,7 @@ export const services: Service[] = [
     slug: "rekomendasi-nikah-wanita",
     icon: UserCheck2,
     title: "Rekomendasi Nikah (Wanita)",
-    description: "Layanan penerbitan surat rekomendasi nikah untuk calon pengantin wanita.",
+    description: "Penerbitan surat rekomendasi nikah untuk calon pengantin wanita.",
     details: {
       subtitle: "Surat rekomendasi nikah untuk calon pengantin wanita yang akan melangsungkan pernikahan di luar wilayah kecamatan tempat tinggalnya.",
       sections: [
@@ -139,6 +141,13 @@ export const services: Service[] = [
           }
       ],
     },
+  },
+   {
+    slug: "daftar-nikah",
+    icon: Heart,
+    title: "Daftar Nikah Online",
+    description: "Ambil nomor antrean pendaftaran nikah Anda secara online.",
+    isExternal: true, // This indicates it's a link to a page within the app
   },
   {
     slug: "syarat-dan-alur-pendaftaran-nikah",
