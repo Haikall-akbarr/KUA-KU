@@ -1,25 +1,34 @@
-
 "use client";
 
 import Link from "next/link";
 import type { MouseEvent } from "react";
 import { useState, useEffect } from "react";
-import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
+import { usePathname, useRouter } from 'next/navigation';
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Menu, Search, Briefcase, Phone, MapPinIcon, MessageSquare, ClipboardPenLine } from "lucide-react";
+import { Menu, Search, Briefcase, Phone, MapPinIcon, MessageSquare, ClipboardPenLine, LogIn, LogOut, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/#services", label: "Layanan", icon: Briefcase },
-  { href: "/pendaftaran", label: "No. Pendaftaran", icon: ClipboardPenLine },
-  { href: "/#contact", label: "Kontak", icon: Phone },
-  { href: "/#map", label: "Lokasi", icon: MapPinIcon },
-  { href: "/#inquire", label: "Tanya Kami", icon: MessageSquare },
+  { href: "/#services", label: "Layanan", icon: Briefcase, protected: true },
+  { href: "/pendaftaran", label: "No. Pendaftaran", icon: ClipboardPenLine, protected: true },
+  { href: "/#contact", label: "Kontak", icon: Phone, protected: true },
+  { href: "/#map", label: "Lokasi", icon: MapPinIcon, protected: true },
+  { href: "/#inquire", label: "Tanya Kami", icon: MessageSquare, protected: true },
 ];
 
+const authNavItems = {
+  login: { href: "/login", label: "Login", icon: LogIn },
+  register: { href: "/register", label: "Register", icon: UserPlus },
+};
+
 export function AppHeader() {
+  const { user } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,42 +47,44 @@ export function AppHeader() {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery(""); // Clear input after search
+      setSearchQuery("");
       if (isMobileSheetOpen) {
-        setIsMobileSheetOpen(false); // Close mobile sheet if open
+        setIsMobileSheetOpen(false);
       }
     }
   };
   
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
+
   const NavLink = ({ href, children, onClick: providedOnClick, className }: { href: string, children: React.ReactNode, onClick?: () => void, className?: string }) => {
     const handleLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
       const isHomepage = pathname === '/';
-      const isHashLinkToHomepageSection = href.startsWith("/#") || href.startsWith("#");
-      let targetHref = href;
+      const isHashLink = href.startsWith("#") || href.startsWith("/#");
 
-      if (href.startsWith("/#")) { // For links like /#services
-         targetHref = href.substring(1); // Convert to #services
-      }
-
-      if (isHomepage && isHashLinkToHomepageSection) {
+      if (isHomepage && isHashLink) {
         e.preventDefault();
-        const targetId = targetHref.substring(1); // Remove #
+        const targetId = href.startsWith('/#') ? href.substring(2) : href.substring(1);
         const targetElement = document.getElementById(targetId);
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: "smooth" });
         }
+      } else if (isHashLink) {
+        const targetId = href.startsWith('/#') ? href.substring(2) : href.substring(1);
+        router.push('/#' + targetId);
       }
-      // If not on homepage and it's a hash link to homepage, Next.js Link handles full navigation.
-      // If it's a direct page link (e.g., /pendaftaran), Next.js Link handles it.
-
+      // For non-hash links, Next.js Link default behavior is sufficient.
+      
       if (providedOnClick) {
-        providedOnClick(); // For closing mobile sheet etc.
+        providedOnClick();
       }
     };
     
     return (
       <Link
-        href={href} // Use original href for NextLink navigation
+        href={href}
         onClick={handleLinkClick}
         className={cn(
           "text-sm font-medium transition-colors hover:text-primary",
@@ -85,6 +96,46 @@ export function AppHeader() {
     );
   };
 
+  const renderNavItems = (isMobile = false) => {
+    const linkClass = isMobile ? "flex items-center gap-3 py-2 text-base" : "";
+    
+    if (user) {
+      return (
+        <>
+          {navItems.map((item) => (
+            <NavLink key={item.href} href={item.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
+              {isMobile && <item.icon className="h-5 w-5 text-primary" />}
+              {item.label}
+            </NavLink>
+          ))}
+          {isMobile ? (
+            <button onClick={() => { handleLogout(); setIsMobileSheetOpen(false); }} className={cn("flex items-center gap-3 py-2 text-base text-sm font-medium transition-colors hover:text-primary", linkClass)}>
+              <LogOut className="h-5 w-5 text-primary" />
+              Logout
+            </button>
+          ) : (
+            <Button onClick={handleLogout} variant="outline" size="sm">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          )}
+        </>
+      );
+    }
+    
+    return (
+      <>
+        <NavLink href={authNavItems.login.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
+          {isMobile && <authNavItems.login.icon className="h-5 w-5 text-primary" />}
+          {authNavItems.login.label}
+        </NavLink>
+        <NavLink href={authNavItems.register.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
+          {isMobile && <authNavItems.register.icon className="h-5 w-5 text-primary" />}
+          {authNavItems.register.label}
+        </NavLink>
+      </>
+    );
+  };
 
   return (
     <header
@@ -101,22 +152,20 @@ export function AppHeader() {
         </Link>
 
         <nav className="hidden items-center gap-4 md:flex">
-          {navItems.map((item) => (
-            <NavLink key={item.href} href={item.href}>
-              {item.label}
-            </NavLink>
-          ))}
-          <form onSubmit={handleSearchSubmit} className="relative ml-4">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <Input
-              type="search"
-              placeholder="Cari informasi..."
-              className="h-9 w-full rounded-md bg-secondary/50 pl-9 pr-3 text-sm md:w-[200px] lg:w-[250px]"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button type="submit" className="sr-only">Cari</button>
-          </form>
+          {renderNavItems()}
+          {user && (
+            <form onSubmit={handleSearchSubmit} className="relative ml-4">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Input
+                type="search"
+                placeholder="Cari informasi..."
+                className="h-9 w-full rounded-md bg-secondary/50 pl-9 pr-3 text-sm md:w-[200px] lg:w-[250px]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button type="submit" className="sr-only">Cari</button>
+            </form>
+          )}
         </nav>
 
         <div className="md:hidden">
@@ -142,24 +191,21 @@ export function AppHeader() {
                 </SheetClose>
               </div>
               <nav className="flex flex-col gap-4">
-                {navItems.map((item) => (
-                  <NavLink key={item.href} href={item.href} onClick={() => setIsMobileSheetOpen(false)} className="flex items-center gap-3 py-2 text-base">
-                    <item.icon className="h-5 w-5 text-primary" />
-                    {item.label}
-                  </NavLink>
-                ))}
+                {renderNavItems(true)}
               </nav>
-              <form onSubmit={handleSearchSubmit} className="relative mt-6">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                <Input
-                  type="search"
-                  placeholder="Cari informasi..."
-                  className="h-10 w-full rounded-md bg-secondary/50 pl-9 pr-3"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button type="submit" className="sr-only">Cari</button>
-              </form>
+              {user && (
+                <form onSubmit={handleSearchSubmit} className="relative mt-6">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <Input
+                    type="search"
+                    placeholder="Cari informasi..."
+                    className="h-10 w-full rounded-md bg-secondary/50 pl-9 pr-3"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button type="submit" className="sr-only">Cari</button>
+                </form>
+              )}
             </SheetContent>
           </Sheet>
         </div>
