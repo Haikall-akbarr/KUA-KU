@@ -1,29 +1,20 @@
 import { initializeApp, getApps, getApp, type FirebaseOptions } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import 'dotenv/config';
 
+// Your web app's Firebase configuration
 const firebaseConfig: FirebaseOptions = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  apiKey: "AIzaSyCo0XRQ345GIU2xe9PhWUv8HpB3jF15jhM",
+  authDomain: "kuaku-uvgqp.firebaseapp.com",
+  databaseURL: "https://kuaku-uvgqp-default-rtdb.firebaseio.com",
+  projectId: "kuaku-uvgqp",
+  storageBucket: "kuaku-uvgqp.appspot.com",
+  messagingSenderId: "1049582033703",
+  appId: "1:1049582033703:web:b39f1d44035366e826e702"
 };
 
-function isFirebaseConfigValid(config: FirebaseOptions): boolean {
-  return !!(config.apiKey && 
-          config.authDomain && 
-          config.projectId && 
-          config.storageBucket && 
-          config.messagingSenderId && 
-          config.appId);
-}
 
-const app = isFirebaseConfigValid(firebaseConfig) 
-  ? !getApps().length ? initializeApp(firebaseConfig) : getApp() 
-  : null;
-
-const auth = app ? getAuth(app) : null;
+// Initialize Firebase
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(app);
 
 export { app, auth };
