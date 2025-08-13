@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only subscribe if auth object is not null
+    // Only subscribe if auth object was successfully initialized
     if (auth) {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         setUser(user);
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       return () => unsubscribe();
     } else {
-      // If auth is null, stop loading and proceed without a user.
+      // If auth is null (e.g. config is missing), stop loading and proceed without a user.
       setLoading(false);
     }
   }, []);

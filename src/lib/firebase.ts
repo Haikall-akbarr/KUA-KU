@@ -11,7 +11,6 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Function to check if all required config values are present
 function isFirebaseConfigValid(config: FirebaseOptions): boolean {
   return !!(config.apiKey && 
           config.authDomain && 
@@ -21,14 +20,10 @@ function isFirebaseConfigValid(config: FirebaseOptions): boolean {
           config.appId);
 }
 
-// Initialize Firebase
-const app = !getApps().length && isFirebaseConfigValid(firebaseConfig)
-  ? initializeApp(firebaseConfig)
-  : (getApps().length > 0 ? getApp() : null);
+const app = isFirebaseConfigValid(firebaseConfig) 
+  ? !getApps().length ? initializeApp(firebaseConfig) : getApp() 
+  : null;
 
-
-// Initialize Auth only if the app was successfully initialized
 const auth = app ? getAuth(app) : null;
 
-// Export app and auth. The consuming code should handle the null case for auth.
 export { app, auth };
