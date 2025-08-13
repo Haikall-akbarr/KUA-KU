@@ -20,12 +20,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    // Only subscribe if auth object is not null
+    if (auth) {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setUser(user);
+        setLoading(false);
+      });
+      return () => unsubscribe();
+    } else {
+      // If auth is null, stop loading and proceed without a user.
       setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
   }, []);
 
   if (loading) {
