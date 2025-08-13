@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { id as IndonesianLocale } from 'date-fns/locale';
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ function SubmitButton() {
 }
 
 export function RegistrationForm() {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [dateOfBirthOpen, setDateOfBirthOpen] = React.useState(false);
   const { toast } = useToast();
@@ -65,41 +67,31 @@ export function RegistrationForm() {
       phoneNumber: "",
       email: "",
     },
-    // Keep form values even if defaultValues change after submission, unless reset explicitly
-    resetOptions: {
-      keepDirtyValues: true, // This might be relevant if defaultValues were dynamic
-    },
   });
 
   useEffect(() => {
     if (state.message) {
-      if (state.success) {
+      if (state.success && state.data && state.registrationNumber) {
         toast({
           title: "Berhasil!",
-          description: (
-            <>
-              {state.message}
-              {state.registrationNumber && (
-                <>
-                  <br />
-                  Nomor Pendaftaran Anda: <strong className="font-bold text-primary">{state.registrationNumber}</strong>
-                  <br/>Harap simpan nomor ini baik-baik.
-                </>
-              )}
-            </>
-          ),
+          description: state.message,
           variant: "default",
         });
-        form.reset(); // Reset react-hook-form state
-        // formRef.current?.reset(); // Remove native form reset, rely on RHF reset
-      } else {
+
+        // Redirect to success page with data
+        const params = new URLSearchParams({
+          ...state.data,
+          registrationNumber: state.registrationNumber,
+        });
+        router.push(`/pendaftaran/sukses?${params.toString()}`);
+        
+        form.reset(); 
+      } else if (!state.success) {
         toast({
           title: "Gagal Mendaftar",
           description: state.message + (state.errors?._form ? ` ${state.errors._form.join(', ')}` : ''),
           variant: "destructive",
         });
-        // Ensure server-side errors are set to react-hook-form to be displayed
-        // and to mark fields as erroneous, which might help with visual state.
         if (state.errors) {
           Object.keys(state.errors).forEach((key) => {
             const fieldName = key as keyof FormData;
@@ -111,7 +103,7 @@ export function RegistrationForm() {
         }
       }
     }
-  }, [state, toast, form]);
+  }, [state, toast, form, router]);
 
   return (
     <Card className="max-w-2xl mx-auto shadow-lg">
@@ -169,7 +161,6 @@ export function RegistrationForm() {
                     selected={form.watch("dateOfBirth")}
                     onSelect={(date) => {
                         form.setValue("dateOfBirth", date || undefined, { shouldValidate: true });
-                        // The hidden input will update automatically due to form.watch below
                         setDateOfBirthOpen(false);
                     }}
                     captionLayout="dropdown-buttons"
@@ -181,10 +172,8 @@ export function RegistrationForm() {
                   />
                 </PopoverContent>
               </Popover>
-              {/* This hidden input sends the date to the server action, its value is reactive to form.watch */}
-              <input type="hidden" {...form.register("dateOfBirth")} value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, "yyyy-MM-dd") : ""} />
+              <input type="hidden" name="dateOfBirth" value={form.watch("dateOfBirth") ? format(form.watch("dateOfBirth")!, "yyyy-MM-dd") : ""} />
               {form.formState.errors.dateOfBirth && <p className="text-sm text-destructive">{form.formState.errors.dateOfBirth.message}</p>}
-              {/* Show server error for dateOfBirth if not already shown by client validation */}
               {state.errors?.dateOfBirth && !form.formState.errors.dateOfBirth && <p className="text-sm text-destructive">{state.errors.dateOfBirth[0]}</p>}
             </div>
           </div>
@@ -211,5 +200,3 @@ export function RegistrationForm() {
     </Card>
   );
 }
-
-    

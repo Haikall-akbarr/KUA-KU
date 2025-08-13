@@ -13,6 +13,8 @@ const registrationFormSchema = z.object({
   email: z.string().email({ message: "Format email tidak valid." }),
 });
 
+export type RegistrationFormData = z.infer<typeof registrationFormSchema>;
+
 export type RegistrationFormState = {
   message: string;
   errors?: {
@@ -26,6 +28,7 @@ export type RegistrationFormState = {
   };
   success: boolean;
   registrationNumber?: string;
+  data?: RegistrationFormData & { dateOfBirth: string }; // Return string date
 };
 
 export async function submitRegistrationForm(
@@ -36,7 +39,6 @@ export async function submitRegistrationForm(
     fullName: formData.get("fullName"),
     nik: formData.get("nik"),
     placeOfBirth: formData.get("placeOfBirth"),
-    // Ensure dateOfBirth is parsed correctly, it comes as YYYY-MM-DD string from FormData
     dateOfBirth: formData.get("dateOfBirth") ? new Date(formData.get("dateOfBirth") as string) : undefined,
     phoneNumber: formData.get("phoneNumber"),
     email: formData.get("email"),
@@ -60,9 +62,13 @@ export async function submitRegistrationForm(
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     return {
-      message: "Pendaftaran Anda berhasil! Nomor pendaftaran Anda telah diterbitkan.",
+      message: "Pendaftaran Anda berhasil! Silakan unduh bukti pendaftaran Anda.",
       success: true,
       registrationNumber: registrationNumber,
+      data: {
+        ...validatedFields.data,
+        dateOfBirth: format(validatedFields.data.dateOfBirth, 'yyyy-MM-dd'),
+      }
     };
   } catch (error) {
     console.error("Error generating registration number:", error);
