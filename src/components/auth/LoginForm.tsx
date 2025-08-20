@@ -20,7 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 const loginSchema = z.object({
   email: z.string().email({ message: 'Format email tidak valid.' }),
   password: z.string().min(6, { message: 'Password minimal 6 karakter.' }),
-  remember: z.boolean().default(false),
+  remember: z.boolean().optional().default(false),
 });
 
 type LoginInputs = z.infer<typeof loginSchema>;
@@ -117,7 +117,7 @@ export function LoginForm() {
             htmlFor="remember"
             className="text-sm font-medium leading-none text-gray-600 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Saya bukan robot
+            Ingat Saya
           </label>
         </div>
 
