@@ -51,7 +51,8 @@ export function LoginForm() {
       router.refresh(); 
     } catch (error: any) {
       let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      // This single check handles user-not-found, wrong-password, etc.
+      if (error.code === 'auth/invalid-credential') {
         errorMessage = 'Email atau password yang Anda masukkan salah.';
       } else if (error.code === 'auth/configuration-not-found') {
           errorMessage = 'Konfigurasi otentikasi tidak ditemukan. Pastikan metode login Email/Password sudah diaktifkan di Firebase Console.';
