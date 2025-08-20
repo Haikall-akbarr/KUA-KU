@@ -47,8 +47,8 @@ export function LoginForm() {
         title: 'Login Berhasil!',
         description: 'Selamat datang kembali.',
       });
-      // Refresh the page to trigger AuthContext update and redirection
-      router.refresh(); 
+      // Redirect to dashboard after successful login
+      router.push('/'); 
     } catch (error: any) {
       let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
       // This single check handles user-not-found, wrong-password, etc.

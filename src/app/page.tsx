@@ -19,12 +19,13 @@ export default function HomePage() {
 
   useEffect(() => {
     // Jika proses loading selesai dan tidak ada user, alihkan ke halaman login.
+    // Ini adalah fallback jika pengguna mencoba mengakses halaman utama secara langsung.
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
 
-  // Selama loading, tampilkan spinner atau null agar tidak ada konten yang bocor.
+  // Selama loading atau jika tidak ada user (sebelum redirect), tampilkan spinner.
   if (loading || !user) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
