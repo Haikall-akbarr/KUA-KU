@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppFooter } from "@/components/layout/AppFooter";
-import { MarriageRegistrationForm } from "@/components/kuakua/MarriageRegistrationForm";
+import { MarriageRegistrationForm } from "@/components/kuaku/MarriageRegistrationForm";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 
 export const metadata: Metadata = {
