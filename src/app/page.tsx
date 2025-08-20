@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -10,22 +11,29 @@ import { ContactInfo } from "@/components/kuaku/ContactInfo";
 import { MapPlaceholder } from "@/components/kuaku/MapPlaceholder";
 import { ContactForm } from "@/components/kuaku/ContactForm";
 import { HeroSection } from "@/components/kuaku/HeroSection";
+import { Loader2 } from 'lucide-react';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    // Jika proses loading selesai dan tidak ada user, alihkan ke halaman login.
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
 
+  // Selama loading, tampilkan spinner atau null agar tidak ada konten yang bocor.
   if (loading || !user) {
-    // You can show a loading spinner here
-    return null;
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
   }
   
+  // Jika user sudah login, tampilkan halaman utama.
   return (
     <div className="flex min-h-screen flex-col">
       <AppHeader />
