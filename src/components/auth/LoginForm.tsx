@@ -44,14 +44,17 @@ export function LoginForm() {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({
-        title: 'Berhasil!',
-        description: 'Anda berhasil login.',
+        title: 'Login Berhasil!',
+        description: 'Selamat datang kembali.',
       });
-      router.push('/');
+      // Refresh the page to trigger AuthContext update and redirection
+      router.refresh(); 
     } catch (error: any) {
       let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         errorMessage = 'Email atau password yang Anda masukkan salah.';
+      } else if (error.code === 'auth/configuration-not-found') {
+          errorMessage = 'Konfigurasi otentikasi tidak ditemukan. Pastikan metode login Email/Password sudah diaktifkan di Firebase Console.';
       }
       toast({
         title: 'Gagal Login',
@@ -111,20 +114,19 @@ export function LoginForm() {
           {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Checkbox id="remember" {...register('remember')} />
-          <label
-            htmlFor="remember"
-            className="text-sm font-medium leading-none text-gray-600 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            Ingat Saya
-          </label>
-        </div>
-
-        <div className="text-right">
-          <Link href="#" className="text-sm font-medium text-blue-600 hover:underline">
-            Lupa Password?
-          </Link>
+        <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+                <Checkbox id="remember" {...register('remember')} />
+                <label
+                    htmlFor="remember"
+                    className="text-sm font-medium leading-none text-gray-600 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                    Ingat Saya
+                </label>
+            </div>
+            <Link href="#" className="text-sm font-medium text-blue-600 hover:underline">
+                Lupa Password?
+            </Link>
         </div>
         
         <div className="flex items-center gap-4 pt-2">
