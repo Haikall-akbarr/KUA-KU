@@ -24,7 +24,7 @@ export function HeroSection() {
         <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
           <div className="animate-fadeInFromBottom space-y-6 text-center md:text-left opacity-0" style={{animationDelay: '0.1s', animationFillMode: 'forwards'}}>
             <h1 className="font-headline text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-              Selamat Datang di <span className="text-primary">KUA Banjarmasin Utara</span>
+              Selamat Datang di <span className="text-primary">KUA BANTARA</span>
             </h1>
             <p className="text-lg text-foreground/80 md:text-xl">
               Pusat layanan informasi terpadu untuk kebutuhan Anda. Kami siap melayani dengan hati.
