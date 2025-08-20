@@ -18,8 +18,8 @@ const contactItems = [
   {
     icon: Mail,
     label: "Email",
-    value: "info@kuaku.go.id",
-    href: "mailto:info@kuaku.go.id",
+    value: "info@kua-banjarmasinutara.go.id",
+    href: "mailto:info@kua-banjarmasinutara.go.id",
   },
 ];
 

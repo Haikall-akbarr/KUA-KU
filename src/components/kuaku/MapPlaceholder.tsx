@@ -4,13 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export function MapPlaceholder() {
   return (
-    <SectionWrapper id="map" title="Temukan Kami" subtitle="Lokasi Kantor KUAKU">
+    <SectionWrapper id="map" title="Temukan Kami" subtitle="Lokasi Kantor KUA Banjarmasin Utara">
       <Card className="overflow-hidden shadow-lg">
         <CardContent className="p-0">
           <div className="aspect-w-16 aspect-h-6 md:aspect-h-5">
             <Image
               src="https://placehold.co/1200x400.png"
-              alt="Peta Lokasi KUAKU"
+              alt="Peta Lokasi KUA Banjarmasin Utara"
               layout="fill"
               objectFit="cover"
               data-ai-hint="city roadmap"

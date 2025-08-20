@@ -78,7 +78,7 @@ export function RegistrationProof() {
         <Card ref={proofRef} className="shadow-lg p-4">
             <CardHeader className="text-center border-b pb-4">
                 <h1 className="font-headline text-2xl font-bold text-primary">TANDA BUKTI PENDAFTARAN</h1>
-                <p className="text-muted-foreground">Layanan Online KUAKU</p>
+                <p className="text-muted-foreground">Layanan Online KUA Banjarmasin Utara</p>
             </CardHeader>
             <CardContent className="pt-6">
                 <div className="space-y-4">
