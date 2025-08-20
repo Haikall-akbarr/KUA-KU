@@ -1,11 +1,12 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 
 export const metadata: Metadata = {
-  title: 'KUAKU - Layanan Informasi Terpadu',
-  description: 'Selamat datang di KUAKU. Temukan informasi layanan, kontak, dan lainnya.',
+  title: 'KUA Banjarmasin Utara - Layanan Informasi Terpadu',
+  description: 'Selamat datang di KUA Banjarmasin Utara. Temukan informasi layanan, kontak, dan lainnya.',
   icons: null,
 };
 

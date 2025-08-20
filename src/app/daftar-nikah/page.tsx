@@ -2,11 +2,11 @@
 import type { Metadata } from 'next';
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppFooter } from "@/components/layout/AppFooter";
-import { MarriageRegistrationForm } from "@/components/kuaku/MarriageRegistrationForm";
+import { MarriageRegistrationForm } from "@/components/kuakua/MarriageRegistrationForm";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 
 export const metadata: Metadata = {
-  title: 'Daftar Nikah Online - KUAKU',
+  title: 'Daftar Nikah Online - KUA Banjarmasin Utara',
   description: 'Lengkapi data diri Anda dan pasangan untuk mendapatkan nomor antrean pendaftaran nikah.',
 };
 
@@ -18,7 +18,7 @@ export default function DaftarNikahPage() {
         <SectionWrapper 
             id="marriage-registration" 
             title="Pendaftaran Nikah Online" 
-            subtitle="Layanan Online KUA"
+            subtitle="Layanan Online KUA Banjarmasin Utara"
             className="pt-8 md:pt-12"
             hasAnimation={false}
         >

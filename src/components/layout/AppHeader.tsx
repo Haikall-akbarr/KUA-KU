@@ -146,8 +146,8 @@ export function AppHeader() {
     >
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <span className="font-headline text-2xl font-bold text-primary">
-            KUAKU
+          <span className="font-headline text-xl font-bold text-primary">
+            KUA Banjarmasin Utara
           </span>
         </Link>
 
@@ -179,8 +179,8 @@ export function AppHeader() {
             <SheetContent side="right" className="w-[280px] bg-background p-6">
               <div className="mb-6 flex items-center justify-between">
                 <Link href="/" onClick={() => setIsMobileSheetOpen(false)}>
-                  <span className="font-headline text-xl font-bold text-primary">
-                    KUAKU
+                  <span className="font-headline text-lg font-bold text-primary">
+                    KUA Banjarmasin Utara
                   </span>
                 </Link>
                 <SheetClose asChild>

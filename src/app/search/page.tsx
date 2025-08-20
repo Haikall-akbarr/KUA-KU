@@ -61,7 +61,7 @@ export default function SearchPage() {
               type="search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari informasi di KUAKU..."
+              placeholder="Cari informasi di KUA Banjarmasin Utara..."
               className="flex-grow rounded-r-none focus:ring-primary"
               aria-label="Kata kunci pencarian"
             />

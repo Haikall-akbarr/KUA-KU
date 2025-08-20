@@ -14,7 +14,7 @@ export const searchableData: SearchableItem[] = [
   {
     id: 'hero-main',
     category: 'Informasi Umum',
-    title: 'Selamat Datang di KUAKU',
+    title: 'Selamat Datang di KUA Banjarmasin Utara',
     content: 'Pusat layanan informasi terpadu untuk kebutuhan Anda. Kami siap melayani dengan hati.',
     link: '/#hero',
     keywords: ['beranda', 'selamat datang', 'layanan utama', 'informasi'],
@@ -56,7 +56,7 @@ export const searchableData: SearchableItem[] = [
   {
     id: 'contact-alamat',
     category: 'Kontak',
-    title: 'Alamat Kantor KUAKU',
+    title: 'Alamat Kantor KUA Banjarmasin Utara',
     content: 'Jl. Cinta Damai No. 123, Kota Kasih, Indonesia',
     link: '/#contact',
     keywords: ['alamat', 'kantor', 'kontak kami'],
@@ -64,7 +64,7 @@ export const searchableData: SearchableItem[] = [
   {
     id: 'contact-telepon',
     category: 'Kontak',
-    title: 'Nomor Telepon KUAKU',
+    title: 'Nomor Telepon KUA Banjarmasin Utara',
     content: '(021) 123-4567',
     link: '/#contact',
     keywords: ['telepon', 'nomor kontak', 'hubungi kami'],
@@ -72,8 +72,8 @@ export const searchableData: SearchableItem[] = [
   {
     id: 'contact-email',
     category: 'Kontak',
-    title: 'Alamat Email KUAKU',
-    content: 'info@kuaku.go.id',
+    title: 'Alamat Email KUA Banjarmasin Utara',
+    content: 'info@kua-banjarmasinutara.go.id',
     link: '/#contact',
     keywords: ['email', 'alamat email', 'surel'],
   },
@@ -89,7 +89,7 @@ export const searchableData: SearchableItem[] = [
   {
     id: 'map-lokasi',
     category: 'Lokasi',
-    title: 'Lokasi Kantor KUAKU di Peta',
+    title: 'Lokasi Kantor KUA Banjarmasin Utara di Peta',
     content: 'Temukan kami di Jl. Cinta Damai No. 123. Lihat peta untuk detail.',
     link: '/#map',
     keywords: ['peta', 'lokasi kantor', 'denah'],
@@ -108,7 +108,7 @@ export const searchableData: SearchableItem[] = [
     id: 'pendaftaran-main',
     category: 'Pendaftaran',
     title: 'Pengambilan Nomor Pendaftaran Online',
-    content: 'Lengkapi data diri Anda untuk mendapatkan nomor pendaftaran layanan KUAKU.',
+    content: 'Lengkapi data diri Anda untuk mendapatkan nomor pendaftaran layanan KUA Banjarmasin Utara.',
     link: '/pendaftaran',
     keywords: ['daftar online', 'nomor antrian', 'registrasi'],
   },

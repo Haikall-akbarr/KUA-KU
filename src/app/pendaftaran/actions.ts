@@ -57,7 +57,7 @@ export async function submitRegistrationForm(
   try {
     const datePart = format(new Date(), 'yyyyMMddHHmmss');
     const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
-    const registrationNumber = `KUAKU-REG-${datePart}-${randomPart}`;
+    const registrationNumber = `KUA-BU-REG-${datePart}-${randomPart}`;
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 

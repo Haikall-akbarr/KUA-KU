@@ -2,13 +2,13 @@
 import type { Metadata } from 'next';
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppFooter } from "@/components/layout/AppFooter";
-import { RegistrationProof } from "@/components/kuaku/RegistrationProof";
+import { RegistrationProof } from "@/components/kuakua/RegistrationProof";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Pendaftaran Berhasil - KUAKU',
-  description: 'Bukti pendaftaran layanan online KUAKU.',
+  title: 'Pendaftaran Berhasil - KUA Banjarmasin Utara',
+  description: 'Bukti pendaftaran layanan online KUA Banjarmasin Utara.',
 };
 
 function ProofPageContent() {
