@@ -9,12 +9,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { Loader2, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 
 const registerSchema = z.object({
   fullName: z.string().min(3, { message: 'Nama lengkap minimal 3 karakter.' }),
@@ -28,7 +29,6 @@ export function RegisterForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -74,77 +74,59 @@ export function RegisterForm() {
   };
 
   return (
-    <div className="w-full max-w-md">
-       <div className="mb-8 text-left">
-        <h1 className="text-3xl font-bold text-gray-800">DAFTAR AKUN BARU</h1>
-        <p className="mt-2 text-gray-500">Isi data di bawah untuk membuat akun</p>
-      </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="fullName" className="sr-only">Nama Lengkap</Label>
-           <div className="relative">
-             <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-            <Input
-              id="fullName"
-              type="text"
-              placeholder="Nama Lengkap Anda"
-              {...register('fullName')}
-              disabled={isLoading}
-              className="pl-10 h-12"
-            />
-          </div>
-          {errors.fullName && <p className="text-sm text-destructive">{errors.fullName.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email" className="sr-only">Email</Label>
-           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="nama@email.com"
-              {...register('email')}
-              disabled={isLoading}
-              className="pl-10 h-12"
-            />
-          </div>
-          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password" className="sr-only">Password</Label>
-           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Minimal 6 karakter"
-              {...register('password')}
-              disabled={isLoading}
-              className="pl-10 pr-10 h-12"
-            />
-             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
-          </div>
-          {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
-        </div>
-        <div className="pt-2">
-          <Button type="submit" className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-base font-bold" disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'DAFTAR'}
-          </Button>
-        </div>
-         <p className="text-center text-sm text-muted-foreground pt-4">
+    <Card className="w-full max-w-md">
+       <CardHeader>
+        <CardTitle className="text-2xl font-bold">Daftar Akun Baru</CardTitle>
+        <CardDescription>Isi data di bawah untuk membuat akun</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="fullName">Nama Lengkap</Label>
+                <Input
+                id="fullName"
+                type="text"
+                placeholder="Nama Lengkap Anda"
+                {...register('fullName')}
+                disabled={isLoading}
+                />
+                {errors.fullName && <p className="text-sm text-destructive">{errors.fullName.message}</p>}
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                id="email"
+                type="email"
+                placeholder="nama@email.com"
+                {...register('email')}
+                disabled={isLoading}
+                />
+                {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                id="password"
+                type="password"
+                placeholder="Minimal 6 karakter"
+                {...register('password')}
+                disabled={isLoading}
+                />
+                {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Daftar'}
+            </Button>
+        </form>
+      </CardContent>
+      <CardFooter>
+         <p className="w-full text-center text-sm text-muted-foreground">
             Sudah punya akun?{' '}
-            <Link href="/login" className="font-semibold text-blue-600 hover:underline">
+            <Link href="/login" className="font-semibold text-primary hover:underline">
               Masuk di sini
             </Link>
           </p>
-      </form>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
