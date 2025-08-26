@@ -581,17 +581,10 @@ export function MultiStepMarriageForm() {
 
     const delta = currentStep - previousStep;
 
-    const onSubmit = (data: FullFormData) => {
-        const formData = new FormData();
-        Object.entries(data).forEach(([key, value]) => {
-            if (value) {
-                if (value instanceof Date) formData.append(key, value.toISOString().split('T')[0]);
-                else if (value instanceof File) formData.append(key, value);
-                else formData.append(key, String(value));
-            }
-        });
+    const processForm = (formData: FormData) => {
+        // Here we can transform the data if needed before calling the action
         formAction(formData);
-    }
+    };
     
     return (
         <Card className="w-full max-w-5xl mx-auto shadow-lg">
@@ -618,7 +611,11 @@ export function MultiStepMarriageForm() {
                 </div>
                  <Separator className="my-8"/>
                  <FormProvider {...methods}>
-                    <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
+                    <form
+                        ref={formRef}
+                        action={processForm}
+                        onSubmit={handleSubmit(() => formRef.current?.requestSubmit())}
+                     >
                          <AnimatePresence mode="wait">
                             <motion.div
                                 key={currentStep}
