@@ -33,7 +33,6 @@ export function MarriageProof() {
     brideFullName: searchParams.get('brideFullName'),
     weddingDate: searchParams.get('weddingDate'),
     weddingTime: searchParams.get('weddingTime'),
-    kua: searchParams.get('kua'),
     weddingLocation: searchParams.get('weddingLocation'),
   };
 
@@ -48,14 +47,13 @@ export function MarriageProof() {
     const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        logging: true, // Enable logging for debugging
+        logging: true,
         windowWidth: element.scrollWidth,
         windowHeight: element.scrollHeight,
     });
     
     const imgData = canvas.toDataURL('image/png');
     
-    // Calculate PDF dimensions to maintain aspect ratio
     const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
@@ -84,8 +82,8 @@ export function MarriageProof() {
                           <DetailItem label="Calon Suami" value={registrationData.groomFullName} />
                           <DetailItem label="Calon Istri" value={registrationData.brideFullName} />
                           <DetailItem label="Tanggal Akad" value={formattedWeddingDate} />
-                          <DetailItem label="Waktu Akad" value={registrationData.weddingTime} />
-                          <DetailItem label="KUA Pendaftaran" value={registrationData.kua} />
+                          <DetailItem label="Waktu Akad" value={registrationData.weddingTime ? `${registrationData.weddingTime} WITA` : '-'} />
+                          <DetailItem label="KUA Pendaftaran" value="KUA Banjarmasin Utara" />
                           <DetailItem label="Lokasi Akad Nikah" value={registrationData.weddingLocation} />
                       </dl>
                   </div>

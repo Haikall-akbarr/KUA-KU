@@ -8,8 +8,9 @@ import { MarriageProof } from "@/components/kuaku/MarriageProof";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 import { Suspense } from 'react';
 
-// Metadata is now static as we are on the client
-const metadata: Metadata = {
+// Metadata cannot be generated dynamically on the client side.
+// It must be static if the component is a client component.
+const staticMetadata = {
   title: 'Pendaftaran Nikah Berhasil - KUA Banjarmasin Utara',
   description: 'Bukti pendaftaran antrean nikah online KUA Banjarmasin Utara.',
 };
