@@ -29,7 +29,7 @@ import { Loader2, CalendarIcon, User, Users, FileText, CheckCircle, Info, MapPin
 const steps = [
     { id: "01", name: "Jadwal & Lokasi", fields: ['province', 'city', 'district', 'kua', 'weddingLocation', 'weddingDate', 'weddingTime', 'dispensationNumber'] },
     { id: "02", name: "Calon Suami", fields: ['groomFullName', 'groomNik', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomAddress', 'groomPhoneNumber'] },
-    { id:A: "03", name: "Calon Istri", fields: ['brideFullName', 'brideNik', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideAddress', 'bridePhoneNumber'] },
+    { id: "03", name: "Calon Istri", fields: ['brideFullName', 'brideNik', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideAddress', 'bridePhoneNumber'] },
     { id: "04", name: "Wali Nikah", fields: ['guardianFullName', 'guardianNik', 'guardianRelationship', 'guardianAddress'] },
     { id: "05", name: "Data Dokumen", fields: ['docGroomPhoto', 'docBridePhoto', 'docGroomKtp', 'docBrideKtp', 'docGroomKk', 'docBrideKk', 'docBirthCertificate'] },
     { id: "06", name: "Ringkasan" },
@@ -75,7 +75,7 @@ const fullSchema = z.object({
     kua: z.string(),
     weddingLocation: z.string({ required_error: "Lokasi nikah wajib dipilih."}),
     weddingDate: z.date({ required_error: "Tanggal akad wajib diisi." }),
-    weddingTime: z_string({ required_error: "Jam akad wajib dipilih."}),
+    weddingTime: z.string({ required_error: "Jam akad wajib dipilih."}),
     dispensationNumber: z.string().optional(),
     
     // Step 2, 3, 4
