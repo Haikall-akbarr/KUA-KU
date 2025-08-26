@@ -13,7 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Search, Briefcase, Phone, MapPinIcon, Heart, LogIn, LogOut, UserPlus } from "lucide-react";
+import { Menu, Search, Briefcase, Phone, MapPinIcon, Heart, LogIn, LogOut, UserPlus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
