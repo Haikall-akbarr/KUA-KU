@@ -141,7 +141,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                         name="weddingLocation"
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <SelectTrigger id="weddingLocation"><SelectValue placeholder="Pilih Lokasi Nikah" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="Di KUA">Di KUA (Pada hari dan jam kerja)</SelectItem>
@@ -185,7 +185,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                         name="weddingTime"
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <SelectTrigger id="weddingTime"><SelectValue placeholder="Pilih Jam Akad" /></SelectTrigger>
                                 <SelectContent>
                                     {Array.from({ length: 10 }, (_, i) => i + 8).map(hour => (
@@ -500,6 +500,23 @@ export function MultiStepMarriageForm() {
             city: 'KOTA BANJARMASIN',
             district: 'BANJARMASIN UTARA',
             kua: 'KUA BANJARMASIN UTARA',
+            weddingLocation: '',
+            weddingTime: '',
+            dispensationNumber: '',
+            groomFullName: '',
+            groomNik: '',
+            groomPlaceOfBirth: '',
+            groomAddress: '',
+            groomPhoneNumber: '',
+            brideFullName: '',
+            brideNik: '',
+            bridePlaceOfBirth: '',
+            brideAddress: '',
+            bridePhoneNumber: '',
+            guardianFullName: '',
+            guardianNik: '',
+            guardianRelationship: '',
+            guardianAddress: '',
         }
     });
 
