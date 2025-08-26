@@ -69,7 +69,7 @@ export function LoginForm() {
         <div className="absolute top-4 right-4">
              <Image 
                 alt="Kementerian Agama Logo"
-                src="/kemenag-logo.png"
+                src="/logo-kemenag.png"
                 width={40}
                 height={40}
              />

@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { MouseEvent } from "react";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from 'next/navigation';
@@ -145,7 +146,14 @@ export function AppHeader() {
       )}
     >
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-3">
+           <Image
+              src="/kemenag-logo.png"
+              alt="Logo Kemenag"
+              width={32}
+              height={32}
+              className="h-8 w-8"
+            />
           <span className="font-headline text-xl font-bold text-primary">
             KUA Banjarmasin Utara
           </span>
@@ -178,7 +186,13 @@ export function AppHeader() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-background p-6">
               <div className="mb-6 flex items-center justify-between">
-                <Link href="/" onClick={() => setIsMobileSheetOpen(false)}>
+                <Link href="/" onClick={() => setIsMobileSheetOpen(false)} className="flex items-center gap-2">
+                   <Image
+                      src="/kemenag-logo.png"
+                      alt="Logo Kemenag"
+                      width={28}
+                      height={28}
+                    />
                   <span className="font-headline text-lg font-bold text-primary">
                     KUA Banjarmasin Utara
                   </span>
