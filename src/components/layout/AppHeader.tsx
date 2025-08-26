@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
 import { Menu, Search, Briefcase, Phone, MapPinIcon, Heart, LogIn, LogOut, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -185,6 +185,7 @@ export function AppHeader() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-background p-6">
+              <SheetTitle className="sr-only">Menu</SheetTitle>
               <div className="mb-6 flex items-center justify-between">
                 <Link href="/" onClick={() => setIsMobileSheetOpen(false)} className="flex items-center gap-2">
                    <Image
@@ -199,7 +200,7 @@ export function AppHeader() {
                 </Link>
                 <SheetClose asChild>
                    <Button variant="ghost" size="icon">
-                    <Menu className="h-6 w-6 rotate-90" />
+                    <X className="h-6 w-6" />
                     <span className="sr-only">Tutup menu</span>
                   </Button>
                 </SheetClose>
