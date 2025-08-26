@@ -1,12 +1,15 @@
 
+'use client';
+
 import type { Metadata } from 'next';
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppFooter } from "@/components/layout/AppFooter";
-import { MarriageProof } from "@/components/kuakua/MarriageProof";
+import { MarriageProof } from "@/components/kuaku/MarriageProof";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 import { Suspense } from 'react';
 
-export const metadata: Metadata = {
+// Metadata is now static as we are on the client
+const metadata: Metadata = {
   title: 'Pendaftaran Nikah Berhasil - KUA Banjarmasin Utara',
   description: 'Bukti pendaftaran antrean nikah online KUA Banjarmasin Utara.',
 };
@@ -31,9 +34,9 @@ function ProofPageContent() {
     );
 }
 
-
 export default function PendaftaranNikahSuksesPage() {
   return (
+    // Suspense wraps the client component that uses useSearchParams
     <Suspense fallback={<div>Memuat bukti pendaftaran...</div>}>
       <ProofPageContent />
     </Suspense>

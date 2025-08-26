@@ -148,7 +148,7 @@ export function AppHeader() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
            <Image
-              src="/kemenag-logo.png"
+              src="/logo-kemenag.png"
               alt="Logo Kemenag"
               width={32}
               height={32}
@@ -189,7 +189,7 @@ export function AppHeader() {
               <div className="mb-6 flex items-center justify-between">
                 <Link href="/" onClick={() => setIsMobileSheetOpen(false)} className="flex items-center gap-2">
                    <Image
-                      src="/kemenag-logo.png"
+                      src="/logo-kemenag.png"
                       alt="Logo Kemenag"
                       width={28}
                       height={28}

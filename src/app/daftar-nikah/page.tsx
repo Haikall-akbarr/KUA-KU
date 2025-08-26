@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppFooter } from "@/components/layout/AppFooter";
-import { MarriageRegistrationForm } from "@/components/kuaku/MarriageRegistrationForm";
+import { MultiStepMarriageForm } from "@/components/kuaku/MultiStepMarriageForm";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default function DaftarNikahPage() {
             className="pt-8 md:pt-12"
             hasAnimation={false}
         >
-          <MarriageRegistrationForm />
+          <MultiStepMarriageForm />
         </SectionWrapper>
       </main>
       <AppFooter />
