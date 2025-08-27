@@ -4,7 +4,7 @@
 import type { MouseEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export function HeroSection() {
   const handleSmoothScroll = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -39,15 +39,11 @@ export function HeroSection() {
             </div>
           </div>
           <div className="animate-fadeInFromBottom relative aspect-[4/3] opacity-0" style={{animationDelay: '0.3s', animationFillMode: 'forwards'}}>
-             <Image
-              src="https://placehold.co/600x450.png"
-              alt="Ilustrasi layanan KUA"
-              layout="fill"
-              objectFit="contain"
-              className="rounded-lg"
-              data-ai-hint="community diverse people"
-              priority
-            />
+             <DotLottieReact
+                src="https://lottie.host/4a50438a-c632-4d28-87a1-125026932454/3y8i9s4h2P.lottie"
+                loop
+                autoplay
+              />
           </div>
         </div>
       </div>
