@@ -1,0 +1,119 @@
+{
+  "description": "JSON schema for the marriage registration endpoint.",
+  "type": "object",
+  "properties": {
+    "weddingLocation": { "type": "string", "description": "Lokasi akad nikah ('Di KUA' atau 'Di Luar KUA')." },
+    "weddingDate": { "type": "string", "format": "date", "description": "Tanggal akad nikah (YYYY-MM-DD)." },
+    "weddingTime": { "type": "string", "description": "Jam akad nikah (HH:MM)." },
+    "dispensationNumber": { "type": "string", "description": "Nomor surat dispensasi dari kecamatan (opsional)." },
+    "groom": {
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string" },
+        "nik": { "type": "string", "pattern": "^\\d{16}$" },
+        "citizenship": { "type": "string", "enum": ["WNI", "WNA"] },
+        "passportNumber": { "type": "string", "description": "Wajib jika WNA." },
+        "placeOfBirth": { "type": "string" },
+        "dateOfBirth": { "type": "string", "format": "date" },
+        "status": { "type": "string" },
+        "religion": { "type": "string" },
+        "education": { "type": "string" },
+        "occupation": { "type": "string" },
+        "occupationDescription": { "type": "string", "description": "Diisi jika pekerjaan adalah 'Lainnya'." },
+        "phoneNumber": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "address": { "type": "string" }
+      },
+      "required": ["fullName", "nik", "citizenship", "placeOfBirth", "dateOfBirth", "status", "religion", "education", "occupation", "phoneNumber", "email", "address"]
+    },
+    "bride": {
+        "type": "object",
+        "properties": {
+          "fullName": { "type": "string" },
+          "nik": { "type": "string", "pattern": "^\\d{16}$" },
+          "citizenship": { "type": "string", "enum": ["WNI", "WNA"] },
+          "passportNumber": { "type": "string", "description": "Wajib jika WNA." },
+          "placeOfBirth": { "type": "string" },
+          "dateOfBirth": { "type": "string", "format": "date" },
+          "status": { "type": "string" },
+          "religion": { "type": "string" },
+          "education": { "type": "string" },
+          "occupation": { "type": "string" },
+          "occupationDescription": { "type": "string", "description": "Diisi jika pekerjaan adalah 'Lainnya'." },
+          "phoneNumber": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "address": { "type": "string" }
+        },
+        "required": ["fullName", "nik", "citizenship", "placeOfBirth", "dateOfBirth", "status", "religion", "education", "occupation", "phoneNumber", "email", "address"]
+    },
+    "groomFather": {
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "nik": { "type": "string", "pattern": "^\\d{16}$" },
+            "religion": { "type": "string" },
+            "occupation": { "type": "string" },
+            "address": { "type": "string" }
+        },
+        "required": ["name", "nik", "religion", "occupation", "address"]
+    },
+    "groomMother": {
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "nik": { "type": "string", "pattern": "^\\d{16}$" },
+            "religion": { "type": "string" },
+            "occupation": { "type": "string" },
+            "address": { "type": "string" }
+        },
+        "required": ["name", "nik", "religion", "occupation", "address"]
+    },
+    "brideFather": {
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "nik": { "type": "string", "pattern": "^\\d{16}$" },
+            "religion": { "type": "string" },
+            "occupation": { "type": "string" },
+            "address": { "type": "string" }
+        },
+        "required": ["name", "nik", "religion", "occupation", "address"]
+    },
+    "brideMother": {
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "nik": { "type": "string", "pattern": "^\\d{16}$" },
+            "religion": { "type": "string" },
+            "occupation": { "type": "string" },
+            "address": { "type": "string" }
+        },
+        "required": ["name", "nik", "religion", "occupation", "address"]
+    },
+    "guardian": {
+        "type": "object",
+        "properties": {
+            "fullName": { "type": "string" },
+            "nik": { "type": "string", "pattern": "^\\d{16}$" },
+            "relationship": { "type": "string", "description": "Hubungan dengan calon istri." },
+            "status": { "type": "string", "enum": ["Hidup", "Wafat"] },
+            "religion": { "type": "string" },
+            "address": { "type": "string" },
+            "phoneNumber": { "type": "string" }
+        },
+        "required": ["fullName", "nik", "relationship", "status", "religion", "address", "phoneNumber"]
+    }
+  },
+  "required": [
+    "weddingLocation", 
+    "weddingDate", 
+    "weddingTime", 
+    "groom", 
+    "bride", 
+    "groomFather",
+    "groomMother",
+    "brideFather",
+    "brideMother",
+    "guardian"
+  ]
+}
