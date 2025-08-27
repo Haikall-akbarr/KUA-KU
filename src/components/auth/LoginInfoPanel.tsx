@@ -14,10 +14,6 @@ export function LoginInfoPanel() {
             />
         </div>
 
-        {/* Curved overlay shape */}
-        <div className="absolute -right-48 -top-48 h-96 w-96 rounded-full bg-primary/50"></div>
-        <div className="absolute -bottom-64 -left-32 h-[28rem] w-[28rem] rounded-full bg-accent/30"></div>
-
         <div className="relative z-10 flex h-full flex-col justify-between text-center mt-4">
             <div>
                 <h1 className="font-headline text-4xl font-bold tracking-tight">
