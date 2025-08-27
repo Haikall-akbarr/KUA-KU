@@ -1,18 +1,19 @@
 
 "use client";
 
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import Image from "next/image";
 
 export function LoginInfoPanel() {
   return (
     <div className="relative hidden w-full overflow-hidden bg-primary p-8 text-white md:flex md:w-1/2 flex-col justify-center items-center">
-        {/* Lottie Animation */}
+        {/* Lottie Animation Placeholder */}
         <div className="w-full max-w-md">
-            <DotLottieReact
-                src="https://lottie.host/d2af7da4-a15d-43e0-8839-da6599b8a517/1QvcLUiwXX.lottie"
-                loop
-                autoplay
+            <Image
+                src="https://placehold.co/400x400.png"
+                alt="Ilustrasi Pernikahan"
+                width={400}
+                height={400}
+                data-ai-hint="wedding couple"
             />
         </div>
 
