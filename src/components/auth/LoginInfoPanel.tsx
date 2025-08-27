@@ -1,17 +1,21 @@
+
 "use client";
 
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import Image from 'next/image';
 
 export function LoginInfoPanel() {
   return (
     <div className="relative hidden w-full overflow-hidden bg-primary p-8 text-white md:flex md:w-1/2 flex-col justify-center items-center">
         <div className="absolute -top-16 -left-16 w-64 h-64 bg-primary/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
         <div className="absolute -bottom-24 -right-2 w-72 h-72 bg-accent/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-        <div className="w-full max-w-md">
-            <DotLottieReact
-              src="https://lottie.host/a94356f3-ad72-4a9d-a141-edd697b2bc69/BKMQRlHksC.lottie"
-              loop
-              autoplay
+        <div className="w-full max-w-sm z-10">
+             <Image
+              src="https://storage.googleapis.com/project-hackathon-2024-public/kua-staff-illustration.png"
+              alt="Ilustrasi Petugas KUA"
+              width={400}
+              height={500}
+              className="rounded-lg object-contain"
+              priority
             />
         </div>
 
