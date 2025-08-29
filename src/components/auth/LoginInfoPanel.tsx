@@ -1,10 +1,11 @@
+
 "use client";
 
 import Image from 'next/image';
 
 export function LoginInfoPanel() {
   return (
-    <div className="relative hidden w-full overflow-hidden bg-primary p-8 text-white md:flex md:w-1/2 flex-col justify-center items-center">
+    <div className="relative hidden w-full overflow-hidden bg-gradient-to-br from-primary via-green-800 to-primary p-8 text-white md:flex md:w-1/2 flex-col justify-center items-center">
         <div className="absolute top-4 left-4 z-20">
             <Image 
                 src="/logo-kemenag.png"
