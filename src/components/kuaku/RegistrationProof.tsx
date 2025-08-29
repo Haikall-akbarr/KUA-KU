@@ -1,11 +1,11 @@
 
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale } from 'date-fns/locale';
-import { Download, Printer } from 'lucide-react';
+import { Download, Printer, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import jsPDF from 'jspdf';
@@ -26,6 +26,8 @@ const DetailItem: React.FC<DetailItemProps> = ({ label, value }) => (
 export function RegistrationProof() {
   const searchParams = useSearchParams();
   const proofRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const registrationData = {
     registrationNumber: searchParams.get('registrationNumber'),
@@ -47,30 +49,43 @@ export function RegistrationProof() {
     const element = proofRef.current;
     if (!element) return;
 
-    // Temporarily increase scale for better resolution
-    element.style.transform = 'scale(1.5)';
-    element.style.transformOrigin = 'top left';
+    setIsDownloading(true);
+    try {
+        // Temporarily increase scale for better resolution
+        element.style.transform = 'scale(1.5)';
+        element.style.transformOrigin = 'top left';
 
-    const canvas = await html2canvas(element, {
-        scale: 2, // Increase scale for better quality
-        useCORS: true,
-        logging: false,
-    });
-    
-    // Revert scale
-    element.style.transform = '';
-    element.style.transformOrigin = '';
-    
-    const imgData = canvas.toDataURL('image/png');
-    
-    const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [canvas.width, canvas.height]
-    });
-    
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    pdf.save(`bukti-pendaftaran-${registrationData.registrationNumber}.pdf`);
+        const canvas = await html2canvas(element, {
+            scale: 2, // Increase scale for better quality
+            useCORS: true,
+            logging: false,
+        });
+        
+        // Revert scale
+        element.style.transform = '';
+        element.style.transformOrigin = '';
+        
+        const imgData = canvas.toDataURL('image/png');
+        
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`bukti-pendaftaran-${registrationData.registrationNumber}.pdf`);
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+    } finally {
+        setIsDownloading(false);
+    }
+  };
+
+  const handlePrint = () => {
+    setIsPrinting(true);
+    window.print();
+    setTimeout(() => setIsPrinting(false), 3000);
   };
 
   return (
@@ -108,13 +123,19 @@ export function RegistrationProof() {
             </CardFooter>
         </Card>
         <div className="mt-6 flex flex-col sm:flex-row justify-center gap-4">
-            <Button onClick={handleDownloadPdf} className="w-full sm:w-auto">
-                <Download className="mr-2 h-4 w-4" />
-                Unduh sebagai PDF
+             <Button onClick={handleDownloadPdf} className="w-full sm:w-auto" disabled={isDownloading || isPrinting}>
+                {isDownloading ? (
+                    <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mengunduh... </>
+                ) : (
+                    <> <Download className="mr-2 h-4 w-4" /> Unduh sebagai PDF </>
+                )}
             </Button>
-            <Button variant="outline" onClick={() => window.print()} className="w-full sm:w-auto">
-                <Printer className="mr-2 h-4 w-4" />
-                Cetak Halaman
+            <Button variant="outline" onClick={handlePrint} className="w-full sm:w-auto" disabled={isPrinting || isDownloading}>
+                 {isPrinting ? (
+                    <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mempersiapkan... </>
+                ) : (
+                    <> <Printer className="mr-2 h-4 w-4" /> Cetak Halaman </>
+                )}
             </Button>
         </div>
     </div>
