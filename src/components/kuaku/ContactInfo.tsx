@@ -34,7 +34,7 @@ const officeHours = [
 export function ContactInfo() {
   return (
     <SectionWrapper id="contact" title="Hubungi Kami" subtitle="Informasi Kontak">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="transform transition-all duration-300 hover:shadow-xl h-full">
               <CardContent className="p-6">
@@ -79,15 +79,6 @@ export function ContactInfo() {
                 </ul>
               </CardContent>
             </Card>
-        </div>
-        <div className="relative hidden lg:flex items-center justify-center p-4">
-            <Image 
-                src="/ketuakua2.png"
-                alt="Kepala KUA"
-                width={300}
-                height={500}
-                className="object-contain"
-            />
         </div>
       </div>
     </SectionWrapper>
