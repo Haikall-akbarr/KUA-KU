@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from 'next/image';
@@ -18,10 +17,10 @@ export function LoginInfoPanel() {
         <div className="absolute -bottom-24 -right-2 w-72 h-72 bg-accent/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
         <div className="w-full max-w-sm z-10">
              <Image
-              src="/ketuakua2.png"
-              alt="Ilustrasi Petugas KUA"
-              width={250}
-              height={450}
+              src="/tl.png"
+              alt="Ilustrasi Keluarga Muslim Bahagia"
+              width={400}
+              height={400}
               className="rounded-lg object-contain"
               priority
             />
