@@ -49,10 +49,13 @@ export function LoginForm() {
       router.push('/');
     } catch (error: any) {
       let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
+      // Handle specific Firebase auth errors for better user feedback
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
         errorMessage = 'Email atau password yang Anda masukkan salah.';
       } else if (error.code === 'auth/configuration-not-found') {
           errorMessage = 'Konfigurasi otentikasi tidak ditemukan. Pastikan metode login Email/Password sudah diaktifkan di Firebase Console.';
+      } else {
+        console.error('Firebase Auth Error:', error);
       }
       toast({
         title: 'Gagal Login',
