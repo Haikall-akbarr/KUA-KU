@@ -538,7 +538,7 @@ export function MultiStepMarriageForm() {
         }
     });
 
-    const { trigger, handleSubmit, formState: { isSubmitting } } = methods;
+    const { trigger, handleSubmit, formState: { isSubmitting, errors }, getValues } = methods;
 
     const next = async () => {
         const fields = steps[currentStep].fields;
@@ -581,8 +581,15 @@ export function MultiStepMarriageForm() {
 
     const delta = currentStep - previousStep;
 
-    const processForm = (formData: FormData) => {
-        // Here we can transform the data if needed before calling the action
+    const onSubmit = (data: FullFormData) => {
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+            if (value instanceof Date) {
+                formData.append(key, format(value, "yyyy-MM-dd"));
+            } else if (value !== null && value !== undefined) {
+                formData.append(key, String(value));
+            }
+        });
         formAction(formData);
     };
     
@@ -613,8 +620,7 @@ export function MultiStepMarriageForm() {
                  <FormProvider {...methods}>
                     <form
                         ref={formRef}
-                        action={processForm}
-                        onSubmit={handleSubmit(() => formRef.current?.requestSubmit())}
+                        onSubmit={handleSubmit(onSubmit)}
                      >
                          <AnimatePresence mode="wait">
                             <motion.div
@@ -654,3 +660,5 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
+
+    
