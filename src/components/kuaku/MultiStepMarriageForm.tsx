@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useActionState, useEffect, useRef } from "react";
@@ -372,7 +373,16 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Religion`}>Agama <span className="text-destructive">*</span></Label>
                     <Controller name={`${prefix}Religion` as keyof FullFormData} control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger><SelectContent><SelectItem value="Islam">Islam</SelectItem></SelectContent></Select>
+                        <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Islam">Islam</SelectItem>
+                                <SelectItem value="Kristen Protestan">Kristen Protestan</SelectItem>
+                                <SelectItem value="Katolik">Katolik</SelectItem>
+                                <SelectItem value="Hindu">Hindu</SelectItem>
+                                <SelectItem value="Buddha">Buddha</SelectItem>
+                                <SelectItem value="Khonghucu">Khonghucu</SelectItem>
+                            </SelectContent>
+                        </Select>
                     )} />
                     <FieldErrorMessage name={`${prefix}Religion` as keyof FullFormData} />
                 </div>
@@ -433,7 +443,16 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Religion`}>Agama <span className="text-destructive">*</span></Label>
                     <Controller name={`${prefix}Religion` as keyof FullFormData} control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger><SelectContent><SelectItem value="Islam">Islam</SelectItem></SelectContent></Select>
+                        <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Islam">Islam</SelectItem>
+                                <SelectItem value="Kristen Protestan">Kristen Protestan</SelectItem>
+                                <SelectItem value="Katolik">Katolik</SelectItem>
+                                <SelectItem value="Hindu">Hindu</SelectItem>
+                                <SelectItem value="Buddha">Buddha</SelectItem>
+                                <SelectItem value="Khonghucu">Khonghucu</SelectItem>
+                            </SelectContent>
+                        </Select>
                     )} />
                     <FieldErrorMessage name={`${prefix}Religion` as keyof FullFormData} />
                 </div>
@@ -524,7 +543,16 @@ const Step4 = () => {
                 <div className="space-y-2">
                     <Label htmlFor="guardianReligion">Agama <span className="text-destructive">*</span></Label>
                     <Controller name="guardianReligion" control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger><SelectContent><SelectItem value="Islam">Islam</SelectItem></SelectContent></Select>
+                        <Select onValueChange={field.onChange} value={field.value}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Islam">Islam</SelectItem>
+                                <SelectItem value="Kristen Protestan">Kristen Protestan</SelectItem>
+                                <SelectItem value="Katolik">Katolik</SelectItem>
+                                <SelectItem value="Hindu">Hindu</SelectItem>
+                                <SelectItem value="Buddha">Buddha</SelectItem>
+                                <SelectItem value="Khonghucu">Khonghucu</SelectItem>
+                            </SelectContent>
+                        </Select>
                     )} />
                     <FieldErrorMessage name="guardianReligion" />
                 </div>
