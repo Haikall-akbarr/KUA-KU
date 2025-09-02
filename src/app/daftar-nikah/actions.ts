@@ -49,6 +49,10 @@ const guardianSchema = z.object({
 
 const marriageRegistrationSchema = z.object({
   // Step 1
+  province: z.string({ required_error: "Provinsi wajib dipilih." }),
+  regency: z.string({ required_error: "Kabupaten/Kota wajib dipilih." }),
+  district: z.string({ required_error: "Kecamatan wajib dipilih." }),
+  kua: z.string({ required_error: "KUA wajib dipilih." }),
   weddingLocation: z.string({ required_error: "Lokasi nikah wajib dipilih."}),
   weddingDate: z.date({ required_error: "Tanggal akad wajib diisi." }),
   weddingTime: z.string({ required_error: "Jam akad wajib dipilih."}),

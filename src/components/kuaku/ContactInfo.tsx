@@ -26,9 +26,9 @@ const contactItems = [
 ];
 
 const officeHours = [
-  { day: "Senin - Kamis", hours: "08:00 - 16:00 WIB" },
-  { day: "Jumat", hours: "08:00 - 11:00 WIB, 13:00 - 16:00 WIB" },
-  { day: "Sabtu & Minggu", hours: "Tutup" },
+    { day: "Senin - Kamis", hours: "08:00 - 12:00, 14:00 - 16:00 WIB" },
+    { day: "Jumat", hours: "08:00 - 11:00, 14:00 - 16:00 WIB" },
+    { day: "Sabtu & Minggu", hours: "Tutup" },
 ];
 
 export function ContactInfo() {

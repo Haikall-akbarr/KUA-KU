@@ -26,10 +26,11 @@ import { submitMarriageRegistrationForm, type MarriageRegistrationFormState } fr
 import { Loader2, CalendarIcon, User, Users, FileText, CheckCircle, Info, MapPin, Building, Clock, FileUp, FileCheck2 } from "lucide-react";
 import { educationLevels, occupations } from "@/lib/form-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { kalimantanData } from "@/lib/location-data";
 
 
 const steps = [
-    { id: "01", name: "Jadwal & Lokasi", fields: ['weddingLocation', 'weddingDate', 'weddingTime', 'dispensationNumber'] },
+    { id: "01", name: "Jadwal & Lokasi", fields: ['province', 'regency', 'district', 'kua', 'weddingLocation', 'weddingDate', 'weddingTime', 'dispensationNumber'] },
     { id: "02", name: "Calon Suami", fields: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress', 'groomFatherName', 'groomFatherNik', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherAddress', 'groomMotherName', 'groomMotherNik', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherAddress'] },
     { id: "03", name: "Calon Istri", fields: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress', 'brideFatherName', 'brideFatherNik', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherAddress', 'brideMotherName', 'brideMotherNik', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherAddress'] },
     { id: "04", name: "Wali Nikah", fields: ['guardianFullName', 'guardianNik', 'guardianRelationship', 'guardianAddress', 'guardianStatus', 'guardianReligion', 'guardianPhoneNumber'] },
@@ -75,6 +76,10 @@ const guardianSchema = z.object({
 const fileSchema = z.any().optional();
 
 const fullSchema = z.object({
+    province: z.string({ required_error: "Provinsi wajib dipilih." }),
+    regency: z.string({ required_error: "Kabupaten/Kota wajib dipilih." }),
+    district: z.string({ required_error: "Kecamatan wajib dipilih." }),
+    kua: z.string({ required_error: "KUA wajib dipilih." }),
     weddingLocation: z.string({ required_error: "Lokasi nikah wajib dipilih."}),
     weddingDate: z.date({ required_error: "Tanggal akad wajib diisi." }),
     weddingTime: z.string({ required_error: "Jam akad wajib dipilih."}),
@@ -111,16 +116,71 @@ const ServerErrorMessage = ({ serverErrors, name }: { serverErrors: ZodIssue[] |
 }
 
 const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
-    const { control } = useFormContext<FullFormData>();
+    const { control, watch, setValue } = useFormContext<FullFormData>();
     const [weddingDateOpen, setWeddingDateOpen] = useState(false);
+
+    const selectedProvince = watch("province");
+    const selectedRegency = watch("regency");
+    const selectedDistrict = watch("district");
+
+    const regencies = selectedProvince ? kalimantanData.find(p => p.name === selectedProvince)?.regencies || [] : [];
+    const districts = selectedRegency ? regencies.find(r => r.name === selectedRegency)?.districts || [] : [];
+
+    useEffect(() => {
+        if (selectedDistrict) {
+            setValue('kua', `KUA ${selectedDistrict}`);
+        } else {
+            setValue('kua', '');
+        }
+    }, [selectedDistrict, setValue]);
+
     return (
         <div className="space-y-6">
             <h3 className="text-xl font-semibold text-foreground flex items-center"><MapPin className="mr-3 h-6 w-6 text-primary"/>Lokasi KUA & Jadwal Nikah</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2"> <Label>Provinsi</Label> <Input value="KALIMANTAN SELATAN" disabled /> </div>
-                <div className="space-y-2"> <Label>Kabupaten/Kota</Label> <Input value="KOTA BANJARMASIN" disabled /> </div>
-                <div className="space-y-2"> <Label>Kecamatan</Label> <Input value="BANJARMASIN UTARA" disabled /> </div>
-                <div className="space-y-2"> <Label>KUA</Label> <Input value="KUA BANJARMASIN UTARA" disabled /> </div>
+                <div className="space-y-2">
+                    <Label htmlFor="province">Provinsi <span className="text-destructive">*</span></Label>
+                    <Controller name="province" control={control} render={({ field }) => (
+                        <Select onValueChange={(value) => { field.onChange(value); setValue('regency', ''); setValue('district', ''); }} value={field.value}>
+                            <SelectTrigger id="province"><SelectValue placeholder="Pilih Provinsi" /></SelectTrigger>
+                            <SelectContent>
+                                {kalimantanData.map(p => <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    )} />
+                    <FieldErrorMessage name="province" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="regency">Kabupaten/Kota <span className="text-destructive">*</span></Label>
+                    <Controller name="regency" control={control} render={({ field }) => (
+                        <Select onValueChange={(value) => { field.onChange(value); setValue('district', ''); }} value={field.value} disabled={!selectedProvince}>
+                            <SelectTrigger id="regency"><SelectValue placeholder="Pilih Kabupaten/Kota" /></SelectTrigger>
+                            <SelectContent>
+                                {regencies.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    )} />
+                    <FieldErrorMessage name="regency" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="district">Kecamatan <span className="text-destructive">*</span></Label>
+                     <Controller name="district" control={control} render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedRegency}>
+                            <SelectTrigger id="district"><SelectValue placeholder="Pilih Kecamatan" /></SelectTrigger>
+                            <SelectContent>
+                                {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    )} />
+                    <FieldErrorMessage name="district" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="kua">KUA <span className="text-destructive">*</span></Label>
+                    <Controller name="kua" control={control} render={({ field }) => (
+                        <Input {...field} value={field.value || ''} disabled />
+                    )} />
+                    <FieldErrorMessage name="kua" />
+                </div>
             </div>
             <Separator/>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -527,6 +587,7 @@ export function MultiStepMarriageForm() {
     const methods = useForm<FullFormData>({
         resolver: zodResolver(fullSchema),
         defaultValues: {
+            province: '', regency: '', district: '', kua: '',
             weddingLocation: '', weddingTime: '', dispensationNumber: '',
             groomFullName: '', groomNik: '', groomCitizenship: 'WNI', groomPassportNumber: '', groomPlaceOfBirth: '', groomStatus: '', groomReligion: 'Islam', groomEducation: '', groomOccupation: '', groomOccupationDescription: '', groomPhoneNumber: '', groomEmail: '', groomAddress: '',
             brideFullName: '', brideNik: '', brideCitizenship: 'WNI', bridePassportNumber: '', bridePlaceOfBirth: '', brideStatus: '', brideReligion: 'Islam', brideEducation: '', brideOccupation: '', brideOccupationDescription: '', bridePhoneNumber: '', brideEmail: '', brideAddress: '',
@@ -660,5 +721,3 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
-
-    
