@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useActionState, useEffect, useRef } from "react";
@@ -702,6 +701,7 @@ export function MultiStepMarriageForm() {
     const [activeTabs, setActiveTabs] = useState({ 2: "groom", 3: "bride" });
     const router = useRouter();
     const { toast } = useToast();
+    const formRef = useRef<HTMLFormElement>(null);
     
     const initialState: MarriageRegistrationFormState = { message: "", success: false };
     const [state, formAction] = useActionState(submitMarriageRegistrationForm, initialState);
@@ -802,16 +802,14 @@ export function MultiStepMarriageForm() {
 
     const delta = currentStep - previousStep;
 
-    const onFormSubmit = (data: FullFormData) => {
-        const formData = new FormData();
-        Object.entries(data).forEach(([key, value]) => {
-            if (value instanceof Date) {
-                formData.append(key, format(value, "yyyy-MM-dd"));
-            } else if (value !== null && value !== undefined) {
-                 formData.append(key, String(value));
+    const handleFormSubmit = () => {
+        handleSubmit(() => {
+            // This function is only for client-side validation.
+            // The actual submission is handled by the form's action prop.
+            if(formRef.current) {
+                formRef.current.requestSubmit();
             }
-        });
-        formAction(formData);
+        })();
     };
 
     const handleTabChange = (stepIndex: 2 | 3, newTabValue: string) => {
@@ -844,7 +842,14 @@ export function MultiStepMarriageForm() {
                  <Separator className="my-8"/>
                  <FormProvider {...methods}>
                     <form
-                        onSubmit={handleSubmit(onFormSubmit)}
+                        ref={formRef}
+                        action={formAction}
+                        onSubmit={(e) => {
+                            // We only want react-hook-form to validate on the last step submit
+                            if (currentStep !== steps.length - 1) {
+                                e.preventDefault();
+                            }
+                        }}
                      >
                          <AnimatePresence mode="wait">
                             <motion.div
@@ -868,7 +873,7 @@ export function MultiStepMarriageForm() {
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
-                                    <Button type="submit" disabled={isSubmitting}>
+                                    <Button type="submit" disabled={isSubmitting} onClick={handleFormSubmit}>
                                         {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
                                     </Button>
                                 ) : (
