@@ -35,16 +35,17 @@ const groomMotherFields = ['groomMotherPresenceStatus', 'groomMotherName', 'groo
 const bridePersonFields = ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress'];
 const brideFatherFields = ['brideFatherPresenceStatus', 'brideFatherName', 'brideFatherNik', 'brideFatherCitizenship', 'brideFatherCountryOfOrigin', 'brideFatherPassportNumber', 'brideFatherPlaceOfBirth', 'brideFatherDateOfBirth', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherOccupationDescription', 'brideFatherAddress'];
 const brideMotherFields = ['brideMotherPresenceStatus', 'brideMotherName', 'brideMotherNik', 'brideMotherCitizenship', 'brideMotherCountryOfOrigin', 'brideMotherPassportNumber', 'brideMotherPlaceOfBirth', 'brideMotherDateOfBirth', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherOccupationDescription', 'brideMotherAddress'];
-
+const guardianFields = ['guardianFullName', 'guardianNik', 'guardianRelationship', 'guardianAddress', 'guardianStatus', 'guardianReligion', 'guardianPhoneNumber'];
 
 const steps = [
     { id: "01", name: "Jadwal & Lokasi", fields: ['province', 'regency', 'district', 'kua', 'weddingLocation', 'weddingDate', 'weddingTime', 'dispensationNumber'] },
     { id: "02", name: "Calon Suami", subSteps: { groom: groomPersonFields, groomFather: groomFatherFields, groomMother: groomMotherFields } },
     { id: "03", name: "Calon Istri", subSteps: { bride: bridePersonFields, brideFather: brideFatherFields, brideMother: brideMotherFields } },
-    { id: "04", name: "Wali Nikah", fields: ['guardianFullName', 'guardianNik', 'guardianRelationship', 'guardianAddress', 'guardianStatus', 'guardianReligion', 'guardianPhoneNumber'] },
-    { id: "05", name: "Data Dokumen" },
-    { id: "06", name: "Ringkasan" },
+    { id: "04", name: "Wali Nikah", fields: guardianFields },
+    { id: "05", name: "Data Dokumen", fields: [] },
+    { id: "06", name: "Ringkasan", fields: [] },
 ];
+
 
 const personSchema = (prefix: 'groom' | 'bride') => z.object({
   [`${prefix}FullName`]: z.string().min(3, `Nama lengkap calon ${prefix === 'groom' ? 'suami' : 'istri'} minimal 3 karakter.`),
@@ -842,13 +843,14 @@ export function MultiStepMarriageForm() {
         if (currentStepConfig.subSteps && (currentStep === 1 || currentStep === 2)) {
             const stepKey = currentStep === 1 ? 2 : 3;
             const currentSubStepName = activeTabs[stepKey as keyof typeof activeTabs];
-            const subStepKeys = Object.keys(currentStepConfig.subSteps);
-            const currentSubStepIndex = subStepKeys.indexOf(currentSubStepName);
-
             const fieldsToValidate = currentStepConfig.subSteps[currentSubStepName as keyof typeof currentStepConfig.subSteps] as (keyof FullFormData)[];
+            
             const output = await trigger(fieldsToValidate, { shouldFocus: true });
             
             if (!output) return;
+
+            const subStepKeys = Object.keys(currentStepConfig.subSteps);
+            const currentSubStepIndex = subStepKeys.indexOf(currentSubStepName);
 
             // If not the last sub-step, move to the next sub-step
             if (currentSubStepIndex < subStepKeys.length - 1) {
@@ -859,7 +861,7 @@ export function MultiStepMarriageForm() {
         } else {
             // Handle regular steps without sub-steps
             const fields = currentStepConfig.fields;
-            if (fields) {
+            if (fields && fields.length > 0) {
                 const output = await trigger(fields as (keyof FullFormData)[], { shouldFocus: true });
                 if (!output) return;
             }
@@ -981,7 +983,7 @@ export function MultiStepMarriageForm() {
                         </AnimatePresence>
                         <div className="mt-8 pt-5 border-t">
                             <div className="flex justify-between">
-                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0 && activeTabs[2] === 'groom'}>
+                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0 && activeTabs[2] === 'groom' && activeTabs[3] === 'bride'}>
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
@@ -1001,3 +1003,4 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
+
