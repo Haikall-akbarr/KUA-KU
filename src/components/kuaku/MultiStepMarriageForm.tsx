@@ -31,8 +31,8 @@ import { kalimantanData } from "@/lib/location-data";
 
 const steps = [
     { id: "01", name: "Jadwal & Lokasi", fields: ['province', 'regency', 'district', 'kua', 'weddingLocation', 'weddingDate', 'weddingTime', 'dispensationNumber'] },
-    { id: "02", name: "Calon Suami", fields: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress', 'groomFatherName', 'groomFatherNik', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherAddress', 'groomMotherName', 'groomMotherNik', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherAddress'], subSteps: ['groom', 'groomFather', 'groomMother'], subStepFields: { groom: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress'], groomFather: ['groomFatherName', 'groomFatherNik', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherAddress'], groomMother: ['groomMotherName', 'groomMotherNik', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherAddress'] } },
-    { id: "03", name: "Calon Istri", fields: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress', 'brideFatherName', 'brideFatherNik', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherAddress', 'brideMotherName', 'brideMotherNik', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherAddress'], subSteps: ['bride', 'brideFather', 'brideMother'], subStepFields: { bride: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress'], brideFather: ['brideFatherName', 'brideFatherNik', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherAddress'], brideMother: ['brideMotherName', 'brideMotherNik', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherAddress'] } },
+    { id: "02", name: "Calon Suami", fields: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress', 'groomFatherPresenceStatus', 'groomFatherName', 'groomFatherNik', 'groomFatherCitizenship', 'groomFatherCountryOfOrigin', 'groomFatherPassportNumber', 'groomFatherPlaceOfBirth', 'groomFatherDateOfBirth', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherOccupationDescription', 'groomFatherAddress', 'groomMotherPresenceStatus', 'groomMotherName', 'groomMotherNik', 'groomMotherCitizenship', 'groomMotherCountryOfOrigin', 'groomMotherPassportNumber', 'groomMotherPlaceOfBirth', 'groomMotherDateOfBirth', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherOccupationDescription', 'groomMotherAddress'], subSteps: ['groom', 'groomFather', 'groomMother'], subStepFields: { groom: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress'], groomFather: ['groomFatherPresenceStatus', 'groomFatherName', 'groomFatherNik', 'groomFatherCitizenship', 'groomFatherCountryOfOrigin', 'groomFatherPassportNumber', 'groomFatherPlaceOfBirth', 'groomFatherDateOfBirth', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherOccupationDescription', 'groomFatherAddress'], groomMother: ['groomMotherPresenceStatus', 'groomMotherName', 'groomMotherNik', 'groomMotherCitizenship', 'groomMotherCountryOfOrigin', 'groomMotherPassportNumber', 'groomMotherPlaceOfBirth', 'groomMotherDateOfBirth', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherOccupationDescription', 'groomMotherAddress'] } },
+    { id: "03", name: "Calon Istri", fields: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress', 'brideFatherPresenceStatus', 'brideFatherName', 'brideFatherNik', 'brideFatherCitizenship', 'brideFatherCountryOfOrigin', 'brideFatherPassportNumber', 'brideFatherPlaceOfBirth', 'brideFatherDateOfBirth', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherOccupationDescription', 'brideFatherAddress', 'brideMotherPresenceStatus', 'brideMotherName', 'brideMotherNik', 'brideMotherCitizenship', 'brideMotherCountryOfOrigin', 'brideMotherPassportNumber', 'brideMotherPlaceOfBirth', 'brideMotherDateOfBirth', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherOccupationDescription', 'brideMotherAddress'], subSteps: ['bride', 'brideFather', 'brideMother'], subStepFields: { bride: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress'], brideFather: ['brideFatherPresenceStatus', 'brideFatherName', 'brideFatherNik', 'brideFatherCitizenship', 'brideFatherCountryOfOrigin', 'brideFatherPassportNumber', 'brideFatherPlaceOfBirth', 'brideFatherDateOfBirth', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherOccupationDescription', 'brideFatherAddress'], brideMother: ['brideMotherPresenceStatus', 'brideMotherName', 'brideMotherNik', 'brideMotherCitizenship', 'brideMotherCountryOfOrigin', 'brideMotherPassportNumber', 'brideMotherPlaceOfBirth', 'brideMotherDateOfBirth', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherOccupationDescription', 'brideMotherAddress'] } },
     { id: "04", name: "Wali Nikah", fields: ['guardianFullName', 'guardianNik', 'guardianRelationship', 'guardianAddress', 'guardianStatus', 'guardianReligion', 'guardianPhoneNumber'] },
     { id: "05", name: "Data Dokumen" },
     { id: "06", name: "Ringkasan" },
@@ -56,12 +56,62 @@ const personSchema = (prefix: 'groom' | 'bride') => z.object({
 });
 
 const parentSchema = (prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'brideMother') => z.object({
-    [`${prefix}Name`]: z.string().min(3, `Nama ayah/ibu minimal 3 karakter.`),
-    [`${prefix}Nik`]: z.string().length(16, `NIK ayah/ibu harus 16 digit.`).regex(/^\d+$/, "NIK hanya boleh berisi angka."),
-    [`${prefix}Religion`]: z.string({ required_error: "Agama ayah/ibu wajib diisi."}),
-    [`${prefix}Occupation`]: z.string({ required_error: "Pekerjaan ayah/ibu wajib diisi."}),
-    [`${prefix}Address`]: z.string().min(10, `Alamat ayah/ibu minimal 10 karakter.`),
+    [`${prefix}PresenceStatus`]: z.string({ required_error: "Status keberadaan wajib diisi." }),
+    [`${prefix}Name`]: z.string().optional(),
+    [`${prefix}Nik`]: z.string().optional(),
+    [`${prefix}Citizenship`]: z.string().optional(),
+    [`${prefix}CountryOfOrigin`]: z.string().optional(),
+    [`${prefix}PassportNumber`]: z.string().optional(),
+    [`${prefix}PlaceOfBirth`]: z.string().optional(),
+    [`${prefix}DateOfBirth`]: z.date().optional().nullable(),
+    [`${prefix}Religion`]: z.string().optional(),
+    [`${prefix}Occupation`]: z.string().optional(),
+    [`${prefix}OccupationDescription`]: z.string().optional(),
+    [`${prefix}Address`]: z.string().optional(),
+}).superRefine((data, ctx) => {
+    const presenceStatus = data[`${prefix}PresenceStatus`];
+    if (presenceStatus === "Hidup") {
+        const name = data[`${prefix}Name`];
+        if (!name || name.length < 3) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nama ayah/ibu minimal 3 karakter.", path: [`${prefix}Name`] });
+        }
+        const nik = data[`${prefix}Nik`];
+        if (!nik || nik.length !== 16 || !/^\d+$/.test(nik)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "NIK ayah/ibu harus 16 digit angka.", path: [`${prefix}Nik`] });
+        }
+        const citizenship = data[`${prefix}Citizenship`];
+        if (!citizenship) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Kewarganegaraan wajib diisi.", path: [`${prefix}Citizenship`] });
+        }
+        if (citizenship === 'WNA' && (!data[`${prefix}PassportNumber`] || data[`${prefix}PassportNumber`]?.length < 3) ) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nomor paspor wajib diisi untuk WNA.", path: [`${prefix}PassportNumber`] });
+        }
+        const placeOfBirth = data[`${prefix}PlaceOfBirth`];
+        if (!placeOfBirth || placeOfBirth.length < 2) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Tempat lahir minimal 2 karakter.", path: [`${prefix}PlaceOfBirth`] });
+        }
+         const dateOfBirth = data[`${prefix}DateOfBirth`];
+        if (!dateOfBirth) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Tanggal lahir wajib diisi.", path: [`${prefix}DateOfBirth`] });
+        }
+        const religion = data[`${prefix}Religion`];
+        if (!religion) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Agama wajib diisi.", path: [`${prefix}Religion`] });
+        }
+        const occupation = data[`${prefix}Occupation`];
+        if (!occupation) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Pekerjaan wajib diisi.", path: [`${prefix}Occupation`] });
+        }
+        if (occupation === "Lainnya" && (!data[`${prefix}OccupationDescription`] || data[`${prefix}OccupationDescription`]?.length < 3)) {
+             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Deskripsi pekerjaan lainnya wajib diisi.", path: [`${prefix}OccupationDescription`] });
+        }
+        const address = data[`${prefix}Address`];
+        if (!address || address.length < 10) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Alamat minimal 10 karakter.", path: [`${prefix}Address`] });
+        }
+    }
 });
+
 
 const guardianSchema = z.object({
     guardianFullName: z.string().min(3, "Nama lengkap wali minimal 3 karakter."),
@@ -149,13 +199,13 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
 
         if (dayOfWeek === 5) { // Friday
             return [
-                ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08-11
-                ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14-16
+                ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08-10
+                ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14-15
             ];
         } else { // Monday - Thursday
             return [
-                 ...Array.from({ length: 5 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08-12
-                ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14-16
+                 ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08-11
+                ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14-15
             ];
         }
     };
@@ -175,9 +225,9 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
             newAvailableTimes = Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
         } else if (dayOfWeek !== 0 && dayOfWeek !== 6) {
             if (dayOfWeek === 5) { // Friday
-                newAvailableTimes = [...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)];
+                newAvailableTimes = [...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)];
             } else { // Monday - Thursday
-                newAvailableTimes = [...Array.from({ length: 5 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)];
+                newAvailableTimes = [...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)];
             }
         }
         
@@ -305,7 +355,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
 
 const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', personType: 'suami' | 'istri'}) => {
     const { control, watch } = useFormContext<FullFormData>();
-    const [dobOpen, setDobOpen] = useState(false);
+    const [dobOpen, setDobOpen] useState(false);
     const dob = watch(`${prefix}DateOfBirth` as keyof FullFormData) as Date | undefined;
     const age = dob ? differenceInYears(new Date(), dob) : null;
     const selectedOccupation = watch(`${prefix}Occupation` as keyof FullFormData);
@@ -426,19 +476,91 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
 }
 
 const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'brideMother', personType: 'Ayah' | 'Ibu' }) => {
-    const { control } = useFormContext<FullFormData>();
+    const { control, watch, setValue } = useFormContext<FullFormData>();
+    const [dobOpen, setDobOpen] = useState(false);
+    
+    const presenceStatus = watch(`${prefix}PresenceStatus` as keyof FullFormData);
+    const citizenship = watch(`${prefix}Citizenship` as keyof FullFormData);
+    const selectedOccupation = watch(`${prefix}Occupation` as keyof FullFormData);
+
+    const isFieldsDisabled = presenceStatus === "Wafat" || presenceStatus === "Tidak Diketahui";
+
+    useEffect(() => {
+        if (citizenship === 'WNI') {
+            setValue(`${prefix}CountryOfOrigin` as keyof FullFormData, 'INDONESIA');
+        }
+    }, [citizenship, setValue, prefix]);
+
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <fieldset disabled={isFieldsDisabled} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 items-start">
                  <div className="space-y-2">
+                    <Label htmlFor={`${prefix}PresenceStatus`}>Status Keberadaan <span className="text-destructive">*</span></Label>
+                    <Controller name={`${prefix}PresenceStatus` as keyof FullFormData} control={control} render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value as string} disabled={false}>
+                            <SelectTrigger><SelectValue placeholder="Pilih Status" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Hidup">Hidup</SelectItem>
+                                <SelectItem value="Wafat">Wafat</SelectItem>
+                                <SelectItem value="Tidak Diketahui">Tidak Diketahui</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )} />
+                    <FieldErrorMessage name={`${prefix}PresenceStatus` as keyof FullFormData} />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor={`${prefix}Citizenship`}>Warga Negara <span className="text-destructive">*</span></Label>
+                    <Controller name={`${prefix}Citizenship` as keyof FullFormData} control={control} render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value as string}>
+                            <SelectTrigger><SelectValue placeholder="Pilih Kewarganegaraan" /></SelectTrigger>
+                            <SelectContent> <SelectItem value="WNI">WNI</SelectItem> <SelectItem value="WNA">WNA</SelectItem> </SelectContent>
+                        </Select>
+                    )} />
+                    <FieldErrorMessage name={`${prefix}Citizenship` as keyof FullFormData} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor={`${prefix}CountryOfOrigin`}>Negara Asal <span className="text-destructive">*</span></Label>
+                    <Controller name={`${prefix}CountryOfOrigin` as keyof FullFormData} control={control} render={({ field }) => (
+                        <Input {...field} value={field.value as string || ''} placeholder="Negara Asal" disabled={citizenship === 'WNI'} />
+                    )} />
+                    <FieldErrorMessage name={`${prefix}CountryOfOrigin` as keyof FullFormData} />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor={`${prefix}PassportNumber`}>No. Paspor (jika WNA)</Label>
+                    <Controller name={`${prefix}PassportNumber` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Nomor Paspor" disabled={citizenship !== 'WNA'}/>} />
+                     <FieldErrorMessage name={`${prefix}PassportNumber` as keyof FullFormData} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor={`${prefix}Nik`}>NIK <span className="text-destructive">*</span></Label>
+                    <Controller name={`${prefix}Nik` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`16 Digit NIK ${personType}`} maxLength={16} />} />
+                    <FieldErrorMessage name={`${prefix}Nik` as keyof FullFormData} />
+                </div>
+                <div className="space-y-2">
                     <Label htmlFor={`${prefix}Name`}>Nama Lengkap {personType} <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Name` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} placeholder={`Nama Lengkap ${personType}`} />} />
+                    <Controller name={`${prefix}Name` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`Nama Lengkap ${personType}`} />} />
                     <FieldErrorMessage name={`${prefix}Name` as keyof FullFormData} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Nik`}>NIK {personType} <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Nik` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} placeholder={`16 Digit NIK ${personType}`} maxLength={16} />} />
-                    <FieldErrorMessage name={`${prefix}Nik` as keyof FullFormData} />
+                    <Label htmlFor={`${prefix}PlaceOfBirth`}>Tempat Lahir <span className="text-destructive">*</span></Label>
+                    <Controller name={`${prefix}PlaceOfBirth` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Kota Kelahiran" />} />
+                    <FieldErrorMessage name={`${prefix}PlaceOfBirth` as keyof FullFormData} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir <span className="text-destructive">*</span></Label>
+                    <Controller name={`${prefix}DateOfBirth` as keyof FullFormData} control={control} render={({ field }) => (
+                        <Popover open={dobOpen} onOpenChange={setDobOpen}>
+                            <PopoverTrigger asChild>
+                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {field.value ? format(field.value as Date, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal lahir</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar mode="single" selected={field.value as Date | undefined} onSelect={(date) => { field.onChange(date); setDobOpen(false); }} captionLayout="dropdown-buttons" fromYear={1920} toYear={new Date().getFullYear()} initialFocus locale={IndonesianLocale} />
+                            </PopoverContent>
+                        </Popover>
+                    )} />
+                    <FieldErrorMessage name={`${prefix}DateOfBirth` as keyof FullFormData} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Religion`}>Agama <span className="text-destructive">*</span></Label>
@@ -463,13 +585,18 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     )} />
                     <FieldErrorMessage name={`${prefix}Occupation` as keyof FullFormData} />
                 </div>
-                 <div className="space-y-2 md:col-span-2">
+                 <div className="space-y-2 lg:col-span-2">
+                    <Label htmlFor={`${prefix}OccupationDescription`}>Jika Pekerjaan Lainnya</Label>
+                    <Controller name={`${prefix}OccupationDescription` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Sebutkan pekerjaan" disabled={selectedOccupation !== 'Lainnya' || isFieldsDisabled} />} />
+                    <FieldErrorMessage name={`${prefix}OccupationDescription` as keyof FullFormData}/>
+                </div>
+                 <div className="space-y-2 md:col-span-3">
                     <Label htmlFor={`${prefix}Address`}>Alamat (sesuai KTP) <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Address` as keyof FullFormData} control={control} render={({ field }) => <Textarea {...field} placeholder={`Alamat lengkap ${personType} sesuai KTP`} />} />
+                    <Controller name={`${prefix}Address` as keyof FullFormData} control={control} render={({ field }) => <Textarea {...field} value={field.value as string || ''} placeholder={`Alamat lengkap ${personType} sesuai KTP`} />} />
                     <FieldErrorMessage name={`${prefix}Address` as keyof FullFormData} />
                 </div>
             </div>
-        </div>
+        </fieldset>
     )
 }
 
@@ -670,10 +797,9 @@ const Step6 = () => {
 export function MultiStepMarriageForm() {
     const [currentStep, setCurrentStep] = useState(0);
     const [previousStep, setPreviousStep] = useState(0);
-    const [subStepIndexes, setSubStepIndexes] = useState({ 1: 0, 2: 0 }); // Step 2 and 3 are index 1 and 2
+    const [activeTabs, setActiveTabs] = useState({ 1: "groom", 2: "bride" });
     const router = useRouter();
     const { toast } = useToast();
-    const formRef = useRef<HTMLFormElement>(null);
     
     const initialState: MarriageRegistrationFormState = { message: "", success: false };
     const [state, formAction] = useActionState(submitMarriageRegistrationForm, initialState);
@@ -686,10 +812,10 @@ export function MultiStepMarriageForm() {
             weddingLocation: '', weddingTime: '', dispensationNumber: '',
             groomFullName: '', groomNik: '', groomCitizenship: 'WNI', groomPassportNumber: '', groomPlaceOfBirth: '', groomStatus: '', groomReligion: 'Islam', groomEducation: '', groomOccupation: '', groomOccupationDescription: '', groomPhoneNumber: '', groomEmail: '', groomAddress: '',
             brideFullName: '', brideNik: '', brideCitizenship: 'WNI', bridePassportNumber: '', bridePlaceOfBirth: '', brideStatus: '', brideReligion: 'Islam', brideEducation: '', brideOccupation: '', brideOccupationDescription: '', bridePhoneNumber: '', brideEmail: '', brideAddress: '',
-            groomFatherName: '', groomFatherNik: '', groomFatherReligion: 'Islam', groomFatherOccupation: '', groomFatherAddress: '',
-            groomMotherName: '', groomMotherNik: '', groomMotherReligion: 'Islam', groomMotherOccupation: '', groomMotherAddress: '',
-            brideFatherName: '', brideFatherNik: '', brideFatherReligion: 'Islam', brideFatherOccupation: '', brideFatherAddress: '',
-            brideMotherName: '', brideMotherNik: '', brideMotherReligion: 'Islam', brideMotherOccupation: '', brideMotherAddress: '',
+            groomFatherPresenceStatus: '', groomFatherName: '', groomFatherNik: '', groomFatherCitizenship: 'WNI', groomFatherCountryOfOrigin: 'INDONESIA', groomFatherPassportNumber: '', groomFatherPlaceOfBirth: '', groomFatherDateOfBirth: null, groomFatherReligion: 'Islam', groomFatherOccupation: '', groomFatherOccupationDescription: '', groomFatherAddress: '',
+            groomMotherPresenceStatus: '', groomMotherName: '', groomMotherNik: '', groomMotherCitizenship: 'WNI', groomMotherCountryOfOrigin: 'INDONESIA', groomMotherPassportNumber: '', groomMotherPlaceOfBirth: '', groomMotherDateOfBirth: null, groomMotherReligion: 'Islam', groomMotherOccupation: '', groomMotherOccupationDescription: '', groomMotherAddress: '',
+            brideFatherPresenceStatus: '', brideFatherName: '', brideFatherNik: '', brideFatherCitizenship: 'WNI', brideFatherCountryOfOrigin: 'INDONESIA', brideFatherPassportNumber: '', brideFatherPlaceOfBirth: '', brideFatherDateOfBirth: null, brideFatherReligion: 'Islam', brideFatherOccupation: '', brideFatherOccupationDescription: '', brideFatherAddress: '',
+            brideMotherPresenceStatus: '', brideMotherName: '', brideMotherNik: '', brideMotherCitizenship: 'WNI', brideMotherCountryOfOrigin: 'INDONESIA', brideMotherPassportNumber: '', brideMotherPlaceOfBirth: '', brideMotherDateOfBirth: null, brideMotherReligion: 'Islam', brideMotherOccupation: '', brideMotherOccupationDescription: '', brideMotherAddress: '',
             guardianFullName: '', guardianNik: '', guardianRelationship: '', guardianStatus: '', guardianReligion: 'Islam', guardianAddress: '', guardianPhoneNumber: ''
         }
     });
@@ -700,20 +826,21 @@ export function MultiStepMarriageForm() {
         const currentStepConfig = steps[currentStep];
 
         // Handle steps with sub-steps (tabs)
-        if (currentStepConfig.subSteps) {
-            const stepIndex = currentStep - 1 as keyof typeof subStepIndexes;
-            const currentSubStepIndex = subStepIndexes[stepIndex];
-            const currentSubStepName = currentStepConfig.subSteps[currentSubStepIndex];
-            
+        if (currentStepConfig.subSteps && (currentStep === 1 || currentStep === 2)) {
+            const stepIndex = currentStep as keyof typeof activeTabs;
+            const currentSubStepName = activeTabs[stepIndex];
+            const currentSubStepIndex = currentStepConfig.subSteps.indexOf(currentSubStepName);
+
             // @ts-ignore
             const fieldsToValidate = currentStepConfig.subStepFields[currentSubStepName] as (keyof FullFormData)[];
             const output = await trigger(fieldsToValidate, { shouldFocus: true });
-
+            
             if (!output) return;
 
             // If not the last sub-step, move to the next sub-step
             if (currentSubStepIndex < currentStepConfig.subSteps.length - 1) {
-                setSubStepIndexes(prev => ({ ...prev, [stepIndex]: prev[stepIndex] + 1 }));
+                const nextSubStep = currentStepConfig.subSteps[currentSubStepIndex + 1];
+                setActiveTabs(prev => ({ ...prev, [stepIndex]: nextSubStep }));
                 return;
             }
         } else {
@@ -736,13 +863,15 @@ export function MultiStepMarriageForm() {
         const currentStepConfig = steps[currentStep];
     
         // Handle steps with sub-steps
-        if (currentStepConfig.subSteps) {
-            const stepIndex = currentStep - 1 as keyof typeof subStepIndexes;
-            const currentSubStepIndex = subStepIndexes[stepIndex];
+        if (currentStepConfig.subSteps && (currentStep === 1 || currentStep === 2)) {
+            const stepIndex = currentStep as keyof typeof activeTabs;
+            const currentSubStepName = activeTabs[stepIndex];
+            const currentSubStepIndex = currentStepConfig.subSteps.indexOf(currentSubStepName);
     
             // If not the first sub-step, move to the previous sub-step
             if (currentSubStepIndex > 0) {
-                setSubStepIndexes(prev => ({ ...prev, [stepIndex]: prev[stepIndex] - 1 }));
+                 const prevSubStep = currentStepConfig.subSteps[currentSubStepIndex - 1];
+                setActiveTabs(prev => ({ ...prev, [stepIndex]: prevSubStep }));
                 return;
             }
         }
@@ -782,23 +911,16 @@ export function MultiStepMarriageForm() {
             if (value instanceof Date) {
                 formData.append(key, format(value, "yyyy-MM-dd"));
             } else if (value !== null && value !== undefined) {
-                formData.append(key, String(value));
+                 formData.append(key, String(value));
             }
         });
         formAction(formData);
     };
 
-    const handleTabChange = (stepIndex: number, newTabIndex: number) => {
-        setSubStepIndexes(prev => ({ ...prev, [stepIndex -1]: newTabIndex }));
+    const handleTabChange = (stepIndex: 1 | 2, newTabValue: string) => {
+        setActiveTabs(prev => ({ ...prev, [stepIndex]: newTabValue }));
     }
     
-    const activeSubStep = (stepNumber: number) => {
-        const stepConfig = steps[stepNumber];
-        if (!stepConfig || !stepConfig.subSteps) return '';
-        const subStepIndex = subStepIndexes[(stepNumber - 1) as keyof typeof subStepIndexes];
-        return stepConfig.subSteps[subStepIndex];
-    };
-
     return (
         <Card className="w-full max-w-5xl mx-auto shadow-lg">
             <CardHeader>
@@ -825,20 +947,19 @@ export function MultiStepMarriageForm() {
                  <Separator className="my-8"/>
                  <FormProvider {...methods}>
                     <form
-                        ref={formRef}
                         onSubmit={handleSubmit(onSubmit)}
                      >
                          <AnimatePresence mode="wait">
                             <motion.div
-                                key={`${currentStep}-${subStepIndexes[0]}-${subStepIndexes[1]}`}
+                                key={`${currentStep}-${activeTabs[1]}-${activeTabs[2]}`}
                                 initial={{ opacity: 0, x: delta >= 0 ? 50 : -50 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: delta >= 0 ? -50 : 50 }}
                                 transition={{ duration: 0.3 }}
                             >
                                 {currentStep === 0 && <Step1 />}
-                                {currentStep === 1 && <Step2 activeTab={activeSubStep(1)} onTabChange={(value) => handleTabChange(1, steps[1].subSteps!.indexOf(value))} />}
-                                {currentStep === 2 && <Step3 activeTab={activeSubStep(2)} onTabChange={(value) => handleTabChange(2, steps[2].subSteps!.indexOf(value))} />}
+                                {currentStep === 1 && <Step2 activeTab={activeTabs[1]} onTabChange={(value) => handleTabChange(1, value)} />}
+                                {currentStep === 2 && <Step3 activeTab={activeTabs[2]} onTabChange={(value) => handleTabChange(2, value)} />}
                                 {currentStep === 3 && <Step4 />}
                                 {currentStep === 4 && <Step5 />}
                                 {currentStep === 5 && <Step6 />}
@@ -846,7 +967,7 @@ export function MultiStepMarriageForm() {
                         </AnimatePresence>
                         <div className="mt-8 pt-5 border-t">
                             <div className="flex justify-between">
-                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0 && subStepIndexes[1] === 0}>
+                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0}>
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
