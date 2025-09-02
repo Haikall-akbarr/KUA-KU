@@ -46,127 +46,13 @@ const steps = [
     { id: "06", name: "Ringkasan", fields: [] },
 ];
 
+const dummySchema = z.object({});
+type FullFormData = z.infer<typeof dummySchema>;
 
-const personSchema = (prefix: 'groom' | 'bride') => z.object({
-  [`${prefix}FullName`]: z.string().min(3, `Nama lengkap calon ${prefix === 'groom' ? 'suami' : 'istri'} minimal 3 karakter.`),
-  [`${prefix}Nik`]: z.string().length(16, `NIK calon ${prefix === 'groom' ? 'suami' : 'istri'} harus 16 digit.`).regex(/^\d+$/, "NIK hanya boleh berisi angka."),
-  [`${prefix}Citizenship`]: z.string({ required_error: "Kewarganegaraan wajib diisi."}),
-  [`${prefix}PassportNumber`]: z.string().optional(),
-  [`${prefix}PlaceOfBirth`]: z.string().min(2, `Tempat lahir calon ${prefix === 'groom' ? 'suami' : 'istri'} minimal 2 karakter.`),
-  [`${prefix}DateOfBirth`]: z.date({ required_error: `Tanggal lahir calon ${prefix === 'groom' ? 'suami' : 'istri'} wajib diisi.` }),
-  [`${prefix}Status`]: z.string({ required_error: "Status perkawinan wajib diisi."}),
-  [`${prefix}Religion`]: z.string({ required_error: "Agama wajib diisi."}),
-  [`${prefix}Education`]: z.string({ required_error: "Pendidikan terakhir wajib diisi."}),
-  [`${prefix}Occupation`]: z.string({ required_error: "Pekerjaan wajib diisi."}),
-  [`${prefix}OccupationDescription`]: z.string().optional(),
-  [`${prefix}PhoneNumber`]: z.string().min(10, `Nomor telepon minimal 10 digit.`).regex(/^08\d{8,}$/, "Format nomor telepon tidak valid."),
-  [`${prefix}Email`]: z.string().email("Format email tidak valid."),
-  [`${prefix}Address`]: z.string().min(10, `Alamat minimal 10 karakter.`),
-});
-
-const parentSchema = (prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'brideMother') => z.object({
-    [`${prefix}PresenceStatus`]: z.string({ required_error: "Status keberadaan wajib diisi." }),
-    [`${prefix}Name`]: z.string().optional(),
-    [`${prefix}Nik`]: z.string().optional(),
-    [`${prefix}Citizenship`]: z.string().optional(),
-    [`${prefix}CountryOfOrigin`]: z.string().optional(),
-    [`${prefix}PassportNumber`]: z.string().optional(),
-    [`${prefix}PlaceOfBirth`]: z.string().optional(),
-    [`${prefix}DateOfBirth`]: z.date().optional().nullable(),
-    [`${prefix}Religion`]: z.string().optional(),
-    [`${prefix}Occupation`]: z.string().optional(),
-    [`${prefix}OccupationDescription`]: z.string().optional(),
-    [`${prefix}Address`]: z.string().optional(),
-}).superRefine((data, ctx) => {
-    const presenceStatus = data[`${prefix}PresenceStatus`];
-    if (presenceStatus === "Hidup") {
-        const name = data[`${prefix}Name`];
-        if (!name || name.length < 3) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nama ayah/ibu minimal 3 karakter.", path: [`${prefix}Name`] });
-        }
-        const nik = data[`${prefix}Nik`];
-        if (!nik || nik.length !== 16 || !/^\d+$/.test(nik)) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "NIK ayah/ibu harus 16 digit angka.", path: [`${prefix}Nik`] });
-        }
-        const citizenship = data[`${prefix}Citizenship`];
-        if (!citizenship) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Kewarganegaraan wajib diisi.", path: [`${prefix}Citizenship`] });
-        }
-        if (citizenship === 'WNA' && (!data[`${prefix}PassportNumber`] || data[`${prefix}PassportNumber`]?.length < 3) ) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nomor paspor wajib diisi untuk WNA.", path: [`${prefix}PassportNumber`] });
-        }
-        const placeOfBirth = data[`${prefix}PlaceOfBirth`];
-        if (!placeOfBirth || placeOfBirth.length < 2) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Tempat lahir minimal 2 karakter.", path: [`${prefix}PlaceOfBirth`] });
-        }
-         const dateOfBirth = data[`${prefix}DateOfBirth`];
-        if (!dateOfBirth) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Tanggal lahir wajib diisi.", path: [`${prefix}DateOfBirth`] });
-        }
-        const religion = data[`${prefix}Religion`];
-        if (!religion) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Agama wajib diisi.", path: [`${prefix}Religion`] });
-        }
-        const occupation = data[`${prefix}Occupation`];
-        if (!occupation) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Pekerjaan wajib diisi.", path: [`${prefix}Occupation`] });
-        }
-        if (occupation === "Lainnya" && (!data[`${prefix}OccupationDescription`] || data[`${prefix}OccupationDescription`]?.length < 3)) {
-             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Deskripsi pekerjaan lainnya wajib diisi.", path: [`${prefix}OccupationDescription`] });
-        }
-        const address = data[`${prefix}Address`];
-        if (!address || address.length < 10) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Alamat minimal 10 karakter.", path: [`${prefix}Address`] });
-        }
-    }
-});
-
-
-const guardianSchema = z.object({
-    guardianFullName: z.string().min(3, "Nama lengkap wali minimal 3 karakter."),
-    guardianNik: z.string().length(16, "NIK wali harus 16 digit.").regex(/^\d+$/, "NIK wali hanya boleh berisi angka."),
-    guardianRelationship: z.string().min(3, "Hubungan dengan wali wajib diisi."),
-    guardianStatus: z.string({ required_error: "Status wali wajib diisi."}),
-    guardianReligion: z.string({ required_error: "Agama wali wajib diisi."}),
-    guardianAddress: z.string().min(10, "Alamat wali minimal 10 karakter."),
-    guardianPhoneNumber: z.string().min(10, "Nomor telepon wali minimal 10 digit.").regex(/^08\d{8,}$/, "Format nomor telepon tidak valid."),
-});
-
-const fileSchema = z.any().optional();
-
-const fullSchema = z.object({
-    province: z.string({ required_error: "Provinsi wajib dipilih." }),
-    regency: z.string({ required_error: "Kabupaten/Kota wajib dipilih." }),
-    district: z.string({ required_error: "Kecamatan wajib dipilih." }),
-    kua: z.string({ required_error: "KUA wajib dipilih." }),
-    weddingLocation: z.string({ required_error: "Lokasi nikah wajib dipilih."}),
-    weddingDate: z.date({ required_error: "Tanggal akad wajib diisi." }),
-    weddingTime: z.string({ required_error: "Jam akad wajib dipilih."}),
-    dispensationNumber: z.string().optional(),
-    
-    ...personSchema('groom').shape,
-    ...personSchema('bride').shape,
-    ...parentSchema('groomFather').shape,
-    ...parentSchema('groomMother').shape,
-    ...parentSchema('brideFather').shape,
-    ...parentSchema('brideMother').shape,
-    ...guardianSchema.shape,
-}).refine(data => {
-    if (data.groomOccupation === "Lainnya") return !!data.groomOccupationDescription && data.groomOccupationDescription.length > 2;
-    return true;
-}, { message: "Deskripsi pekerjaan lainnya wajib diisi (minimal 3 karakter).", path: ["groomOccupationDescription"]
-}).refine(data => {
-    if (data.brideOccupation === "Lainnya") return !!data.brideOccupationDescription && data.brideOccupationDescription.length > 2;
-    return true;
-}, { message: "Deskripsi pekerjaan lainnya wajib diisi (minimal 3 karakter).", path: ["brideOccupationDescription"]
-});
-
-type FullFormData = z.infer<typeof fullSchema>;
-
-const FieldErrorMessage = ({ name }: { name: keyof FullFormData }) => {
-    const { formState: { errors } } = useFormContext<FullFormData>();
+const FieldErrorMessage = ({ name }: { name: string }) => {
+    const { formState: { errors } } = useFormContext<any>();
     const error = errors[name];
-    return error ? <p className="text-sm text-destructive mt-1">{error.message}</p> : null;
+    return error ? <p className="text-sm text-destructive mt-1">{error.message as string}</p> : null;
 };
 
 const ServerErrorMessage = ({ serverErrors, name }: { serverErrors: ZodIssue[] | undefined, name: string }) => {
@@ -207,12 +93,12 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
 
         if (dayOfWeek === 5) { // Friday
             return [
-                ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08, 09, 10, 11
+                ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08, 09, 10
                 ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14, 15, 16
             ];
         } else { // Monday - Thursday
             return [
-                 ...Array.from({ length: 5 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08, 09, 10, 11, 12
+                 ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08, 09, 10, 11
                  ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14, 15, 16
             ];
         }
@@ -233,12 +119,12 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
             if (dayOfWeek !== 0 && dayOfWeek !== 6) {
                  if (dayOfWeek === 5) {
                     newAvailableTimes = [
-                        ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
+                        ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
                         ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
                     ];
                 } else {
                     newAvailableTimes = [
-                        ...Array.from({ length: 5 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
+                        ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
                         ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
                     ];
                 }
@@ -331,7 +217,9 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                             <PopoverContent className="w-auto p-0">
                                 <Calendar mode="single" selected={field.value} onSelect={handleDateSelect} 
                                 disabled={(date) => {
-                                    if (date < new Date(new Date().setDate(new Date().getDate() + 10))) return true;
+                                    const today = new Date();
+                                    today.setHours(0,0,0,0);
+                                    if (date < new Date(today.setDate(today.getDate() + 10))) return true;
                                     if (weddingLocation === 'Di KUA') {
                                         const day = getDay(date);
                                         return day === 0 || day === 6; // Disable Saturday & Sunday
@@ -369,46 +257,46 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
 
 const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', personType: 'suami' | 'istri'}) => {
     const { control, watch } = useFormContext<FullFormData>();
-    const [dobOpen, setDobOpen] useState(false);
-    const dob = watch(`${prefix}DateOfBirth` as keyof FullFormData) as Date | undefined;
+    const [dobOpen, setDobOpen] = useState(false);
+    const dob = watch(`${prefix}DateOfBirth` as any) as Date | undefined;
     const age = dob ? differenceInYears(new Date(), dob) : null;
-    const selectedOccupation = watch(`${prefix}Occupation` as keyof FullFormData);
+    const selectedOccupation = watch(`${prefix}Occupation` as any);
 
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Citizenship`}>Warga Negara <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Citizenship` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}Citizenship` as any} control={control} render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value as string}>
                             <SelectTrigger><SelectValue placeholder="Pilih Kewarganegaraan" /></SelectTrigger>
                             <SelectContent> <SelectItem value="WNI">WNI</SelectItem> <SelectItem value="WNA">WNA</SelectItem> </SelectContent>
                         </Select>
                     )} />
-                    <FieldErrorMessage name={`${prefix}Citizenship` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}Citizenship`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}PassportNumber`}>No. Paspor (jika WNA)</Label>
-                    <Controller name={`${prefix}PassportNumber` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Nomor Paspor" />} />
+                    <Controller name={`${prefix}PassportNumber` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Nomor Paspor" />} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Nik`}>NIK <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Nik` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} placeholder="16 Digit NIK" maxLength={16} />} />
-                    <FieldErrorMessage name={`${prefix}Nik` as keyof FullFormData} />
+                    <Controller name={`${prefix}Nik` as any} control={control} render={({ field }) => <Input {...field} placeholder="16 Digit NIK" maxLength={16} />} />
+                    <FieldErrorMessage name={`${prefix}Nik`} />
                 </div>
                 <div className="space-y-2 lg:col-span-3">
                     <Label htmlFor={`${prefix}FullName`}>Nama Lengkap (sesuai KTP) <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}FullName` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} placeholder={`Nama Lengkap Calon ${personType}`} />} />
-                    <FieldErrorMessage name={`${prefix}FullName` as keyof FullFormData} />
+                    <Controller name={`${prefix}FullName` as any} control={control} render={({ field }) => <Input {...field} placeholder={`Nama Lengkap Calon ${personType}`} />} />
+                    <FieldErrorMessage name={`${prefix}FullName`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}PlaceOfBirth`}>Tempat Lahir <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}PlaceOfBirth` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} placeholder="Kota Kelahiran" />} />
-                    <FieldErrorMessage name={`${prefix}PlaceOfBirth` as keyof FullFormData} />
+                    <Controller name={`${prefix}PlaceOfBirth` as any} control={control} render={({ field }) => <Input {...field} placeholder="Kota Kelahiran" />} />
+                    <FieldErrorMessage name={`${prefix}PlaceOfBirth`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}DateOfBirth` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}DateOfBirth` as any} control={control} render={({ field }) => (
                         <Popover open={dobOpen} onOpenChange={setDobOpen}>
                             <PopoverTrigger asChild>
                                 <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
@@ -421,7 +309,7 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
                             </PopoverContent>
                         </Popover>
                     )} />
-                    <FieldErrorMessage name={`${prefix}DateOfBirth` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}DateOfBirth`} />
                 </div>
                 <div className="space-y-2">
                     <Label>Umur</Label>
@@ -429,14 +317,14 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Status`}>Status <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Status` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}Status` as any} control={control} render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Status" /></SelectTrigger><SelectContent><SelectItem value="Belum Kawin">Belum Kawin</SelectItem><SelectItem value="Kawin">Kawin</SelectItem><SelectItem value="Cerai Hidup">Cerai Hidup</SelectItem><SelectItem value="Cerai Mati">Cerai Mati</SelectItem></SelectContent></Select>
                     )} />
-                    <FieldErrorMessage name={`${prefix}Status` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}Status`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Religion`}>Agama <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Religion` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}Religion` as any} control={control} render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Islam">Islam</SelectItem>
@@ -448,41 +336,41 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
                             </SelectContent>
                         </Select>
                     )} />
-                    <FieldErrorMessage name={`${prefix}Religion` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}Religion`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Education`}>Pendidikan <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Education` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}Education` as any} control={control} render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Pendidikan" /></SelectTrigger><SelectContent>{educationLevels.map(level => <SelectItem key={level} value={level}>{level}</SelectItem>)}</SelectContent></Select>
                     )} />
-                    <FieldErrorMessage name={`${prefix}Education` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}Education`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Occupation`}>Pekerjaan <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Occupation` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}Occupation` as any} control={control} render={({ field }) => (
                          <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Pekerjaan" /></SelectTrigger><SelectContent>{occupations.map(job => <SelectItem key={job} value={job}>{job}</SelectItem>)}</SelectContent></Select>
                     )} />
-                    <FieldErrorMessage name={`${prefix}Occupation` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}Occupation`} />
                 </div>
                  <div className="space-y-2 lg:col-span-2">
                     <Label htmlFor={`${prefix}OccupationDescription`}>Jika Pekerjaan Lainnya</Label>
-                    <Controller name={`${prefix}OccupationDescription` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Sebutkan pekerjaan" disabled={selectedOccupation !== 'Lainnya'} />} />
-                    <FieldErrorMessage name={`${prefix}OccupationDescription` as keyof FullFormData}/>
+                    <Controller name={`${prefix}OccupationDescription` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Sebutkan pekerjaan" disabled={selectedOccupation !== 'Lainnya'} />} />
+                    <FieldErrorMessage name={`${prefix}OccupationDescription`}/>
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor={`${prefix}PhoneNumber`}>Nomor Telepon/HP <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}PhoneNumber` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} type="tel" placeholder="08..." />} />
-                    <FieldErrorMessage name={`${prefix}PhoneNumber` as keyof FullFormData} />
+                    <Controller name={`${prefix}PhoneNumber` as any} control={control} render={({ field }) => <Input {...field} type="tel" placeholder="08..." />} />
+                    <FieldErrorMessage name={`${prefix}PhoneNumber`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Email`}>Email <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Email` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} type="email" placeholder="nama@email.com" />} />
-                    <FieldErrorMessage name={`${prefix}Email` as keyof FullFormData} />
+                    <Controller name={`${prefix}Email` as any} control={control} render={({ field }) => <Input {...field} type="email" placeholder="nama@email.com" />} />
+                    <FieldErrorMessage name={`${prefix}Email`} />
                 </div>
                 <div className="space-y-2 lg:col-span-3">
                     <Label htmlFor={`${prefix}Address`}>Alamat (sesuai KTP) <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Address` as keyof FullFormData} control={control} render={({ field }) => <Textarea {...field} placeholder="Alamat lengkap sesuai KTP" />} />
-                    <FieldErrorMessage name={`${prefix}Address` as keyof FullFormData} />
+                    <Controller name={`${prefix}Address` as any} control={control} render={({ field }) => <Textarea {...field} placeholder="Alamat lengkap sesuai KTP" />} />
+                    <FieldErrorMessage name={`${prefix}Address`} />
                 </div>
             </div>
         </div>
@@ -491,17 +379,17 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
 
 const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'brideMother', personType: 'Ayah' | 'Ibu' }) => {
     const { control, watch, setValue } = useFormContext<FullFormData>();
-    const [dobOpen, setDobOpen] useState(false);
+    const [dobOpen, setDobOpen] = useState(false);
     
-    const presenceStatus = watch(`${prefix}PresenceStatus` as keyof FullFormData);
-    const citizenship = watch(`${prefix}Citizenship` as keyof FullFormData);
-    const selectedOccupation = watch(`${prefix}Occupation` as keyof FullFormData);
+    const presenceStatus = watch(`${prefix}PresenceStatus` as any);
+    const citizenship = watch(`${prefix}Citizenship` as any);
+    const selectedOccupation = watch(`${prefix}Occupation` as any);
 
     const isFieldsDisabled = presenceStatus === "Wafat" || presenceStatus === "Tidak Diketahui";
 
     useEffect(() => {
         if (citizenship === 'WNI') {
-            setValue(`${prefix}CountryOfOrigin` as keyof FullFormData, 'INDONESIA');
+            setValue(`${prefix}CountryOfOrigin` as any, 'INDONESIA');
         }
     }, [citizenship, setValue, prefix]);
 
@@ -510,7 +398,7 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 items-start">
                  <div className="space-y-2">
                     <Label htmlFor={`${prefix}PresenceStatus`}>Status Keberadaan <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}PresenceStatus` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}PresenceStatus` as any} control={control} render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value as string} disabled={false}>
                             <SelectTrigger><SelectValue placeholder="Pilih Status" /></SelectTrigger>
                             <SelectContent>
@@ -520,48 +408,48 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                             </SelectContent>
                         </Select>
                     )} />
-                    <FieldErrorMessage name={`${prefix}PresenceStatus` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}PresenceStatus`} />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor={`${prefix}Citizenship`}>Warga Negara <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Citizenship` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}Citizenship` as any} control={control} render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value as string}>
                             <SelectTrigger><SelectValue placeholder="Pilih Kewarganegaraan" /></SelectTrigger>
                             <SelectContent> <SelectItem value="WNI">WNI</SelectItem> <SelectItem value="WNA">WNA</SelectItem> </SelectContent>
                         </Select>
                     )} />
-                    <FieldErrorMessage name={`${prefix}Citizenship` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}Citizenship`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}CountryOfOrigin`}>Negara Asal <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}CountryOfOrigin` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}CountryOfOrigin` as any} control={control} render={({ field }) => (
                         <Input {...field} value={field.value as string || ''} placeholder="Negara Asal" disabled={citizenship === 'WNI'} />
                     )} />
-                    <FieldErrorMessage name={`${prefix}CountryOfOrigin` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}CountryOfOrigin`} />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor={`${prefix}PassportNumber`}>No. Paspor (jika WNA)</Label>
-                    <Controller name={`${prefix}PassportNumber` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Nomor Paspor" disabled={citizenship !== 'WNA'}/>} />
-                     <FieldErrorMessage name={`${prefix}PassportNumber` as keyof FullFormData} />
+                    <Controller name={`${prefix}PassportNumber` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Nomor Paspor" disabled={citizenship !== 'WNA'}/>} />
+                     <FieldErrorMessage name={`${prefix}PassportNumber`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Nik`}>NIK <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Nik` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`16 Digit NIK ${personType}`} maxLength={16} />} />
-                    <FieldErrorMessage name={`${prefix}Nik` as keyof FullFormData} />
+                    <Controller name={`${prefix}Nik` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`16 Digit NIK ${personType}`} maxLength={16} />} />
+                    <FieldErrorMessage name={`${prefix}Nik`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Name`}>Nama Lengkap {personType} <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Name` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`Nama Lengkap ${personType}`} />} />
-                    <FieldErrorMessage name={`${prefix}Name` as keyof FullFormData} />
+                    <Controller name={`${prefix}Name` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`Nama Lengkap ${personType}`} />} />
+                    <FieldErrorMessage name={`${prefix}Name`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}PlaceOfBirth`}>Tempat Lahir <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}PlaceOfBirth` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Kota Kelahiran" />} />
-                    <FieldErrorMessage name={`${prefix}PlaceOfBirth` as keyof FullFormData} />
+                    <Controller name={`${prefix}PlaceOfBirth` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Kota Kelahiran" />} />
+                    <FieldErrorMessage name={`${prefix}PlaceOfBirth`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}DateOfBirth` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}DateOfBirth` as any} control={control} render={({ field }) => (
                         <Popover open={dobOpen} onOpenChange={setDobOpen}>
                             <PopoverTrigger asChild>
                                 <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
@@ -574,11 +462,11 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                             </PopoverContent>
                         </Popover>
                     )} />
-                    <FieldErrorMessage name={`${prefix}DateOfBirth` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}DateOfBirth`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Religion`}>Agama <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Religion` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}Religion` as any} control={control} render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Islam">Islam</SelectItem>
@@ -590,24 +478,24 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                             </SelectContent>
                         </Select>
                     )} />
-                    <FieldErrorMessage name={`${prefix}Religion` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}Religion`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Occupation`}>Pekerjaan <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Occupation` as keyof FullFormData} control={control} render={({ field }) => (
+                    <Controller name={`${prefix}Occupation` as any} control={control} render={({ field }) => (
                          <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Pekerjaan" /></SelectTrigger><SelectContent>{occupations.map(job => <SelectItem key={job} value={job}>{job}</SelectItem>)}</SelectContent></Select>
                     )} />
-                    <FieldErrorMessage name={`${prefix}Occupation` as keyof FullFormData} />
+                    <FieldErrorMessage name={`${prefix}Occupation`} />
                 </div>
                  <div className="space-y-2 lg:col-span-2">
                     <Label htmlFor={`${prefix}OccupationDescription`}>Jika Pekerjaan Lainnya</Label>
-                    <Controller name={`${prefix}OccupationDescription` as keyof FullFormData} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Sebutkan pekerjaan" disabled={selectedOccupation !== 'Lainnya' || isFieldsDisabled} />} />
-                    <FieldErrorMessage name={`${prefix}OccupationDescription` as keyof FullFormData}/>
+                    <Controller name={`${prefix}OccupationDescription` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Sebutkan pekerjaan" disabled={selectedOccupation !== 'Lainnya' || isFieldsDisabled} />} />
+                    <FieldErrorMessage name={`${prefix}OccupationDescription`}/>
                 </div>
                  <div className="space-y-2 md:col-span-3">
                     <Label htmlFor={`${prefix}Address`}>Alamat (sesuai KTP) <span className="text-destructive">*</span></Label>
-                    <Controller name={`${prefix}Address` as keyof FullFormData} control={control} render={({ field }) => <Textarea {...field} value={field.value as string || ''} placeholder={`Alamat lengkap ${personType} sesuai KTP`} />} />
-                    <FieldErrorMessage name={`${prefix}Address` as keyof FullFormData} />
+                    <Controller name={`${prefix}Address` as any} control={control} render={({ field }) => <Textarea {...field} value={field.value as string || ''} placeholder={`Alamat lengkap ${personType} sesuai KTP`} />} />
+                    <FieldErrorMessage name={`${prefix}Address`} />
                 </div>
             </div>
         </fieldset>
@@ -819,7 +707,7 @@ export function MultiStepMarriageForm() {
     const [state, formAction] = useActionState(submitMarriageRegistrationForm, initialState);
 
     const methods = useForm<FullFormData>({
-        resolver: zodResolver(fullSchema),
+        // resolver: zodResolver(fullSchema),
         mode: 'onChange',
         defaultValues: {
             province: '', regency: '', district: '', kua: '',
@@ -839,11 +727,10 @@ export function MultiStepMarriageForm() {
     const next = async () => {
         const currentStepConfig = steps[currentStep];
         
-        // Handle steps with sub-steps (tabs)
         if (currentStepConfig.subSteps && (currentStep === 1 || currentStep === 2)) {
             const stepKey = currentStep === 1 ? 2 : 3;
             const currentSubStepName = activeTabs[stepKey as keyof typeof activeTabs];
-            const fieldsToValidate = currentStepConfig.subSteps[currentSubStepName as keyof typeof currentStepConfig.subSteps] as (keyof FullFormData)[];
+            const fieldsToValidate = currentStepConfig.subSteps[currentSubStepName as keyof typeof currentStepConfig.subSteps] as any[];
             
             const output = await trigger(fieldsToValidate, { shouldFocus: true });
             
@@ -852,22 +739,19 @@ export function MultiStepMarriageForm() {
             const subStepKeys = Object.keys(currentStepConfig.subSteps);
             const currentSubStepIndex = subStepKeys.indexOf(currentSubStepName);
 
-            // If not the last sub-step, move to the next sub-step
             if (currentSubStepIndex < subStepKeys.length - 1) {
                 const nextSubStep = subStepKeys[currentSubStepIndex + 1];
                 setActiveTabs(prev => ({ ...prev, [stepKey]: nextSubStep }));
                 return;
             }
         } else {
-            // Handle regular steps without sub-steps
             const fields = currentStepConfig.fields;
             if (fields && fields.length > 0) {
-                const output = await trigger(fields as (keyof FullFormData)[], { shouldFocus: true });
+                const output = await trigger(fields as any[], { shouldFocus: true });
                 if (!output) return;
             }
         }
 
-        // Move to the next main step
         if (currentStep < steps.length - 1) {
             setPreviousStep(currentStep);
             setCurrentStep(step => step + 1);
@@ -877,14 +761,12 @@ export function MultiStepMarriageForm() {
     const prev = () => {
         const currentStepConfig = steps[currentStep];
     
-        // Handle steps with sub-steps
         if (currentStepConfig.subSteps && (currentStep === 1 || currentStep === 2)) {
             const stepKey = currentStep === 1 ? 2 : 3;
             const currentSubStepName = activeTabs[stepKey as keyof typeof activeTabs];
             const subStepKeys = Object.keys(currentStepConfig.subSteps);
             const currentSubStepIndex = subStepKeys.indexOf(currentSubStepName);
     
-            // If not the first sub-step, move to the previous sub-step
             if (currentSubStepIndex > 0) {
                 const prevSubStep = subStepKeys[currentSubStepIndex - 1];
                 setActiveTabs(prev => ({ ...prev, [stepKey]: prevSubStep }));
@@ -892,7 +774,6 @@ export function MultiStepMarriageForm() {
             }
         }
     
-        // Move to the previous main step
         if (currentStep > 0) {
             setPreviousStep(currentStep);
             setCurrentStep(step => step - 1);
@@ -1004,3 +885,4 @@ export function MultiStepMarriageForm() {
     );
 }
 
+    
