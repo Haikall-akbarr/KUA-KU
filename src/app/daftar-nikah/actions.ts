@@ -4,14 +4,6 @@
 import { z } from 'zod';
 import { format } from 'date-fns';
 
-const MAX_FILE_SIZE = 200 * 1024; // 200 KB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
-
-const fileSchema = z.any()
-  .refine(file => file?.size <= MAX_FILE_SIZE, `Ukuran file maksimal 200KB.`)
-  .refine(file => ACCEPTED_IMAGE_TYPES.includes(file?.type), "Format file yang diterima: .jpg, .jpeg, .png")
-  .optional();
-
 const personSchema = (prefix: 'groom' | 'bride') => z.object({
   [`${prefix}FullName`]: z.string().min(3, `Nama lengkap calon ${prefix === 'groom' ? 'suami' : 'istri'} minimal 3 karakter.`),
   [`${prefix}Nik`]: z.string().length(16, `NIK calon ${prefix === 'groom' ? 'suami' : 'istri'} harus 16 digit.`).regex(/^\d+$/, "NIK hanya boleh berisi angka."),
@@ -30,12 +22,62 @@ const personSchema = (prefix: 'groom' | 'bride') => z.object({
 });
 
 const parentSchema = (prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'brideMother') => z.object({
-    [`${prefix}Name`]: z.string().min(3, `Nama ayah/ibu minimal 3 karakter.`),
-    [`${prefix}Nik`]: z.string().length(16, `NIK ayah/ibu harus 16 digit.`).regex(/^\d+$/, "NIK hanya boleh berisi angka."),
-    [`${prefix}Religion`]: z.string({ required_error: "Agama ayah/ibu wajib diisi."}),
-    [`${prefix}Occupation`]: z.string({ required_error: "Pekerjaan ayah/ibu wajib diisi."}),
-    [`${prefix}Address`]: z.string().min(10, `Alamat ayah/ibu minimal 10 karakter.`),
+    [`${prefix}PresenceStatus`]: z.string({ required_error: "Status keberadaan wajib diisi." }),
+    [`${prefix}Name`]: z.string().optional(),
+    [`${prefix}Nik`]: z.string().optional(),
+    [`${prefix}Citizenship`]: z.string().optional(),
+    [`${prefix}CountryOfOrigin`]: z.string().optional(),
+    [`${prefix}PassportNumber`]: z.string().optional(),
+    [`${prefix}PlaceOfBirth`]: z.string().optional(),
+    [`${prefix}DateOfBirth`]: z.date().optional().nullable(),
+    [`${prefix}Religion`]: z.string().optional(),
+    [`${prefix}Occupation`]: z.string().optional(),
+    [`${prefix}OccupationDescription`]: z.string().optional(),
+    [`${prefix}Address`]: z.string().optional(),
+}).superRefine((data, ctx) => {
+    const presenceStatus = data[`${prefix}PresenceStatus`];
+    if (presenceStatus === "Hidup") {
+        const name = data[`${prefix}Name`];
+        if (!name || name.length < 3) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nama ayah/ibu minimal 3 karakter.", path: [`${prefix}Name`] });
+        }
+        const nik = data[`${prefix}Nik`];
+        if (!nik || nik.length !== 16 || !/^\d+$/.test(nik)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "NIK ayah/ibu harus 16 digit angka.", path: [`${prefix}Nik`] });
+        }
+        const citizenship = data[`${prefix}Citizenship`];
+        if (!citizenship) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Kewarganegaraan wajib diisi.", path: [`${prefix}Citizenship`] });
+        }
+        if (citizenship === 'WNA' && (!data[`${prefix}PassportNumber`] || data[`${prefix}PassportNumber`]?.length < 3) ) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nomor paspor wajib diisi untuk WNA.", path: [`${prefix}PassportNumber`] });
+        }
+        const placeOfBirth = data[`${prefix}PlaceOfBirth`];
+        if (!placeOfBirth || placeOfBirth.length < 2) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Tempat lahir minimal 2 karakter.", path: [`${prefix}PlaceOfBirth`] });
+        }
+         const dateOfBirth = data[`${prefix}DateOfBirth`];
+        if (!dateOfBirth) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Tanggal lahir wajib diisi.", path: [`${prefix}DateOfBirth`] });
+        }
+        const religion = data[`${prefix}Religion`];
+        if (!religion) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Agama wajib diisi.", path: [`${prefix}Religion`] });
+        }
+        const occupation = data[`${prefix}Occupation`];
+        if (!occupation) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Pekerjaan wajib diisi.", path: [`${prefix}Occupation`] });
+        }
+        if (occupation === "Lainnya" && (!data[`${prefix}OccupationDescription`] || data[`${prefix}OccupationDescription`]?.length < 3)) {
+             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Deskripsi pekerjaan lainnya wajib diisi.", path: [`${prefix}OccupationDescription`] });
+        }
+        const address = data[`${prefix}Address`];
+        if (!address || address.length < 10) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Alamat minimal 10 karakter.", path: [`${prefix}Address`] });
+        }
+    }
 });
+
 
 const guardianSchema = z.object({
     guardianFullName: z.string().min(3, "Nama lengkap wali minimal 3 karakter."),
@@ -83,10 +125,14 @@ export type MarriageRegistrationFormState = {
   errors?: z.ZodIssue[];
   success: boolean;
   queueNumber?: string;
-  data?: Partial<MarriageRegistrationFormData> & { weddingDate?: string, groomDateOfBirth?: string, brideDateOfBirth?: string };
+  data?: Partial<MarriageRegistrationFormData> & { weddingDate?: string, groomDateOfBirth?: string, brideDateOfBirth?: string, groomFatherDateOfBirth?: string, groomMotherDateOfBirth?: string, brideFatherDateOfBirth?: string, brideMotherDateOfBirth?: string };
 };
 
-const toDate = (value: any) => value ? new Date(value as string) : undefined;
+const toDate = (value: any) => {
+    if (!value) return undefined;
+    const date = new Date(value as string);
+    return isNaN(date.getTime()) ? undefined : date;
+};
 
 export async function submitMarriageRegistrationForm(
   prevState: MarriageRegistrationFormState,
@@ -96,10 +142,12 @@ export async function submitMarriageRegistrationForm(
   const rawFormData = Object.fromEntries(formData.entries());
   
   // Convert date strings to Date objects
-  const dateFields = ['weddingDate', 'groomDateOfBirth', 'brideDateOfBirth'];
+  const dateFields = ['weddingDate', 'groomDateOfBirth', 'brideDateOfBirth', 'groomFatherDateOfBirth', 'groomMotherDateOfBirth', 'brideFatherDateOfBirth', 'brideMotherDateOfBirth'];
   dateFields.forEach(field => {
       if (rawFormData[field]) {
           rawFormData[field] = toDate(rawFormData[field]);
+      } else {
+         rawFormData[field] = undefined;
       }
   });
 

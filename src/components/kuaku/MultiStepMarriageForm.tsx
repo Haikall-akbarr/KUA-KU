@@ -29,10 +29,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { kalimantanData } from "@/lib/location-data";
 
 
+const groomPersonFields = ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress'];
+const groomFatherFields = ['groomFatherPresenceStatus', 'groomFatherName', 'groomFatherNik', 'groomFatherCitizenship', 'groomFatherCountryOfOrigin', 'groomFatherPassportNumber', 'groomFatherPlaceOfBirth', 'groomFatherDateOfBirth', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherOccupationDescription', 'groomFatherAddress'];
+const groomMotherFields = ['groomMotherPresenceStatus', 'groomMotherName', 'groomMotherNik', 'groomMotherCitizenship', 'groomMotherCountryOfOrigin', 'groomMotherPassportNumber', 'groomMotherPlaceOfBirth', 'groomMotherDateOfBirth', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherOccupationDescription', 'groomMotherAddress'];
+const bridePersonFields = ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress'];
+const brideFatherFields = ['brideFatherPresenceStatus', 'brideFatherName', 'brideFatherNik', 'brideFatherCitizenship', 'brideFatherCountryOfOrigin', 'brideFatherPassportNumber', 'brideFatherPlaceOfBirth', 'brideFatherDateOfBirth', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherOccupationDescription', 'brideFatherAddress'];
+const brideMotherFields = ['brideMotherPresenceStatus', 'brideMotherName', 'brideMotherNik', 'brideMotherCitizenship', 'brideMotherCountryOfOrigin', 'brideMotherPassportNumber', 'brideMotherPlaceOfBirth', 'brideMotherDateOfBirth', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherOccupationDescription', 'brideMotherAddress'];
+
+
 const steps = [
     { id: "01", name: "Jadwal & Lokasi", fields: ['province', 'regency', 'district', 'kua', 'weddingLocation', 'weddingDate', 'weddingTime', 'dispensationNumber'] },
-    { id: "02", name: "Calon Suami", fields: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress', 'groomFatherPresenceStatus', 'groomFatherName', 'groomFatherNik', 'groomFatherCitizenship', 'groomFatherCountryOfOrigin', 'groomFatherPassportNumber', 'groomFatherPlaceOfBirth', 'groomFatherDateOfBirth', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherOccupationDescription', 'groomFatherAddress', 'groomMotherPresenceStatus', 'groomMotherName', 'groomMotherNik', 'groomMotherCitizenship', 'groomMotherCountryOfOrigin', 'groomMotherPassportNumber', 'groomMotherPlaceOfBirth', 'groomMotherDateOfBirth', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherOccupationDescription', 'groomMotherAddress'], subSteps: ['groom', 'groomFather', 'groomMother'], subStepFields: { groom: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress'], groomFather: ['groomFatherPresenceStatus', 'groomFatherName', 'groomFatherNik', 'groomFatherCitizenship', 'groomFatherCountryOfOrigin', 'groomFatherPassportNumber', 'groomFatherPlaceOfBirth', 'groomFatherDateOfBirth', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherOccupationDescription', 'groomFatherAddress'], groomMother: ['groomMotherPresenceStatus', 'groomMotherName', 'groomMotherNik', 'groomMotherCitizenship', 'groomMotherCountryOfOrigin', 'groomMotherPassportNumber', 'groomMotherPlaceOfBirth', 'groomMotherDateOfBirth', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherOccupationDescription', 'groomMotherAddress'] } },
-    { id: "03", name: "Calon Istri", fields: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress', 'brideFatherPresenceStatus', 'brideFatherName', 'brideFatherNik', 'brideFatherCitizenship', 'brideFatherCountryOfOrigin', 'brideFatherPassportNumber', 'brideFatherPlaceOfBirth', 'brideFatherDateOfBirth', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherOccupationDescription', 'brideFatherAddress', 'brideMotherPresenceStatus', 'brideMotherName', 'brideMotherNik', 'brideMotherCitizenship', 'brideMotherCountryOfOrigin', 'brideMotherPassportNumber', 'brideMotherPlaceOfBirth', 'brideMotherDateOfBirth', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherOccupationDescription', 'brideMotherAddress'], subSteps: ['bride', 'brideFather', 'brideMother'], subStepFields: { bride: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress'], brideFather: ['brideFatherPresenceStatus', 'brideFatherName', 'brideFatherNik', 'brideFatherCitizenship', 'brideFatherCountryOfOrigin', 'brideFatherPassportNumber', 'brideFatherPlaceOfBirth', 'brideFatherDateOfBirth', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherOccupationDescription', 'brideFatherAddress'], brideMother: ['brideMotherPresenceStatus', 'brideMotherName', 'brideMotherNik', 'brideMotherCitizenship', 'brideMotherCountryOfOrigin', 'brideMotherPassportNumber', 'brideMotherPlaceOfBirth', 'brideMotherDateOfBirth', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherOccupationDescription', 'brideMotherAddress'] } },
+    { id: "02", name: "Calon Suami", subSteps: { groom: groomPersonFields, groomFather: groomFatherFields, groomMother: groomMotherFields } },
+    { id: "03", name: "Calon Istri", subSteps: { bride: bridePersonFields, brideFather: brideFatherFields, brideMother: brideMotherFields } },
     { id: "04", name: "Wali Nikah", fields: ['guardianFullName', 'guardianNik', 'guardianRelationship', 'guardianAddress', 'guardianStatus', 'guardianReligion', 'guardianPhoneNumber'] },
     { id: "05", name: "Data Dokumen" },
     { id: "06", name: "Ringkasan" },
@@ -187,25 +195,24 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
     }, [selectedDistrict, setValue]);
 
     const getAvailableTimes = () => {
-        if (!weddingDate || !weddingLocation) return [];
-
+        if (!weddingDate) return [];
+        
         if (weddingLocation === 'Di Luar KUA') {
-            // Flexible hours for outside KUA
             return Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
         }
 
-        const dayOfWeek = getDay(weddingDate); // Sunday = 0, Monday = 1, etc.
-        if (dayOfWeek === 0 || dayOfWeek === 6) return []; // No service on Sat/Sun at KUA
+        const dayOfWeek = getDay(weddingDate); 
+        if (dayOfWeek === 0 || dayOfWeek === 6) return []; 
 
         if (dayOfWeek === 5) { // Friday
             return [
-                ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08-10
-                ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14-15
+                ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08, 09, 10, 11
+                ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14, 15, 16
             ];
         } else { // Monday - Thursday
             return [
-                 ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08-11
-                ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14-15
+                 ...Array.from({ length: 5 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08, 09, 10, 11, 12
+                 ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14, 15, 16
             ];
         }
     };
@@ -217,23 +224,29 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
         setValue("weddingDate", date, { shouldValidate: true });
 
         // Reset time if the selected date changes day or invalidates the current time
-        const dayOfWeek = getDay(date);
         const currentTime = watch('weddingTime');
         
-        let newAvailableTimes: string[] = [];
-        if (weddingLocation === 'Di Luar KUA') {
-            newAvailableTimes = Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
-        } else if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-            if (dayOfWeek === 5) { // Friday
-                newAvailableTimes = [...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)];
-            } else { // Monday - Thursday
-                newAvailableTimes = [...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)];
+        if (weddingLocation === 'Di KUA') {
+            const dayOfWeek = getDay(date);
+            let newAvailableTimes: string[] = [];
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                 if (dayOfWeek === 5) {
+                    newAvailableTimes = [
+                        ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
+                        ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
+                    ];
+                } else {
+                    newAvailableTimes = [
+                        ...Array.from({ length: 5 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
+                        ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
+                    ];
+                }
+            }
+             if (!newAvailableTimes.includes(currentTime)) {
+                setValue('weddingTime', '');
             }
         }
         
-        if (!newAvailableTimes.includes(currentTime)) {
-            setValue('weddingTime', '');
-        }
         setWeddingDateOpen(false);
     };
 
@@ -290,7 +303,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                  <div className="space-y-2">
                     <Label htmlFor="weddingLocation">Nikah Di <span className="text-destructive">*</span></Label>
                     <Controller name="weddingLocation" control={control} render={({ field }) => (
-                        <Select onValueChange={(value) => { field.onChange(value); setValue('weddingDate', undefined); setValue('weddingTime', ''); }} value={field.value}>
+                        <Select onValueChange={(value) => { field.onChange(value); setValue('weddingDate', undefined, { shouldValidate: true }); setValue('weddingTime', '', { shouldValidate: true }); }} value={field.value}>
                             <SelectTrigger id="weddingLocation"><SelectValue placeholder="Pilih Lokasi Nikah" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Di KUA">Di KUA (Pada hari dan jam kerja)</SelectItem>
@@ -341,7 +354,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                                         <SelectItem key={time} value={time}>{time} WITA</SelectItem>
                                     ))
                                 ) : (
-                                    <SelectItem value="disabled" disabled>Pilih tanggal terlebih dahulu</SelectItem>
+                                    <SelectItem value="disabled" disabled>Pilih tanggal & lokasi</SelectItem>
                                 )}
                             </SelectContent>
                         </Select>
@@ -477,7 +490,7 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
 
 const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'brideMother', personType: 'Ayah' | 'Ibu' }) => {
     const { control, watch, setValue } = useFormContext<FullFormData>();
-    const [dobOpen, setDobOpen] = useState(false);
+    const [dobOpen, setDobOpen] useState(false);
     
     const presenceStatus = watch(`${prefix}PresenceStatus` as keyof FullFormData);
     const citizenship = watch(`${prefix}Citizenship` as keyof FullFormData);
@@ -797,7 +810,7 @@ const Step6 = () => {
 export function MultiStepMarriageForm() {
     const [currentStep, setCurrentStep] = useState(0);
     const [previousStep, setPreviousStep] = useState(0);
-    const [activeTabs, setActiveTabs] = useState({ 1: "groom", 2: "bride" });
+    const [activeTabs, setActiveTabs] = useState({ 2: "groom", 3: "bride" });
     const router = useRouter();
     const { toast } = useToast();
     
@@ -824,23 +837,23 @@ export function MultiStepMarriageForm() {
 
     const next = async () => {
         const currentStepConfig = steps[currentStep];
-
+        
         // Handle steps with sub-steps (tabs)
         if (currentStepConfig.subSteps && (currentStep === 1 || currentStep === 2)) {
-            const stepIndex = currentStep as keyof typeof activeTabs;
-            const currentSubStepName = activeTabs[stepIndex];
-            const currentSubStepIndex = currentStepConfig.subSteps.indexOf(currentSubStepName);
+            const stepKey = currentStep === 1 ? 2 : 3;
+            const currentSubStepName = activeTabs[stepKey as keyof typeof activeTabs];
+            const subStepKeys = Object.keys(currentStepConfig.subSteps);
+            const currentSubStepIndex = subStepKeys.indexOf(currentSubStepName);
 
-            // @ts-ignore
-            const fieldsToValidate = currentStepConfig.subStepFields[currentSubStepName] as (keyof FullFormData)[];
+            const fieldsToValidate = currentStepConfig.subSteps[currentSubStepName as keyof typeof currentStepConfig.subSteps] as (keyof FullFormData)[];
             const output = await trigger(fieldsToValidate, { shouldFocus: true });
             
             if (!output) return;
 
             // If not the last sub-step, move to the next sub-step
-            if (currentSubStepIndex < currentStepConfig.subSteps.length - 1) {
-                const nextSubStep = currentStepConfig.subSteps[currentSubStepIndex + 1];
-                setActiveTabs(prev => ({ ...prev, [stepIndex]: nextSubStep }));
+            if (currentSubStepIndex < subStepKeys.length - 1) {
+                const nextSubStep = subStepKeys[currentSubStepIndex + 1];
+                setActiveTabs(prev => ({ ...prev, [stepKey]: nextSubStep }));
                 return;
             }
         } else {
@@ -864,14 +877,15 @@ export function MultiStepMarriageForm() {
     
         // Handle steps with sub-steps
         if (currentStepConfig.subSteps && (currentStep === 1 || currentStep === 2)) {
-            const stepIndex = currentStep as keyof typeof activeTabs;
-            const currentSubStepName = activeTabs[stepIndex];
-            const currentSubStepIndex = currentStepConfig.subSteps.indexOf(currentSubStepName);
+            const stepKey = currentStep === 1 ? 2 : 3;
+            const currentSubStepName = activeTabs[stepKey as keyof typeof activeTabs];
+            const subStepKeys = Object.keys(currentStepConfig.subSteps);
+            const currentSubStepIndex = subStepKeys.indexOf(currentSubStepName);
     
             // If not the first sub-step, move to the previous sub-step
             if (currentSubStepIndex > 0) {
-                 const prevSubStep = currentStepConfig.subSteps[currentSubStepIndex - 1];
-                setActiveTabs(prev => ({ ...prev, [stepIndex]: prevSubStep }));
+                const prevSubStep = subStepKeys[currentSubStepIndex - 1];
+                setActiveTabs(prev => ({ ...prev, [stepKey]: prevSubStep }));
                 return;
             }
         }
@@ -917,7 +931,7 @@ export function MultiStepMarriageForm() {
         formAction(formData);
     };
 
-    const handleTabChange = (stepIndex: 1 | 2, newTabValue: string) => {
+    const handleTabChange = (stepIndex: 2 | 3, newTabValue: string) => {
         setActiveTabs(prev => ({ ...prev, [stepIndex]: newTabValue }));
     }
     
@@ -951,15 +965,15 @@ export function MultiStepMarriageForm() {
                      >
                          <AnimatePresence mode="wait">
                             <motion.div
-                                key={`${currentStep}-${activeTabs[1]}-${activeTabs[2]}`}
+                                key={`${currentStep}-${activeTabs[2]}-${activeTabs[3]}`}
                                 initial={{ opacity: 0, x: delta >= 0 ? 50 : -50 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: delta >= 0 ? -50 : 50 }}
                                 transition={{ duration: 0.3 }}
                             >
                                 {currentStep === 0 && <Step1 />}
-                                {currentStep === 1 && <Step2 activeTab={activeTabs[1]} onTabChange={(value) => handleTabChange(1, value)} />}
-                                {currentStep === 2 && <Step3 activeTab={activeTabs[2]} onTabChange={(value) => handleTabChange(2, value)} />}
+                                {currentStep === 1 && <Step2 activeTab={activeTabs[2]} onTabChange={(value) => handleTabChange(2, value)} />}
+                                {currentStep === 2 && <Step3 activeTab={activeTabs[3]} onTabChange={(value) => handleTabChange(3, value)} />}
                                 {currentStep === 3 && <Step4 />}
                                 {currentStep === 4 && <Step5 />}
                                 {currentStep === 5 && <Step6 />}
@@ -967,7 +981,7 @@ export function MultiStepMarriageForm() {
                         </AnimatePresence>
                         <div className="mt-8 pt-5 border-t">
                             <div className="flex justify-between">
-                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0}>
+                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0 && activeTabs[2] === 'groom'}>
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
