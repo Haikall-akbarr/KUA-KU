@@ -15,24 +15,15 @@ const firebaseConfig: FirebaseOptions = {
 
 
 // Initialize Firebase
-// Check if all required environment variables are set
 let app;
 let auth: any = null; // Initialize auth as null
 
-const requiredEnvVars = [
-  'NEXT_PUBLIC_FIREBASE_API_KEY',
-  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-];
-
-const areAllVarsDefined = requiredEnvVars.every(v => !!process.env[v]);
-
-if (areAllVarsDefined) {
+// We only initialize Firebase if all config values are present.
+if (firebaseConfig.apiKey && firebaseConfig.projectId) {
     app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     auth = getAuth(app);
 } else {
     console.warn("Firebase configuration is missing or incomplete in environment variables. Firebase services will be disabled.");
-    // app will be undefined and auth will be null
 }
 
 
