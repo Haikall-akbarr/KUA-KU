@@ -41,6 +41,9 @@ export function LoginForm() {
   const onSubmit: SubmitHandler<LoginInputs> = async (data) => {
     setIsLoading(true);
     try {
+      if (!auth) {
+        throw new Error("Konfigurasi otentikasi tidak ditemukan.");
+      }
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({
         title: 'Login Berhasil!',
@@ -54,6 +57,8 @@ export function LoginForm() {
         errorMessage = 'Email atau password yang Anda masukkan salah.';
       } else if (error.code === 'auth/configuration-not-found') {
           errorMessage = 'Konfigurasi otentikasi tidak ditemukan. Pastikan metode login Email/Password sudah diaktifkan di Firebase Console.';
+      } else if (error.message === "Konfigurasi otentikasi tidak ditemukan.") {
+          errorMessage = "Gagal terhubung ke layanan otentikasi. Periksa konfigurasi Anda.";
       } else {
         console.error('Firebase Auth Error:', error);
       }
