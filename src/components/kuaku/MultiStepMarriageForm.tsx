@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useActionState, useEffect, useRef } from "react";
@@ -6,7 +5,7 @@ import { useForm, FormProvider, Controller, useFormContext } from "react-hook-fo
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z, ZodIssue } from "zod";
 import { AnimatePresence, motion } from "framer-motion";
-import { format, parseISO, differenceInYears } from "date-fns";
+import { format, parseISO, differenceInYears, getDay } from "date-fns";
 import { id as IndonesianLocale } from 'date-fns/locale';
 import { useRouter } from "next/navigation";
 
@@ -122,6 +121,8 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
     const selectedProvince = watch("province");
     const selectedRegency = watch("regency");
     const selectedDistrict = watch("district");
+    const weddingLocation = watch("weddingLocation");
+    const weddingDate = watch("weddingDate");
 
     const regencies = selectedProvince ? kalimantanData.find(p => p.name === selectedProvince)?.regencies || [] : [];
     const districts = selectedRegency ? regencies.find(r => r.name === selectedRegency)?.districts || [] : [];
@@ -133,6 +134,57 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
             setValue('kua', '');
         }
     }, [selectedDistrict, setValue]);
+
+    const getAvailableTimes = () => {
+        if (!weddingDate || !weddingLocation) return [];
+
+        if (weddingLocation === 'Di Luar KUA') {
+            // Flexible hours for outside KUA
+            return Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
+        }
+
+        const dayOfWeek = getDay(weddingDate); // Sunday = 0, Monday = 1, etc.
+        if (dayOfWeek === 0 || dayOfWeek === 6) return []; // No service on Sat/Sun at KUA
+
+        if (dayOfWeek === 5) { // Friday
+            return [
+                ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08-11
+                ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14-16
+            ];
+        } else { // Monday - Thursday
+            return [
+                 ...Array.from({ length: 5 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08-12
+                ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14-16
+            ];
+        }
+    };
+    
+    const availableTimes = getAvailableTimes();
+
+    const handleDateSelect = (date: Date | undefined) => {
+        if (!date) return;
+        setValue("weddingDate", date, { shouldValidate: true });
+
+        // Reset time if the selected date changes day or invalidates the current time
+        const dayOfWeek = getDay(date);
+        const currentTime = watch('weddingTime');
+        
+        let newAvailableTimes: string[] = [];
+        if (weddingLocation === 'Di Luar KUA') {
+            newAvailableTimes = Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
+        } else if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            if (dayOfWeek === 5) { // Friday
+                newAvailableTimes = [...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)];
+            } else { // Monday - Thursday
+                newAvailableTimes = [...Array.from({ length: 5 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)];
+            }
+        }
+        
+        if (!newAvailableTimes.includes(currentTime)) {
+            setValue('weddingTime', '');
+        }
+        setWeddingDateOpen(false);
+    };
 
     return (
         <div className="space-y-6">
@@ -187,7 +239,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                  <div className="space-y-2">
                     <Label htmlFor="weddingLocation">Nikah Di <span className="text-destructive">*</span></Label>
                     <Controller name="weddingLocation" control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={(value) => { field.onChange(value); setValue('weddingDate', undefined); setValue('weddingTime', ''); }} value={field.value}>
                             <SelectTrigger id="weddingLocation"><SelectValue placeholder="Pilih Lokasi Nikah" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Di KUA">Di KUA (Pada hari dan jam kerja)</SelectItem>
@@ -206,13 +258,22 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                     <Controller name="weddingDate" control={control} render={({ field }) => (
                         <Popover open={weddingDateOpen} onOpenChange={setWeddingDateOpen}>
                             <PopoverTrigger asChild>
-                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")} disabled={!weddingLocation}>
                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                     {field.value ? format(field.value, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal</span>}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
-                                <Calendar mode="single" selected={field.value} onSelect={(date) => { field.onChange(date); setWeddingDateOpen(false); }} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() + 10))} initialFocus locale={IndonesianLocale} />
+                                <Calendar mode="single" selected={field.value} onSelect={handleDateSelect} 
+                                disabled={(date) => {
+                                    if (date < new Date(new Date().setDate(new Date().getDate() + 10))) return true;
+                                    if (weddingLocation === 'Di KUA') {
+                                        const day = getDay(date);
+                                        return day === 0 || day === 6; // Disable Saturday & Sunday
+                                    }
+                                    return false;
+                                }}
+                                initialFocus locale={IndonesianLocale} />
                             </PopoverContent>
                         </Popover>
                     )} />
@@ -221,12 +282,16 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                 <div className="space-y-2">
                      <Label htmlFor="weddingTime">Jam Akad <span className="text-destructive">*</span></Label>
                     <Controller name="weddingTime" control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!weddingDate}>
                             <SelectTrigger id="weddingTime"><SelectValue placeholder="Pilih Jam Akad" /></SelectTrigger>
                             <SelectContent>
-                                {Array.from({ length: 10 }, (_, i) => i + 8).map(hour => (
-                                    <SelectItem key={hour} value={`${hour.toString().padStart(2, '0')}:00`}>{`${hour.toString().padStart(2, '0')}:00`}</SelectItem>
-                                ))}
+                                {availableTimes.length > 0 ? (
+                                    availableTimes.map(time => (
+                                        <SelectItem key={time} value={time}>{time} WITA</SelectItem>
+                                    ))
+                                ) : (
+                                    <SelectItem value="disabled" disabled>Pilih tanggal terlebih dahulu</SelectItem>
+                                )}
                             </SelectContent>
                         </Select>
                     )} />
@@ -701,7 +766,7 @@ export function MultiStepMarriageForm() {
                         </AnimatePresence>
                         <div className="mt-8 pt-5 border-t">
                             <div className="flex justify-between">
-                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0 || isSubmitting}>
+                                <Button type="button" onClick={prev} variant="outline" disabled={isSubmitting}>
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
