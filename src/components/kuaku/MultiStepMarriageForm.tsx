@@ -802,7 +802,7 @@ export function MultiStepMarriageForm() {
 
     const delta = currentStep - previousStep;
 
-    const onSubmit = (data: FullFormData) => {
+    const onFormSubmit = (data: FullFormData) => {
         const formData = new FormData();
         Object.entries(data).forEach(([key, value]) => {
             if (value instanceof Date) {
@@ -844,7 +844,7 @@ export function MultiStepMarriageForm() {
                  <Separator className="my-8"/>
                  <FormProvider {...methods}>
                     <form
-                        onSubmit={handleSubmit(onSubmit)}
+                        onSubmit={handleSubmit(onFormSubmit)}
                      >
                          <AnimatePresence mode="wait">
                             <motion.div
@@ -884,5 +884,3 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
-
-    
