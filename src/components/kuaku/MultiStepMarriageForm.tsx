@@ -31,8 +31,8 @@ import { kalimantanData } from "@/lib/location-data";
 
 const steps = [
     { id: "01", name: "Jadwal & Lokasi", fields: ['province', 'regency', 'district', 'kua', 'weddingLocation', 'weddingDate', 'weddingTime', 'dispensationNumber'] },
-    { id: "02", name: "Calon Suami", fields: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress', 'groomFatherName', 'groomFatherNik', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherAddress', 'groomMotherName', 'groomMotherNik', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherAddress'] },
-    { id: "03", name: "Calon Istri", fields: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress', 'brideFatherName', 'brideFatherNik', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherAddress', 'brideMotherName', 'brideMotherNik', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherAddress'] },
+    { id: "02", name: "Calon Suami", fields: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress', 'groomFatherName', 'groomFatherNik', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherAddress', 'groomMotherName', 'groomMotherNik', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherAddress'], subSteps: ['groom', 'groomFather', 'groomMother'], subStepFields: { groom: ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress'], groomFather: ['groomFatherName', 'groomFatherNik', 'groomFatherReligion', 'groomFatherOccupation', 'groomFatherAddress'], groomMother: ['groomMotherName', 'groomMotherNik', 'groomMotherReligion', 'groomMotherOccupation', 'groomMotherAddress'] } },
+    { id: "03", name: "Calon Istri", fields: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress', 'brideFatherName', 'brideFatherNik', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherAddress', 'brideMotherName', 'brideMotherNik', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherAddress'], subSteps: ['bride', 'brideFather', 'brideMother'], subStepFields: { bride: ['brideFullName', 'brideNik', 'brideCitizenship', 'bridePassportNumber', 'bridePlaceOfBirth', 'brideDateOfBirth', 'brideStatus', 'brideReligion', 'brideEducation', 'brideOccupation', 'brideOccupationDescription', 'bridePhoneNumber', 'brideEmail', 'brideAddress'], brideFather: ['brideFatherName', 'brideFatherNik', 'brideFatherReligion', 'brideFatherOccupation', 'brideFatherAddress'], brideMother: ['brideMotherName', 'brideMotherNik', 'brideMotherReligion', 'brideMotherOccupation', 'brideMotherAddress'] } },
     { id: "04", name: "Wali Nikah", fields: ['guardianFullName', 'guardianNik', 'guardianRelationship', 'guardianAddress', 'guardianStatus', 'guardianReligion', 'guardianPhoneNumber'] },
     { id: "05", name: "Data Dokumen" },
     { id: "06", name: "Ringkasan" },
@@ -473,10 +473,10 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
     )
 }
 
-const Step2 = () => (
+const Step2 = ({ activeTab, onTabChange }: { activeTab: string, onTabChange: (value: string) => void }) => (
     <div className="space-y-6">
         <h3 className="text-xl font-semibold text-foreground flex items-center"><User className="mr-3 h-6 w-6 text-primary"/>Data Calon Suami & Keluarga</h3>
-         <Tabs defaultValue="groom">
+         <Tabs value={activeTab} onValueChange={onTabChange}>
             <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="groom">Calon Suami</TabsTrigger>
                 <TabsTrigger value="groomFather">Ayah Suami</TabsTrigger>
@@ -489,10 +489,10 @@ const Step2 = () => (
     </div>
 );
 
-const Step3 = () => (
+const Step3 = ({ activeTab, onTabChange }: { activeTab: string, onTabChange: (value: string) => void }) => (
     <div className="space-y-6">
         <h3 className="text-xl font-semibold text-foreground flex items-center"><User className="mr-3 h-6 w-6 text-primary"/>Data Calon Istri & Keluarga</h3>
-        <Tabs defaultValue="bride">
+        <Tabs value={activeTab} onValueChange={onTabChange}>
             <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="bride">Calon Istri</TabsTrigger>
                 <TabsTrigger value="brideFather">Ayah Istri</TabsTrigger>
@@ -670,6 +670,7 @@ const Step6 = () => {
 export function MultiStepMarriageForm() {
     const [currentStep, setCurrentStep] = useState(0);
     const [previousStep, setPreviousStep] = useState(0);
+    const [subStepIndexes, setSubStepIndexes] = useState({ 1: 0, 2: 0 }); // Step 2 and 3 are index 1 and 2
     const router = useRouter();
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -679,6 +680,7 @@ export function MultiStepMarriageForm() {
 
     const methods = useForm<FullFormData>({
         resolver: zodResolver(fullSchema),
+        mode: 'onChange',
         defaultValues: {
             province: '', regency: '', district: '', kua: '',
             weddingLocation: '', weddingTime: '', dispensationNumber: '',
@@ -692,27 +694,66 @@ export function MultiStepMarriageForm() {
         }
     });
 
-    const { trigger, handleSubmit, formState: { isSubmitting, errors }, getValues } = methods;
+    const { trigger, handleSubmit, formState: { isSubmitting }, getValues } = methods;
 
     const next = async () => {
-        const fields = steps[currentStep].fields;
-        // @ts-ignore
-        const output = await trigger(fields as (keyof FullFormData)[], { shouldFocus: true });
+        const currentStepConfig = steps[currentStep];
 
-        if (!output) return;
+        // Handle steps with sub-steps (tabs)
+        if (currentStepConfig.subSteps) {
+            const stepIndex = currentStep - 1 as keyof typeof subStepIndexes;
+            const currentSubStepIndex = subStepIndexes[stepIndex];
+            const currentSubStepName = currentStepConfig.subSteps[currentSubStepIndex];
+            
+            // @ts-ignore
+            const fieldsToValidate = currentStepConfig.subStepFields[currentSubStepName] as (keyof FullFormData)[];
+            const output = await trigger(fieldsToValidate, { shouldFocus: true });
 
+            if (!output) return;
+
+            // If not the last sub-step, move to the next sub-step
+            if (currentSubStepIndex < currentStepConfig.subSteps.length - 1) {
+                setSubStepIndexes(prev => ({ ...prev, [stepIndex]: prev[stepIndex] + 1 }));
+                return;
+            }
+        } else {
+            // Handle regular steps without sub-steps
+            const fields = currentStepConfig.fields;
+            if (fields) {
+                const output = await trigger(fields as (keyof FullFormData)[], { shouldFocus: true });
+                if (!output) return;
+            }
+        }
+
+        // Move to the next main step
         if (currentStep < steps.length - 1) {
             setPreviousStep(currentStep);
             setCurrentStep(step => step + 1);
         }
     };
-
+    
     const prev = () => {
+        const currentStepConfig = steps[currentStep];
+    
+        // Handle steps with sub-steps
+        if (currentStepConfig.subSteps) {
+            const stepIndex = currentStep - 1 as keyof typeof subStepIndexes;
+            const currentSubStepIndex = subStepIndexes[stepIndex];
+    
+            // If not the first sub-step, move to the previous sub-step
+            if (currentSubStepIndex > 0) {
+                setSubStepIndexes(prev => ({ ...prev, [stepIndex]: prev[stepIndex] - 1 }));
+                return;
+            }
+        }
+    
+        // Move to the previous main step
         if (currentStep > 0) {
             setPreviousStep(currentStep);
             setCurrentStep(step => step - 1);
         }
     };
+    
 
     useEffect(() => {
         if (state.message) {
@@ -746,7 +787,18 @@ export function MultiStepMarriageForm() {
         });
         formAction(formData);
     };
+
+    const handleTabChange = (stepIndex: number, newTabIndex: number) => {
+        setSubStepIndexes(prev => ({ ...prev, [stepIndex -1]: newTabIndex }));
+    }
     
+    const activeSubStep = (stepNumber: number) => {
+        const stepConfig = steps[stepNumber];
+        if (!stepConfig || !stepConfig.subSteps) return '';
+        const subStepIndex = subStepIndexes[(stepNumber - 1) as keyof typeof subStepIndexes];
+        return stepConfig.subSteps[subStepIndex];
+    };
+
     return (
         <Card className="w-full max-w-5xl mx-auto shadow-lg">
             <CardHeader>
@@ -778,15 +830,15 @@ export function MultiStepMarriageForm() {
                      >
                          <AnimatePresence mode="wait">
                             <motion.div
-                                key={currentStep}
+                                key={`${currentStep}-${subStepIndexes[0]}-${subStepIndexes[1]}`}
                                 initial={{ opacity: 0, x: delta >= 0 ? 50 : -50 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: delta >= 0 ? -50 : 50 }}
                                 transition={{ duration: 0.3 }}
                             >
                                 {currentStep === 0 && <Step1 />}
-                                {currentStep === 1 && <Step2 />}
-                                {currentStep === 2 && <Step3 />}
+                                {currentStep === 1 && <Step2 activeTab={activeSubStep(1)} onTabChange={(value) => handleTabChange(1, steps[1].subSteps!.indexOf(value))} />}
+                                {currentStep === 2 && <Step3 activeTab={activeSubStep(2)} onTabChange={(value) => handleTabChange(2, steps[2].subSteps!.indexOf(value))} />}
                                 {currentStep === 3 && <Step4 />}
                                 {currentStep === 4 && <Step5 />}
                                 {currentStep === 5 && <Step6 />}
@@ -794,7 +846,7 @@ export function MultiStepMarriageForm() {
                         </AnimatePresence>
                         <div className="mt-8 pt-5 border-t">
                             <div className="flex justify-between">
-                                <Button type="button" onClick={prev} variant="outline" disabled={isSubmitting}>
+                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0 && subStepIndexes[1] === 0}>
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
