@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useActionState, useEffect, useRef } from "react";
@@ -22,7 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { submitMarriageRegistrationForm, type MarriageRegistrationFormState } from "@/app/daftar-nikah/actions";
-import { Loader2, CalendarIcon, User, Users, FileText, CheckCircle, Info, MapPin, Building, Clock, FileUp, FileCheck2 } from "lucide-react";
+import { Loader2, CalendarIcon, User, Users, FileText, CheckCircle, Info, MapPin, Building, Clock, FileUp, FileCheck2, AlertCircle } from "lucide-react";
 import { educationLevels, occupations } from "@/lib/form-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { kalimantanData } from "@/lib/location-data";
@@ -45,21 +46,31 @@ const steps = [
     { id: "06", name: "Ringkasan", fields: [] },
 ];
 
+// We don't need a client-side Zod schema for the whole form, 
+// as validation is primarily handled by the server action.
+// We'll use react-hook-form's built-in validation trigger.
 const dummySchema = z.object({});
 type FullFormData = z.infer<typeof dummySchema>;
 
 const FieldErrorMessage = ({ name }: { name: string }) => {
-    const { formState: { errors } } = useFormContext<any>();
-    const error = errors[name];
-    return error ? <p className="text-sm text-destructive mt-1">{error.message as string}</p> : null;
+    const { formState: { errors: clientErrors }, getFieldState } = useFormContext<any>();
+    const { error: serverError } = getFieldState(name);
+    
+    // Prefer server error message if it exists
+    if (serverError?.message) {
+        return <p className="text-sm text-destructive mt-1">{serverError.message}</p>;
+    }
+    
+    // Fallback to client error message
+    const clientError = clientErrors[name];
+    if (clientError?.message) {
+        return <p className="text-sm text-destructive mt-1">{clientError.message as string}</p>;
+    }
+    
+    return null;
 };
 
-const ServerErrorMessage = ({ serverErrors, name }: { serverErrors: ZodIssue[] | undefined, name: string }) => {
-    const error = serverErrors?.find(e => e.path.includes(name));
-    return error ? <p className="text-sm text-destructive mt-1">{error.message}</p> : null;
-}
-
-const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
+const Step1 = () => {
     const { control, watch, setValue } = useFormContext<FullFormData>();
     const [weddingDateOpen, setWeddingDateOpen] = useState(false);
 
@@ -84,6 +95,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
         if (!weddingDate) return [];
         
         if (weddingLocation === 'Di Luar KUA') {
+            // Flexible hours for outside KUA
             return Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
         }
 
@@ -98,7 +110,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
         } else { // Monday - Thursday
             return [
                  ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08, 09, 10, 11
-                 ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14, 15, 16
+                 ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14, 15
             ];
         }
     };
@@ -109,28 +121,30 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
         if (!date) return;
         setValue("weddingDate", date, { shouldValidate: true });
 
-        // Reset time if the selected date changes day or invalidates the current time
         const currentTime = watch('weddingTime');
-        
+        let newAvailableTimes: string[] = [];
+
         if (weddingLocation === 'Di KUA') {
             const dayOfWeek = getDay(date);
-            let newAvailableTimes: string[] = [];
             if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                 if (dayOfWeek === 5) {
+                 if (dayOfWeek === 5) { // Friday
                     newAvailableTimes = [
                         ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
                         ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
                     ];
-                } else {
+                } else { // Monday - Thursday
                     newAvailableTimes = [
                         ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
-                        ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
+                        ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
                     ];
                 }
             }
-             if (!newAvailableTimes.includes(currentTime)) {
-                setValue('weddingTime', '');
-            }
+        } else if (weddingLocation === 'Di Luar KUA') {
+            newAvailableTimes = Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
+        }
+        
+        if (!newAvailableTimes.includes(currentTime)) {
+            setValue('weddingTime', '');
         }
         
         setWeddingDateOpen(false);
@@ -218,7 +232,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                                 disabled={(date) => {
                                     const today = new Date();
                                     today.setHours(0,0,0,0);
-                                    if (date < new Date(today.setDate(today.getDate() + 10))) return true;
+                                    if (date < new Date(new Date().setDate(today.getDate() + 10))) return true;
                                     if (weddingLocation === 'Di KUA') {
                                         const day = getDay(date);
                                         return day === 0 || day === 6; // Disable Saturday & Sunday
@@ -242,7 +256,7 @@ const Step1 = ({ serverErrors }: { serverErrors?: ZodIssue[] }) => {
                                         <SelectItem key={time} value={time}>{time} WITA</SelectItem>
                                     ))
                                 ) : (
-                                    <SelectItem value="disabled" disabled>Pilih tanggal & lokasi</SelectItem>
+                                    <SelectItem value="disabled" disabled>Pilih tanggal & lokasi dulu</SelectItem>
                                 )}
                             </SelectContent>
                         </Select>
@@ -277,6 +291,7 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}PassportNumber`}>No. Paspor (jika WNA)</Label>
                     <Controller name={`${prefix}PassportNumber` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Nomor Paspor" />} />
+                    <FieldErrorMessage name={`${prefix}PassportNumber`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Nik`}>NIK <span className="text-destructive">*</span></Label>
@@ -410,7 +425,7 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     <FieldErrorMessage name={`${prefix}PresenceStatus`} />
                 </div>
                  <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Citizenship`}>Warga Negara <span className="text-destructive">*</span></Label>
+                    <Label htmlFor={`${prefix}Citizenship`}>Warga Negara {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}Citizenship` as any} control={control} render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value as string}>
                             <SelectTrigger><SelectValue placeholder="Pilih Kewarganegaraan" /></SelectTrigger>
@@ -420,9 +435,9 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     <FieldErrorMessage name={`${prefix}Citizenship`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}CountryOfOrigin`}>Negara Asal <span className="text-destructive">*</span></Label>
+                    <Label htmlFor={`${prefix}CountryOfOrigin`}>Negara Asal {citizenship !== 'WNA' || isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}CountryOfOrigin` as any} control={control} render={({ field }) => (
-                        <Input {...field} value={field.value as string || ''} placeholder="Negara Asal" disabled={citizenship === 'WNI'} />
+                        <Input {...field} value={field.value as string || ''} placeholder="Negara Asal" disabled={citizenship !== 'WNA'} />
                     )} />
                     <FieldErrorMessage name={`${prefix}CountryOfOrigin`} />
                 </div>
@@ -432,22 +447,22 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                      <FieldErrorMessage name={`${prefix}PassportNumber`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Nik`}>NIK <span className="text-destructive">*</span></Label>
+                    <Label htmlFor={`${prefix}Nik`}>NIK {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}Nik` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`16 Digit NIK ${personType}`} maxLength={16} />} />
                     <FieldErrorMessage name={`${prefix}Nik`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Name`}>Nama Lengkap {personType} <span className="text-destructive">*</span></Label>
+                    <Label htmlFor={`${prefix}Name`}>Nama Lengkap {personType} {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}Name` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`Nama Lengkap ${personType}`} />} />
                     <FieldErrorMessage name={`${prefix}Name`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}PlaceOfBirth`}>Tempat Lahir <span className="text-destructive">*</span></Label>
+                    <Label htmlFor={`${prefix}PlaceOfBirth`}>Tempat Lahir {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}PlaceOfBirth` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Kota Kelahiran" />} />
                     <FieldErrorMessage name={`${prefix}PlaceOfBirth`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir <span className="text-destructive">*</span></Label>
+                    <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}DateOfBirth` as any} control={control} render={({ field }) => (
                         <Popover open={dobOpen} onOpenChange={setDobOpen}>
                             <PopoverTrigger asChild>
@@ -464,7 +479,7 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     <FieldErrorMessage name={`${prefix}DateOfBirth`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Religion`}>Agama <span className="text-destructive">*</span></Label>
+                    <Label htmlFor={`${prefix}Religion`}>Agama {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}Religion` as any} control={control} render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
                             <SelectContent>
@@ -480,7 +495,7 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     <FieldErrorMessage name={`${prefix}Religion`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Occupation`}>Pekerjaan <span className="text-destructive">*</span></Label>
+                    <Label htmlFor={`${prefix}Occupation`}>Pekerjaan {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}Occupation` as any} control={control} render={({ field }) => (
                          <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Pekerjaan" /></SelectTrigger><SelectContent>{occupations.map(job => <SelectItem key={job} value={job}>{job}</SelectItem>)}</SelectContent></Select>
                     )} />
@@ -492,7 +507,7 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     <FieldErrorMessage name={`${prefix}OccupationDescription`}/>
                 </div>
                  <div className="space-y-2 md:col-span-3">
-                    <Label htmlFor={`${prefix}Address`}>Alamat (sesuai KTP) <span className="text-destructive">*</span></Label>
+                    <Label htmlFor={`${prefix}Address`}>Alamat (sesuai KTP) {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}Address` as any} control={control} render={({ field }) => <Textarea {...field} value={field.value as string || ''} placeholder={`Alamat lengkap ${personType} sesuai KTP`} />} />
                     <FieldErrorMessage name={`${prefix}Address`} />
                 </div>
@@ -698,16 +713,15 @@ const Step6 = () => {
 export function MultiStepMarriageForm() {
     const [currentStep, setCurrentStep] = useState(0);
     const [previousStep, setPreviousStep] = useState(0);
-    const [activeTabs, setActiveTabs] = useState({ 2: "groom", 3: "bride" });
+    const [activeTabs, setActiveTabs] = useState<{ [key: number]: string }>({ 1: "groom", 2: "bride" });
     const router = useRouter();
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     
-    const initialState: MarriageRegistrationFormState = { message: "", success: false };
-    const [state, formAction] = useActionState(submitMarriageRegistrationForm, initialState);
+    const initialState: MarriageRegistrationFormState = { message: "", success: false, errors: [] };
+    const [state, formAction, isPending] = useActionState(submitMarriageRegistrationForm, initialState);
 
     const methods = useForm<FullFormData>({
-        // resolver: zodResolver(fullSchema),
         mode: 'onChange',
         defaultValues: {
             province: '', regency: '', district: '', kua: '',
@@ -722,15 +736,14 @@ export function MultiStepMarriageForm() {
         }
     });
 
-    const { trigger, handleSubmit, formState: { isSubmitting }, getValues } = methods;
+    const { trigger, handleSubmit, formState: { isSubmitting }, setError, clearErrors } = methods;
 
     const next = async () => {
         const currentStepConfig = steps[currentStep];
         
-        if (currentStepConfig.subSteps && (currentStep === 1 || currentStep === 2)) {
-            const stepKey = currentStep === 1 ? 2 : 3;
-            const currentSubStepName = activeTabs[stepKey as keyof typeof activeTabs];
-            const fieldsToValidate = currentStepConfig.subSteps[currentSubStepName as keyof typeof currentStepConfig.subSteps] as any[];
+        if (currentStepConfig.subSteps) {
+            const currentSubStepName = activeTabs[currentStep];
+            const fieldsToValidate = (currentStepConfig.subSteps as any)[currentSubStepName] as any[];
             
             const output = await trigger(fieldsToValidate, { shouldFocus: true });
             
@@ -741,7 +754,7 @@ export function MultiStepMarriageForm() {
 
             if (currentSubStepIndex < subStepKeys.length - 1) {
                 const nextSubStep = subStepKeys[currentSubStepIndex + 1];
-                setActiveTabs(prev => ({ ...prev, [stepKey]: nextSubStep }));
+                setActiveTabs(prev => ({ ...prev, [currentStep]: nextSubStep }));
                 return;
             }
         } else {
@@ -761,15 +774,14 @@ export function MultiStepMarriageForm() {
     const prev = () => {
         const currentStepConfig = steps[currentStep];
     
-        if (currentStepConfig.subSteps && (currentStep === 1 || currentStep === 2)) {
-            const stepKey = currentStep === 1 ? 2 : 3;
-            const currentSubStepName = activeTabs[stepKey as keyof typeof activeTabs];
+        if (currentStepConfig.subSteps) {
+            const currentSubStepName = activeTabs[currentStep];
             const subStepKeys = Object.keys(currentStepConfig.subSteps);
             const currentSubStepIndex = subStepKeys.indexOf(currentSubStepName);
     
             if (currentSubStepIndex > 0) {
                 const prevSubStep = subStepKeys[currentSubStepIndex - 1];
-                setActiveTabs(prev => ({ ...prev, [stepKey]: prevSubStep }));
+                setActiveTabs(prev => ({ ...prev, [currentStep]: prevSubStep }));
                 return;
             }
         }
@@ -779,42 +791,58 @@ export function MultiStepMarriageForm() {
             setCurrentStep(step => step - 1);
         }
     };
-    
 
     useEffect(() => {
-        if (state.message) {
-            if (state.success && state.data && state.queueNumber) {
-                toast({ title: "Berhasil!", description: state.message, variant: "default" });
-                const params = new URLSearchParams();
-                for (const [key, value] of Object.entries(state.data)) {
-                    if (value !== null && value !== undefined && typeof value !== 'object') {
-                        params.append(key, String(value));
-                    }
+        if (!state.success && state.errors?.length) {
+             toast({ title: "Pendaftaran Gagal", description: state.message, variant: "destructive" });
+             clearErrors();
+             state.errors.forEach((error) => {
+                setError(error.path[0] as any, {
+                    type: 'server',
+                    message: error.message,
+                });
+             });
+        } else if (state.success && state.data && state.queueNumber) {
+            toast({ title: "Berhasil!", description: state.message, variant: "default" });
+            const params = new URLSearchParams();
+            for (const [key, value] of Object.entries(state.data)) {
+                if (value !== null && value !== undefined && typeof value !== 'object') {
+                    params.append(key, String(value));
                 }
-                params.append('queueNumber', state.queueNumber);
-                router.push(`/daftar-nikah/sukses?${params.toString()}`);
-                methods.reset(); 
-              } else if (!state.success) {
-                toast({ title: "Pendaftaran Gagal", description: state.message, variant: "destructive" });
-              }
-        }
-    }, [state, toast, router, methods]);
-
-    const delta = currentStep - previousStep;
-
-    const handleFormSubmit = () => {
-        handleSubmit(() => {
-            // This function is only for client-side validation.
-            // The actual submission is handled by the form's action prop.
-            if(formRef.current) {
-                formRef.current.requestSubmit();
             }
-        })();
-    };
+            params.append('queueNumber', state.queueNumber);
+            router.push(`/daftar-nikah/sukses?${params.toString()}`);
+            methods.reset();
+        }
+    }, [state, toast, router, methods, setError, clearErrors]);
 
-    const handleTabChange = (stepIndex: 2 | 3, newTabValue: string) => {
+    const handleFormSubmit = handleSubmit(() => {
+        // This function triggers client-side validation.
+        // If it passes, the form's action will be executed.
+        if (formRef.current) {
+            // Manually format date fields before submission
+            const formData = new FormData(formRef.current);
+            const dateFields = ['weddingDate', 'groomDateOfBirth', 'brideDateOfBirth', 'groomFatherDateOfBirth', 'groomMotherDateOfBirth', 'brideFatherDateOfBirth', 'brideMotherDateOfBirth'];
+            const currentValues = methods.getValues();
+            
+            dateFields.forEach(field => {
+                const dateValue = (currentValues as any)[field];
+                if (dateValue instanceof Date) {
+                    formData.set(field, format(dateValue, 'yyyy-MM-dd'));
+                } else if (!dateValue) {
+                     formData.set(field, '');
+                }
+            });
+
+            formAction(formData);
+        }
+    });
+
+    const handleTabChange = (stepIndex: 1 | 2, newTabValue: string) => {
         setActiveTabs(prev => ({ ...prev, [stepIndex]: newTabValue }));
     }
+    
+    const delta = currentStep - previousStep;
     
     return (
         <Card className="w-full max-w-5xl mx-auto shadow-lg">
@@ -839,29 +867,41 @@ export function MultiStepMarriageForm() {
                         ))}
                     </ol>
                 </div>
+                
+                 { !state.success && state.errors && state.errors.length > 0 && (
+                    <Alert variant="destructive" className="mb-6">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Validasi Gagal</AlertTitle>
+                        <AlertDescription>
+                            Terdapat kesalahan pada data yang Anda masukkan. Silakan periksa kembali kolom yang ditandai merah di setiap langkah.
+                        </AlertDescription>
+                    </Alert>
+                 )}
+
                  <Separator className="my-8"/>
+                 
                  <FormProvider {...methods}>
                     <form
                         ref={formRef}
                         action={formAction}
                         onSubmit={(e) => {
-                            // We only want react-hook-form to validate on the last step submit
-                            if (currentStep !== steps.length - 1) {
-                                e.preventDefault();
+                            e.preventDefault();
+                            if (currentStep === steps.length - 1) {
+                                handleFormSubmit();
                             }
                         }}
                      >
                          <AnimatePresence mode="wait">
                             <motion.div
-                                key={`${currentStep}-${activeTabs[2]}-${activeTabs[3]}`}
+                                key={`${currentStep}-${activeTabs[1]}-${activeTabs[2]}`}
                                 initial={{ opacity: 0, x: delta >= 0 ? 50 : -50 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: delta >= 0 ? -50 : 50 }}
                                 transition={{ duration: 0.3 }}
                             >
                                 {currentStep === 0 && <Step1 />}
-                                {currentStep === 1 && <Step2 activeTab={activeTabs[2]} onTabChange={(value) => handleTabChange(2, value)} />}
-                                {currentStep === 2 && <Step3 activeTab={activeTabs[3]} onTabChange={(value) => handleTabChange(3, value)} />}
+                                {currentStep === 1 && <Step2 activeTab={activeTabs[1]} onTabChange={(value) => handleTabChange(1, value)} />}
+                                {currentStep === 2 && <Step3 activeTab={activeTabs[2]} onTabChange={(value) => handleTabChange(2, value)} />}
                                 {currentStep === 3 && <Step4 />}
                                 {currentStep === 4 && <Step5 />}
                                 {currentStep === 5 && <Step6 />}
@@ -869,15 +909,15 @@ export function MultiStepMarriageForm() {
                         </AnimatePresence>
                         <div className="mt-8 pt-5 border-t">
                             <div className="flex justify-between">
-                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0 && activeTabs[2] === 'groom' && activeTabs[3] === 'bride'}>
+                                <Button type="button" onClick={prev} variant="outline" disabled={currentStep === 0 && activeTabs[1] === 'groom' && activeTabs[2] === 'bride'}>
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
-                                    <Button type="submit" disabled={isSubmitting} onClick={handleFormSubmit}>
-                                        {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
+                                    <Button type="submit" disabled={isPending}>
+                                        {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
                                     </Button>
                                 ) : (
-                                    <Button type="button" onClick={next} disabled={isSubmitting}>
+                                    <Button type="button" onClick={next} disabled={isPending}>
                                         Selanjutnya
                                     </Button>
                                 )}

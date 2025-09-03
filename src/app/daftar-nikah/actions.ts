@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import { format } from 'date-fns';
 
+// Skema untuk calon pengantin
 const personSchema = (prefix: 'groom' | 'bride') => z.object({
   [`${prefix}FullName`]: z.string().min(3, `Nama lengkap calon ${prefix === 'groom' ? 'suami' : 'istri'} minimal 3 karakter.`),
   [`${prefix}Nik`]: z.string().length(16, `NIK calon ${prefix === 'groom' ? 'suami' : 'istri'} harus 16 digit.`).regex(/^\d+$/, "NIK hanya boleh berisi angka."),
@@ -21,6 +22,7 @@ const personSchema = (prefix: 'groom' | 'bride') => z.object({
   [`${prefix}Address`]: z.string().min(10, `Alamat minimal 10 karakter.`),
 });
 
+// Skema untuk orang tua dengan validasi kondisional
 const parentSchema = (prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'brideMother') => z.object({
     [`${prefix}PresenceStatus`]: z.string({ required_error: "Status keberadaan wajib diisi." }),
     [`${prefix}Name`]: z.string().optional(),
@@ -36,13 +38,14 @@ const parentSchema = (prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'b
     [`${prefix}Address`]: z.string().optional(),
 }).superRefine((data, ctx) => {
     const presenceStatus = data[`${prefix}PresenceStatus`];
+    // Hanya validasi jika statusnya 'Hidup'
     if (presenceStatus === "Hidup") {
         const name = data[`${prefix}Name`];
         if (!name || name.length < 3) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nama ayah/ibu minimal 3 karakter.", path: [`${prefix}Name`] });
         }
         const nik = data[`${prefix}Nik`];
-        if (!nik || nik.length !== 16 || !/^\d+$/.test(nik)) {
+        if (nik && (!/^\d{16}$/.test(nik))) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "NIK ayah/ibu harus 16 digit angka.", path: [`${prefix}Nik`] });
         }
         const citizenship = data[`${prefix}Citizenship`];
@@ -78,7 +81,7 @@ const parentSchema = (prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'b
     }
 });
 
-
+// Skema untuk wali
 const guardianSchema = z.object({
     guardianFullName: z.string().min(3, "Nama lengkap wali minimal 3 karakter."),
     guardianNik: z.string().length(16, "NIK wali harus 16 digit.").regex(/^\d+$/, "NIK wali hanya boleh berisi angka."),
@@ -89,6 +92,7 @@ const guardianSchema = z.object({
     guardianPhoneNumber: z.string().min(10, "Nomor telepon wali minimal 10 digit.").regex(/^08\d{8,}$/, "Format nomor telepon tidak valid."),
 });
 
+// Skema utama yang menggabungkan semua bagian
 const marriageRegistrationSchema = z.object({
   // Step 1
   province: z.string({ required_error: "Provinsi wajib dipilih." }),
@@ -118,18 +122,21 @@ const marriageRegistrationSchema = z.object({
 }, { message: "Deskripsi pekerjaan lainnya wajib diisi (minimal 3 karakter).", path: ["brideOccupationDescription"],
 });
 
+
 export type MarriageRegistrationFormData = z.infer<typeof marriageRegistrationSchema>;
 
 export type MarriageRegistrationFormState = {
   message: string;
-  errors?: z.ZodIssue[];
+  errors?: ZodIssue[];
   success: boolean;
   queueNumber?: string;
   data?: Partial<MarriageRegistrationFormData> & { weddingDate?: string, groomDateOfBirth?: string, brideDateOfBirth?: string, groomFatherDateOfBirth?: string, groomMotherDateOfBirth?: string, brideFatherDateOfBirth?: string, brideMotherDateOfBirth?: string };
 };
 
-const toDate = (value: any) => {
+const toDate = (value: any): Date | undefined => {
     if (!value) return undefined;
+    // Handle cases where value might already be a Date object
+    if (value instanceof Date) return value;
     const date = new Date(value as string);
     return isNaN(date.getTime()) ? undefined : date;
 };
@@ -141,10 +148,10 @@ export async function submitMarriageRegistrationForm(
 
   const rawFormData = Object.fromEntries(formData.entries());
   
-  // Convert date strings to Date objects
+  // Convert date strings to Date objects, ensuring empty strings are handled
   const dateFields = ['weddingDate', 'groomDateOfBirth', 'brideDateOfBirth', 'groomFatherDateOfBirth', 'groomMotherDateOfBirth', 'brideFatherDateOfBirth', 'brideMotherDateOfBirth'];
   dateFields.forEach(field => {
-      if (rawFormData[field]) {
+      if (rawFormData[field] && typeof rawFormData[field] === 'string') {
           rawFormData[field] = toDate(rawFormData[field]);
       } else {
          rawFormData[field] = undefined;
@@ -154,7 +161,7 @@ export async function submitMarriageRegistrationForm(
   const validatedFields = marriageRegistrationSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
-    console.log("Validation Errors:", validatedFields.error.issues);
+    console.log("Validation Errors:", JSON.stringify(validatedFields.error.issues, null, 2));
     return {
       message: "Formulir tidak valid. Silakan periksa kembali isian Anda di setiap langkah.",
       errors: validatedFields.error.issues,
