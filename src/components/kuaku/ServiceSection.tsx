@@ -1,13 +1,11 @@
 
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 import { ServiceCard } from "./ServiceCard";
-import { services } from "@/lib/services-data"; // Import from the new data file
+import { services } from "@/lib/services-data";
 
 export function ServiceSection() {
-  // Sort services to show "Surat Menyurat" first, then "Daftar Nikah Online"
+  // Sort services to prioritize "Daftar Nikah Online"
   const sortedServices = [...services].sort((a, b) => {
-    if (a.slug === 'surat-menyurat') return -1;
-    if (b.slug === 'surat-menyurat') return 1;
     if (a.slug === 'daftar-nikah') return -1;
     if (b.slug === 'daftar-nikah') return 1;
     return 0;

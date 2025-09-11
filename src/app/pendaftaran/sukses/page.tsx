@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppFooter } from "@/components/layout/AppFooter";
-import { RegistrationProof } from "@/components/kuakua/RegistrationProof";
+import { RegistrationProof } from "@/components/kuaku/RegistrationProof";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 import { Suspense } from 'react';
 
