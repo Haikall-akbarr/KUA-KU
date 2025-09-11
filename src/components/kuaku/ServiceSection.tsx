@@ -8,8 +8,7 @@ export function ServiceSection() {
   const sortedServices = [...services].sort((a, b) => {
     if (a.slug === 'daftar-nikah') return -1;
     if (b.slug === 'daftar-nikah') return 1;
-    if (a.slug === 'surat-menyurat') return -1;
-    if (b.slug === 'surat-menyurat') return 1;
+    // Add other priority items if needed
     return 0;
   });
 
@@ -18,7 +17,7 @@ export function ServiceSection() {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {sortedServices.map((service, index) => (
           <div 
-            key={service.slug} 
+            key={`${service.slug}-${service.title}`}
             className="animate-fadeInFromBottom opacity-0" 
             style={{ animationDelay: `${0.2 + index * 0.07}s`, animationFillMode: 'forwards' }}
           >
