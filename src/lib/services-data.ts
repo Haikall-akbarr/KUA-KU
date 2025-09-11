@@ -15,6 +15,7 @@ import {
   type LucideIcon,
   Heart,
   Mail,
+  FileText, // Import FileText
 } from "lucide-react";
 
 export interface Service {
@@ -39,55 +40,14 @@ export const services: Service[] = [
     icon: Mail,
     title: "Surat Menyurat",
     description: "Pengurusan berbagai jenis surat keterangan dan legalisasi.",
-    details: {
-        subtitle: "Layanan untuk pengurusan berbagai jenis surat keterangan yang berkaitan dengan KUA.",
-        sections: [
-          {
-            title: "Jenis Surat yang Dilayani",
-            type: "list",
-            content: [
-              "Surat Keterangan Belum Menikah.",
-              "Surat Keterangan untuk mengurus Pensiun/Tunjangan.",
-              "Surat Keterangan Status Perkawinan.",
-              "Legalisasi dokumen lain yang berkaitan dengan tugas KUA.",
-            ],
-          },
-          {
-            title: "Persyaratan Umum",
-            type: "list",
-            content: [
-              "Surat pengantar dari RT/RW dan Kelurahan/Desa setempat.",
-              "Fotokopi KTP dan Kartu Keluarga pemohon.",
-              "Dokumen pendukung sesuai jenis surat yang diajukan (misalnya: fotokopi SK Pensiun, dll).",
-            ],
-          },
-          {
-            title: "Prosedur",
-            type: "list",
-            content: [
-              "Pemohon datang ke KUA dengan membawa berkas lengkap.",
-              "Menyampaikan maksud untuk mengurus surat keterangan kepada petugas.",
-              "Petugas memeriksa kelengkapan berkas dan memproses surat yang diminta.",
-              "Kepala KUA menandatangani surat keterangan.",
-              "Surat diserahkan kepada pemohon.",
-            ],
-          },
-           {
-            title: "Waktu Penyelesaian",
-            type: "paragraph",
-            content: [
-              "1 hari kerja jika berkas lengkap dan pimpinan ada di tempat.",
-            ],
-          },
-          {
-            title: "Biaya",
-            type: "paragraph",
-            content: [
-              "Tidak dipungut biaya (Gratis).",
-            ],
-          },
-        ],
-      },
+    isExternal: true,
+  },
+  {
+    slug: "daftar-nikah",
+    icon: Heart,
+    title: "Daftar Nikah Online",
+    description: "Ambil nomor antrean pendaftaran nikah Anda secara online.",
+    isExternal: true, // This indicates it's a link to a page within the app
   },
   {
     slug: "rekomendasi-nikah-pria",
@@ -199,11 +159,59 @@ export const services: Service[] = [
     },
   },
    {
-    slug: "daftar-nikah",
-    icon: Heart,
-    title: "Daftar Nikah Online",
-    description: "Ambil nomor antrean pendaftaran nikah Anda secara online.",
-    isExternal: true, // This indicates it's a link to a page within the app
+    slug: "keterangan-belum-menikah",
+    icon: FileText,
+    title: "Keterangan Belum Menikah",
+    description: "Pengurusan surat keterangan perawan atau jejaka.",
+     details: {
+      subtitle: "Layanan penerbitan surat keterangan yang menyatakan status seseorang belum pernah menikah.",
+      sections: [
+        {
+            title: "Kegunaan",
+            type: "paragraph",
+            content: [
+              "Umumnya digunakan untuk keperluan melamar pekerjaan (TNI, POLRI, BUMN), pendaftaran pernikahan, atau administrasi lainnya yang memerlukan bukti status perkawinan.",
+            ],
+          },
+        {
+          title: "Persyaratan",
+          type: "list",
+          content: [
+            "Surat pengantar dari RT/RW dan Kelurahan/Desa setempat.",
+            "Surat pernyataan pribadi belum pernah menikah, ditandatangani di atas materai.",
+            "Fotokopi KTP pemohon.",
+            "Fotokopi Kartu Keluarga.",
+            "Fotokopi KTP kedua orang tua.",
+             "Fotokopi KTP dua orang saksi.",
+          ],
+        },
+        {
+          title: "Prosedur",
+          type: "list",
+          content: [
+            "Pemohon melengkapi semua berkas.",
+            "Datang ke KUA Kecamatan sesuai domisili.",
+            "Menyerahkan berkas ke petugas untuk diverifikasi.",
+            "Petugas akan membuatkan draf Surat Keterangan Belum Menikah.",
+            "Kepala KUA menandatangani surat tersebut.",
+          ],
+        },
+        {
+            title: "Waktu Penyelesaian",
+            type: "paragraph",
+            content: [
+              "1 hari kerja jika berkas lengkap dan pimpinan ada di tempat."
+            ]
+          },
+          {
+            title: "Biaya",
+            type: "paragraph",
+            content: [
+              "Tidak dipungut biaya (Gratis)."
+            ]
+          }
+      ],
+    },
   },
   {
     slug: "syarat-dan-alur-pendaftaran-nikah",
@@ -668,3 +676,5 @@ export const services: Service[] = [
       },
   },
 ];
+
+    
