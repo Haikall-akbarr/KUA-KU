@@ -1,14 +1,9 @@
 
-import { 
-  Heart,
-  ClipboardList,
-  Mail,
-  type LucideIcon
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface Service {
   slug: string;
-  icon: LucideIcon;
+  iconName: keyof typeof import('lucide-react').icons;
   title: string;
   description: string;
   isExternal?: boolean;
@@ -25,21 +20,21 @@ export interface Service {
 export const services: Service[] = [
   {
     slug: "daftar-nikah",
-    icon: Heart,
+    iconName: "Heart",
     title: "Daftar Nikah Online",
     description: "Ambil nomor antrean dan lengkapi data untuk pendaftaran nikah Anda.",
     isExternal: true,
   },
   {
     slug: "surat-menyurat",
-    icon: Mail,
+    iconName: "Mail",
     title: "Pengurusan Surat",
     description: "Layanan untuk berbagai keperluan surat keterangan dan rekomendasi dari KUA.",
     isExternal: true,
   },
   {
     slug: "syarat-dan-alur-pendaftaran-nikah",
-    icon: ClipboardList,
+    iconName: "ClipboardList",
     title: "Info Syarat & Alur Nikah",
     description: "Informasi lengkap mengenai syarat dan alur proses pendaftaran pernikahan.",
      details: {

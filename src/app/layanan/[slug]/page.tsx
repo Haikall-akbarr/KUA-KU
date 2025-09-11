@@ -8,6 +8,10 @@ import { SectionWrapper } from '@/components/shared/SectionWrapper';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+
+// Mapping of all lucide-react icons
+const icons = LucideIcons as { [key: string]: LucideIcons.LucideIcon };
 
 export async function generateStaticParams() {
   return services.map((service) => ({
@@ -26,8 +30,8 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
     notFound();
   }
 
-  const { title, details } = service;
-  const Icon = service.icon;
+  const { title, details, iconName } = service;
+  const Icon = icons[iconName] || LucideIcons.File;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

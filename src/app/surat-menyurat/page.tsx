@@ -32,7 +32,7 @@ export default function SuratMenyuratPage() {
               >
                 <ServiceCard
                   slug={service.slug}
-                  icon={service.icon}
+                  iconName={service.iconName}
                   title={service.title}
                   description={service.description}
                   isExternal={service.isExternal}
