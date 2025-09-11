@@ -4,8 +4,10 @@ import { ServiceCard } from "./ServiceCard";
 import { services } from "@/lib/services-data"; // Import from the new data file
 
 export function ServiceSection() {
-  // Sort services to show "Daftar Nikah Online" first
+  // Sort services to show "Surat Menyurat" first, then "Daftar Nikah Online"
   const sortedServices = [...services].sort((a, b) => {
+    if (a.slug === 'surat-menyurat') return -1;
+    if (b.slug === 'surat-menyurat') return 1;
     if (a.slug === 'daftar-nikah') return -1;
     if (b.slug === 'daftar-nikah') return 1;
     return 0;

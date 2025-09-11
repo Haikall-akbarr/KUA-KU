@@ -14,6 +14,7 @@ import {
   FileCheck2,
   type LucideIcon,
   Heart,
+  Mail,
 } from "lucide-react";
 
 export interface Service {
@@ -33,6 +34,61 @@ export interface Service {
 }
 
 export const services: Service[] = [
+  {
+    slug: "surat-menyurat",
+    icon: Mail,
+    title: "Surat Menyurat",
+    description: "Pengurusan berbagai jenis surat keterangan dan legalisasi.",
+    details: {
+        subtitle: "Layanan untuk pengurusan berbagai jenis surat keterangan yang berkaitan dengan KUA.",
+        sections: [
+          {
+            title: "Jenis Surat yang Dilayani",
+            type: "list",
+            content: [
+              "Surat Keterangan Belum Menikah.",
+              "Surat Keterangan untuk mengurus Pensiun/Tunjangan.",
+              "Surat Keterangan Status Perkawinan.",
+              "Legalisasi dokumen lain yang berkaitan dengan tugas KUA.",
+            ],
+          },
+          {
+            title: "Persyaratan Umum",
+            type: "list",
+            content: [
+              "Surat pengantar dari RT/RW dan Kelurahan/Desa setempat.",
+              "Fotokopi KTP dan Kartu Keluarga pemohon.",
+              "Dokumen pendukung sesuai jenis surat yang diajukan (misalnya: fotokopi SK Pensiun, dll).",
+            ],
+          },
+          {
+            title: "Prosedur",
+            type: "list",
+            content: [
+              "Pemohon datang ke KUA dengan membawa berkas lengkap.",
+              "Menyampaikan maksud untuk mengurus surat keterangan kepada petugas.",
+              "Petugas memeriksa kelengkapan berkas dan memproses surat yang diminta.",
+              "Kepala KUA menandatangani surat keterangan.",
+              "Surat diserahkan kepada pemohon.",
+            ],
+          },
+           {
+            title: "Waktu Penyelesaian",
+            type: "paragraph",
+            content: [
+              "1 hari kerja jika berkas lengkap dan pimpinan ada di tempat.",
+            ],
+          },
+          {
+            title: "Biaya",
+            type: "paragraph",
+            content: [
+              "Tidak dipungut biaya (Gratis).",
+            ],
+          },
+        ],
+      },
+  },
   {
     slug: "rekomendasi-nikah-pria",
     icon: UserCheck,
@@ -73,7 +129,7 @@ export const services: Service[] = [
             "Petugas memeriksa kelengkapan dan keabsahan berkas.",
             "Jika berkas lengkap dan sah, petugas akan memproses pembuatan Surat Rekomendasi Nikah.",
             "Kepala KUA menandatangani Surat Rekomendasi Nikah.",
-            "Surat Rekomendasi diserahkan kepada pemohon untuk dibawa ke KUA tempat pernikahan akan dilangsungkan.",
+            "Surat Rekomendasi diserahkan kepada pemohon untuk dibawa ke ke KUA tempat pernikahan akan dilangsungkan.",
           ],
         },
         {
