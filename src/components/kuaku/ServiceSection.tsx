@@ -4,10 +4,12 @@ import { ServiceCard } from "./ServiceCard";
 import { services } from "@/lib/services-data";
 
 export function ServiceSection() {
-  // Sort services to prioritize "Daftar Nikah Online"
+  // Sort services to prioritize specific items
   const sortedServices = [...services].sort((a, b) => {
     if (a.slug === 'daftar-nikah') return -1;
     if (b.slug === 'daftar-nikah') return 1;
+    if (a.title === 'Pengurusan Surat') return -1;
+    if (b.title === 'Pengurusan Surat') return 1;
     return 0;
   });
 

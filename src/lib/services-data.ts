@@ -34,7 +34,7 @@ export interface Service {
   };
 }
 
-// All services will now point to the general registration form
+// All non-marriage services will now point to the general registration form
 // The 'pendaftaran' slug will be handled to route to /pendaftaran page.
 const pendaftaranSlug = "pendaftaran";
 
@@ -43,7 +43,14 @@ export const services: Service[] = [
     slug: "daftar-nikah",
     icon: Heart,
     title: "Daftar Nikah Online",
-    description: "Ambil nomor antrean pendaftaran nikah Anda secara online.",
+    description: "Ambil nomor antrean dan lengkapi data untuk pendaftaran nikah Anda.",
+    isExternal: true,
+  },
+  {
+    slug: pendaftaranSlug,
+    icon: FileText,
+    title: "Pengurusan Surat",
+    description: "Ambil nomor pendaftaran untuk berbagai layanan surat keterangan.",
     isExternal: true,
   },
   {
@@ -58,13 +65,6 @@ export const services: Service[] = [
     icon: UserCheck2,
     title: "Rekomendasi Nikah (Wanita)",
     description: "Penerbitan surat rekomendasi nikah untuk calon pengantin wanita.",
-    isExternal: true,
-  },
-   {
-    slug: pendaftaranSlug,
-    icon: FileText,
-    title: "Keterangan Belum Menikah",
-    description: "Pengurusan surat keterangan perawan atau jejaka.",
     isExternal: true,
   },
   {
@@ -167,4 +167,5 @@ export const services: Service[] = [
     isExternal: true,
   },
 ];
+
 
