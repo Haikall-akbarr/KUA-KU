@@ -8,7 +8,8 @@ export function ServiceSection() {
   const sortedServices = [...services].sort((a, b) => {
     if (a.slug === 'daftar-nikah') return -1;
     if (b.slug === 'daftar-nikah') return 1;
-    // Add other priority items if needed
+    if (a.slug === 'surat-menyurat') return -1;
+    if (b.slug === 'surat-menyurat') return 1;
     return 0;
   });
 
