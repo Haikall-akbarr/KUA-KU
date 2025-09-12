@@ -13,7 +13,15 @@ import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Search, Briefcase, Phone, MapPinIcon, Heart, LogIn, LogOut, UserPlus, X } from "lucide-react";
+import { Menu, Search, Briefcase, Phone, MapPinIcon, Heart, LogIn, LogOut, UserPlus, X, Bell } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -28,6 +36,28 @@ const authNavItems = {
   register: { href: "/register", label: "Register", icon: UserPlus },
 };
 
+const notifications = [
+  {
+    id: "1",
+    title: "Pendaftaran Nikah Diterima",
+    description: "Berkas Anda sedang diverifikasi oleh staf kami.",
+    read: false,
+  },
+  {
+    id: "2",
+    title: "Jadwal Bimbingan Perkawinan",
+    description: "Anda dijadwalkan pada 25 Des 2024, pukul 10:00.",
+    read: false,
+  },
+  {
+    id: "3",
+    title: "Info Layanan",
+    description: "Layanan KUA tutup pada hari libur nasional.",
+    read: true,
+  },
+];
+
+
 export function AppHeader() {
   const { user } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -35,6 +65,8 @@ export function AppHeader() {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const pathname = usePathname();
+
+  const unreadNotifications = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -109,17 +141,7 @@ export function AppHeader() {
               {item.label}
             </NavLink>
           ))}
-          {isMobile ? (
-            <button onClick={() => { handleLogout(); setIsMobileSheetOpen(false); }} className={cn("flex items-center gap-3 py-2 text-base text-sm font-medium transition-colors hover:text-primary", linkClass)}>
-              <LogOut className="h-5 w-5 text-primary" />
-              Logout
-            </button>
-          ) : (
-            <Button onClick={handleLogout} variant="outline" size="sm">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          )}
+          
         </>
       );
     }
@@ -137,6 +159,59 @@ export function AppHeader() {
       </>
     );
   };
+
+  const renderAuthControls = (isMobile = false) => {
+     if (!user) return null;
+     const buttonClass = isMobile ? "w-full justify-start text-base flex items-center gap-3 py-2 text-sm font-medium transition-colors hover:text-primary" : "";
+
+     return (
+       <div className={cn("flex items-center gap-2", isMobile && "flex-col border-t pt-4 mt-4")}>
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5"/>
+                    {unreadNotifications > 0 && (
+                        <span className="absolute top-1 right-1 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                    )}
+                    <span className="sr-only">Buka Notifikasi</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel>Notifikasi</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notifications.length > 0 ? (
+                    notifications.map(notif => (
+                         <DropdownMenuItem key={notif.id} className={cn("flex-col items-start whitespace-normal", !notif.read && "bg-primary/5")}>
+                            <div className="flex items-center w-full">
+                                <p className={cn("font-medium", !notif.read && "font-bold")}>{notif.title}</p>
+                                {!notif.read && <div className="ml-auto h-2 w-2 rounded-full bg-primary"></div>}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{notif.description}</p>
+                        </DropdownMenuItem>
+                    ))
+                ) : (
+                    <p className="p-2 text-center text-sm text-muted-foreground">Tidak ada notifikasi baru.</p>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
+
+         {isMobile ? (
+            <button onClick={() => { handleLogout(); setIsMobileSheetOpen(false); }} className={buttonClass}>
+              <LogOut className="h-5 w-5 text-primary" />
+              Logout
+            </button>
+          ) : (
+            <Button onClick={handleLogout} variant="outline" size="sm">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          )}
+       </div>
+     )
+  }
 
   return (
     <header
@@ -159,22 +234,27 @@ export function AppHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-4 md:flex">
-          {renderNavItems()}
-          {user && (
-            <form onSubmit={handleSearchSubmit} className="relative ml-4">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-              <Input
-                type="search"
-                placeholder="Cari informasi..."
-                className="h-9 w-full rounded-md bg-secondary/50 pl-9 pr-3 text-sm md:w-[200px] lg:w-[250px]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button type="submit" className="sr-only">Cari</button>
-            </form>
-          )}
-        </nav>
+        <div className="hidden md:flex items-center gap-4">
+            <nav className="flex items-center gap-4">
+                {renderNavItems()}
+            </nav>
+            <div className="flex items-center gap-2">
+                {user && (
+                    <form onSubmit={handleSearchSubmit} className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                        <Input
+                            type="search"
+                            placeholder="Cari informasi..."
+                            className="h-9 w-full rounded-md bg-secondary/50 pl-9 pr-3 text-sm md:w-[200px] lg:w-[250px]"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <button type="submit" className="sr-only">Cari</button>
+                    </form>
+                )}
+                {renderAuthControls()}
+            </div>
+        </div>
 
         <div className="md:hidden">
           <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
@@ -184,7 +264,7 @@ export function AppHeader() {
                 <span className="sr-only">Buka menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] bg-background p-6">
+            <SheetContent side="right" className="w-[280px] bg-background p-6 flex flex-col">
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <div className="mb-6 flex items-center justify-between">
                 <Link href="/" onClick={() => setIsMobileSheetOpen(false)} className="flex items-center gap-2">
@@ -205,7 +285,7 @@ export function AppHeader() {
                   </Button>
                 </SheetClose>
               </div>
-              <nav className="flex flex-col gap-4">
+              <nav className="flex flex-col gap-4 flex-grow">
                 {renderNavItems(true)}
               </nav>
               {user && (
@@ -221,6 +301,7 @@ export function AppHeader() {
                   <button type="submit" className="sr-only">Cari</button>
                 </form>
               )}
+               {renderAuthControls(true)}
             </SheetContent>
           </Sheet>
         </div>
@@ -228,3 +309,5 @@ export function AppHeader() {
     </header>
   );
 }
+
+    
