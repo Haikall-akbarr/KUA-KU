@@ -1,0 +1,121 @@
+
+{
+  "description": "Skema data untuk payload yang dikirimkan oleh formulir pendaftaran nikah. Data ini diproses oleh Next.js Server Action `submitMarriageRegistrationForm`.",
+  "payload": {
+    "scheduleAndLocation": {
+      "province": {
+        "type": "string",
+        "required": true,
+        "description": "Nama provinsi yang dipilih."
+      },
+      "regency": {
+        "type": "string",
+        "required": true,
+        "description": "Nama kabupaten/kota yang dipilih."
+      },
+      "district": {
+        "type": "string",
+        "required": true,
+        "description": "Nama kecamatan yang dipilih."
+      },
+      "kua": {
+        "type": "string",
+        "required": true,
+        "description": "Nama KUA pendaftaran (otomatis terisi berdasarkan kecamatan)."
+      },
+      "weddingLocation": {
+        "type": "string",
+        "required": true,
+        "enum": ["Di KUA", "Di Luar KUA"],
+        "description": "Lokasi pelaksanaan akad nikah."
+      },
+      "weddingDate": {
+        "type": "Date",
+        "required": true,
+        "description": "Tanggal pelaksanaan akad nikah (format YYYY-MM-DD)."
+      },
+      "weddingTime": {
+        "type": "string",
+        "required": true,
+        "description": "Jam pelaksanaan akad nikah (format HH:mm, e.g., '09:00')."
+      },
+      "dispensationNumber": {
+        "type": "string",
+        "required": false,
+        "description": "Nomor surat dispensasi dari pengadilan agama/camat jika ada."
+      }
+    },
+    "groom": {
+      "description": "Data calon pengantin pria.",
+      "prefix": "groom",
+      "fields": {
+        "FullName": { "type": "string", "required": true, "description": "Nama lengkap sesuai KTP (min. 3 karakter)." },
+        "Nik": { "type": "string", "required": true, "description": "Nomor Induk Kependudukan (16 digit angka)." },
+        "Citizenship": { "type": "string", "required": true, "enum": ["WNI", "WNA"], "description": "Kewarganegaraan." },
+        "PassportNumber": { "type": "string", "required": "conditional", "description": "Wajib jika kewarganegaraan adalah WNA." },
+        "PlaceOfBirth": { "type": "string", "required": true, "description": "Tempat lahir (min. 2 karakter)." },
+        "DateOfBirth": { "type": "Date", "required": true, "description": "Tanggal lahir (format YYYY-MM-DD)." },
+        "Status": { "type": "string", "required": true, "enum": ["Belum Kawin", "Kawin", "Cerai Hidup", "Cerai Mati"], "description": "Status perkawinan saat ini." },
+        "Religion": { "type": "string", "required": true, "description": "Agama yang dianut." },
+        "Education": { "type": "string", "required": true, "description": "Pendidikan terakhir." },
+        "Occupation": { "type": "string", "required": true, "description": "Pekerjaan." },
+        "OccupationDescription": { "type": "string", "required": "conditional", "description": "Wajib diisi jika pekerjaan adalah 'Lainnya'." },
+        "PhoneNumber": { "type": "string", "required": true, "description": "Nomor telepon/HP aktif (min. 10 digit, format '08...')." },
+        "Email": { "type": "string", "required": true, "description": "Alamat email valid." },
+        "Address": { "type": "string", "required": true, "description": "Alamat lengkap sesuai KTP (min. 10 karakter)." }
+      }
+    },
+    "bride": {
+      "description": "Data calon pengantin wanita. Strukturnya sama dengan 'groom', namun dengan prefix 'bride'.",
+      "prefix": "bride",
+      "fields": "Sama seperti 'groom.fields'"
+    },
+    "groomParents": {
+      "description": "Data orang tua calon pengantin pria. Strukturnya sama untuk ayah (groomFather) dan ibu (groomMother).",
+      "father": {
+        "prefix": "groomFather",
+        "fields": {
+          "PresenceStatus": { "type": "string", "required": true, "enum": ["Hidup", "Wafat", "Tidak Diketahui"], "description": "Status keberadaan orang tua." },
+          "Name": { "type": "string", "required": "conditional", "description": "Nama lengkap (wajib jika 'Hidup')." },
+          "Nik": { "type": "string", "required": "conditional", "description": "NIK 16 digit (wajib jika 'Hidup')." },
+          "Citizenship": { "type": "string", "required": "conditional", "description": "Kewarganegaraan (wajib jika 'Hidup')." },
+          "CountryOfOrigin": { "type": "string", "required": "conditional", "description": "Negara asal (wajib jika WNA dan 'Hidup')." },
+          "PassportNumber": { "type": "string", "required": "conditional", "description": "Nomor paspor (wajib jika WNA dan 'Hidup')." },
+          "PlaceOfBirth": { "type": "string", "required": "conditional", "description": "Tempat lahir (wajib jika 'Hidup')." },
+          "DateOfBirth": { "type": "Date", "required": "conditional", "description": "Tanggal lahir (wajib jika 'Hidup')." },
+          "Religion": { "type": "string", "required": "conditional", "description": "Agama (wajib jika 'Hidup')." },
+          "Occupation": { "type": "string", "required": "conditional", "description": "Pekerjaan (wajib jika 'Hidup')." },
+          "OccupationDescription": { "type": "string", "required": "conditional", "description": "Deskripsi pekerjaan jika 'Lainnya' (wajib jika 'Hidup')." },
+          "Address": { "type": "string", "required": "conditional", "description": "Alamat lengkap (wajib jika 'Hidup')." }
+        }
+      },
+      "mother": {
+        "prefix": "groomMother",
+        "fields": "Sama seperti 'groomParents.father.fields'"
+      }
+    },
+    "brideParents": {
+      "description": "Data orang tua calon pengantin wanita. Strukturnya sama dengan 'groomParents'.",
+      "father": {
+        "prefix": "brideFather",
+        "fields": "Sama seperti 'groomParents.father.fields'"
+      },
+      "mother": {
+        "prefix": "brideMother",
+        "fields": "Sama seperti 'groomParents.father.fields'"
+      }
+    },
+    "guardian": {
+      "description": "Data wali nikah.",
+      "fields": {
+        "guardianFullName": { "type": "string", "required": true, "description": "Nama lengkap wali (min. 3 karakter)." },
+        "guardianNik": { "type": "string", "required": true, "description": "NIK wali (16 digit angka)." },
+        "guardianRelationship": { "type": "string", "required": true, "description": "Hubungan dengan calon istri (min. 3 karakter)." },
+        "guardianStatus": { "type": "string", "required": true, "enum": ["Hidup", "Wafat"], "description": "Status keberadaan wali." },
+        "guardianReligion": { "type": "string", "required": true, "description": "Agama wali." },
+        "guardianAddress": { "type": "string", "required": true, "description": "Alamat lengkap wali (min. 10 karakter)." },
+        "guardianPhoneNumber": { "type": "string", "required": true, "description": "Nomor telepon/HP wali aktif." }
+      }
+    }
+  }
+}

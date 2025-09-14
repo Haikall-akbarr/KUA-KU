@@ -31,7 +31,7 @@ export async function submitContactForm(
     subject: formData.get("subject"),
     message: formData.get("message"),
   });
-
+//syning infortia inforamtina si dini sdi sana  
   if (!validatedFields.success) {
     return {
       message: "Formulir tidak valid. Silakan periksa kembali isian Anda.",
