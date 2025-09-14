@@ -33,6 +33,103 @@ export const services: Service[] = [
     isExternal: true,
   },
   {
+    slug: "bimbingan-perkawinan",
+    iconName: "BookHeart",
+    title: "Bimbingan Perkawinan",
+    description: "Pendaftaran dan informasi jadwal sesi bimbingan wajib sebelum nikah.",
+    details: {
+      subtitle: "Persiapan menuju keluarga sakinah, mawaddah, wa rahmah.",
+      sections: [
+        {
+          title: "Tentang Bimbingan Perkawinan",
+          type: "paragraph",
+          content: [
+            "Bimbingan perkawinan (Bimwin) adalah program wajib yang harus diikuti oleh semua calon pengantin. Program ini bertujuan untuk memberikan bekal pengetahuan, pemahaman, dan keterampilan tentang kehidupan berumah tangga.",
+          ],
+        },
+        {
+          title: "Materi Bimbingan",
+          type: "list",
+          content: [
+            "Mempersiapkan Keluarga Sakinah",
+            "Mengelola Psikologi dan Dinamika Keluarga",
+            "Memenuhi Kebutuhan dan Mengelola Keuangan Keluarga",
+            "Menjaga Kesehatan Reproduksi Keluarga",
+            "Mempersiapkan Generasi Berkualitas",
+          ],
+        },
+        {
+          title: "Proses Pendaftaran",
+          type: "paragraph",
+          content: [
+            "Pendaftaran bimbingan perkawinan biasanya dilakukan bersamaan dengan pendaftaran nikah di KUA. Jadwal akan diinformasikan oleh petugas KUA setelah berkas pendaftaran Anda diverifikasi.",
+          ],
+        },
+      ],
+    },
+  },
+   {
+    slug: "penjadwalan-nikah",
+    iconName: "CalendarClock",
+    title: "Penjadwalan Nikah",
+    description: "Atur dan konfirmasi jadwal akad nikah Anda dengan penghulu yang tersedia.",
+     details: {
+      subtitle: "Koordinasi waktu dan tempat pelaksanaan akad nikah.",
+      sections: [
+        {
+          title: "Proses Penjadwalan",
+          type: "paragraph",
+          content: [
+            "Setelah semua berkas pendaftaran nikah Anda dinyatakan lengkap dan diverifikasi oleh petugas KUA, langkah selanjutnya adalah penjadwalan akad nikah. Proses ini melibatkan konfirmasi tanggal, waktu, dan lokasi pelaksanaan akad.",
+          ],
+        },
+        {
+          title: "Penentuan Penghulu",
+          type: "paragraph",
+          content: [
+            "Kepala KUA akan menugaskan seorang penghulu untuk memimpin prosesi akad nikah Anda berdasarkan jadwal yang telah disepakati. Anda akan diinformasikan mengenai nama penghulu yang bertugas.",
+          ],
+        },
+        {
+          title: "Konfirmasi",
+          type: "list",
+          content: [
+            "Pastikan Anda melakukan konfirmasi ulang jadwal dengan KUA beberapa hari sebelum pelaksanaan.",
+            "Jika ada perubahan jadwal atau lokasi dari pihak Anda, segera hubungi KUA untuk koordinasi lebih lanjut.",
+            "Biaya pencatatan nikah di luar kantor KUA harus dilunasi sebelum pelaksanaan akad.",
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: "laporan-dan-dokumentasi",
+    iconName: "FileText",
+    title: "Laporan & Dokumentasi",
+    description: "Akses dan unduh dokumen resmi serta laporan terkait proses pernikahan.",
+     details: {
+      subtitle: "Manajemen dokumen digital pasca-pernikahan Anda.",
+      sections: [
+        {
+          title: "Dokumen yang Tersedia",
+          type: "list",
+          content: [
+            "Salinan Digital Buku Nikah (setelah diterbitkan).",
+            "Bukti Pendaftaran Nikah.",
+            "Sertifikat Bimbingan Perkawinan (jika tersedia secara digital).",
+          ],
+        },
+        {
+          title: "Cara Mengakses",
+          type: "paragraph",
+          content: [
+            "Dokumen akan tersedia di akun Anda setelah setiap tahapan selesai. Misalnya, salinan digital buku nikah akan muncul setelah buku nikah fisik selesai dicetak dan ditandatangani. Anda akan menerima notifikasi jika ada dokumen baru yang tersedia untuk diunduh.",
+          ],
+        },
+      ],
+    },
+  },
+  {
     slug: "syarat-dan-alur-pendaftaran-nikah",
     iconName: "ClipboardList",
     title: "Info Syarat & Alur Nikah",
