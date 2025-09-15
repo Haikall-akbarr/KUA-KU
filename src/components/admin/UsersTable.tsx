@@ -34,6 +34,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { DialogTrigger } from "@/components/ui/dialog"
+
 
 import type { User } from "@/lib/admin-data"
 
@@ -137,10 +139,12 @@ export function UsersTable({ data }: UsersTableProps) {
             }
             className="max-w-sm"
             />
-            <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Tambah Pengguna
-            </Button>
+            <DialogTrigger asChild>
+              <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Tambah Pengguna
+              </Button>
+            </DialogTrigger>
       </div>
       <div className="rounded-md border">
         <Table>

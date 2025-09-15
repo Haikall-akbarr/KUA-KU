@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import { UsersTable } from '@/components/admin/UsersTable';
 import { users } from '@/lib/admin-data';
+import { AddUserDialog } from '@/components/admin/AddUserDialog';
 
 export const metadata: Metadata = {
   title: 'Manajemen Pengguna - KUA Banjarmasin Utara',
@@ -17,7 +18,9 @@ export default function UsersPage() {
           Lihat, tambah, dan kelola akun untuk staf, penghulu, dan kepala KUA.
         </p>
       </div>
-      <UsersTable data={users} />
+      <AddUserDialog>
+        <UsersTable data={users} />
+      </AddUserDialog>
     </div>
   );
 }
