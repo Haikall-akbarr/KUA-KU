@@ -13,7 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Search, Briefcase, Phone, MapPinIcon, Heart, LogIn, LogOut, UserPlus, X, Bell } from "lucide-react";
+import { Menu, Search, Briefcase, Phone, MapPinIcon, Heart, LogIn, LogOut, UserPlus, X, Bell, LayoutDashboard } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +30,9 @@ const navItems = [
   { href: "/#contact", label: "Kontak", icon: Phone, protected: true },
   { href: "/#map", label: "Lokasi", icon: MapPinIcon, protected: true },
 ];
+
+// Example user roles - in a real app, this would come from a database or custom claims
+const userRoles = ['Calon Pengantin', 'Staff KUA', 'Kepala KUA', 'Administrator'];
 
 const authNavItems = {
   login: { href: "/login", label: "Login", icon: LogIn },
@@ -59,7 +62,7 @@ const notifications = [
 
 
 export function AppHeader() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,6 +70,12 @@ export function AppHeader() {
   const pathname = usePathname();
 
   const unreadNotifications = notifications.filter(n => !n.read).length;
+  const isAdminRoute = pathname.startsWith('/admin');
+
+  // Don't render the header on admin routes
+  if (isAdminRoute) {
+      return null;
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -108,7 +117,6 @@ export function AppHeader() {
         const targetId = href.startsWith('/#') ? href.substring(2) : href.substring(1);
         router.push('/#' + targetId);
       }
-      // For non-hash links, Next.js Link default behavior is sufficient.
       
       if (providedOnClick) {
         providedOnClick();
@@ -131,31 +139,36 @@ export function AppHeader() {
 
   const renderNavItems = (isMobile = false) => {
     const linkClass = isMobile ? "flex items-center gap-3 py-2 text-base" : "";
+    const showAdminDashboardLink = user && userRole && ['Staff KUA', 'Kepala KUA', 'Administrator'].includes(userRole);
     
-    if (user) {
-      return (
-        <>
-          {navItems.map((item) => (
-            <NavLink key={item.href} href={item.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
-              {isMobile && <item.icon className="h-5 w-5 text-primary" />}
-              {item.label}
-            </NavLink>
-          ))}
-          
-        </>
-      );
-    }
-    
+    const itemsToShow = user ? navItems : [];
+
     return (
       <>
-        <NavLink href={authNavItems.login.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
-          {isMobile && <authNavItems.login.icon className="h-5 w-5 text-primary" />}
-          {authNavItems.login.label}
-        </NavLink>
-        <NavLink href={authNavItems.register.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
-          {isMobile && <authNavItems.register.icon className="h-5 w-5 text-primary" />}
-          {authNavItems.register.label}
-        </NavLink>
+        {showAdminDashboardLink && (
+           <NavLink href="/admin" onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
+             {isMobile && <LayoutDashboard className="h-5 w-5 text-primary" />}
+             Dashboard
+           </NavLink>
+        )}
+        {itemsToShow.map((item) => (
+          <NavLink key={item.href} href={item.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
+            {isMobile && <item.icon className="h-5 w-5 text-primary" />}
+            {item.label}
+          </NavLink>
+        ))}
+        {!user && (
+           <>
+            <NavLink href={authNavItems.login.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
+              {isMobile && <authNavItems.login.icon className="h-5 w-5 text-primary" />}
+              {authNavItems.login.label}
+            </NavLink>
+            <NavLink href={authNavItems.register.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
+              {isMobile && <authNavItems.register.icon className="h-5 w-5 text-primary" />}
+              {authNavItems.register.label}
+            </NavLink>
+          </>
+        )}
       </>
     );
   };
@@ -309,5 +322,3 @@ export function AppHeader() {
     </header>
   );
 }
-
-    
