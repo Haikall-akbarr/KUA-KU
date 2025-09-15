@@ -13,20 +13,30 @@ import { ContactForm } from "@/components/kuaku/ContactForm";
 import { HeroSection } from "@/components/kuaku/HeroSection";
 import { Loader2 } from 'lucide-react';
 
+const ADMIN_ROLES = ['Staff KUA', 'Kepala KUA', 'Administrator', 'Penghulu'];
+
 export default function HomePage() {
-  const { user, loading } = useAuth();
+  const { user, userRole, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // Jika proses loading selesai dan tidak ada user, alihkan ke halaman login.
-    // Ini adalah fallback jika pengguna mencoba mengakses halaman utama secara langsung.
-    if (!loading && !user) {
-      router.push('/login');
+    if (loading) {
+      return; // Tunggu sampai loading selesai
     }
-  }, [user, loading, router]);
 
-  // Selama loading atau jika tidak ada user (sebelum redirect), tampilkan spinner.
-  if (loading || !user) {
+    if (!user) {
+      // Jika tidak ada user, alihkan ke halaman login
+      router.push('/login');
+    } else if (userRole && ADMIN_ROLES.includes(userRole)) {
+      // Jika user memiliki peran admin, alihkan ke dashboard admin
+      router.push('/admin');
+    }
+    // Jika user adalah 'Calon Pengantin' atau peran non-admin lainnya, biarkan di halaman utama.
+
+  }, [user, userRole, loading, router]);
+
+  // Tampilkan loading spinner selama proses autentikasi atau sebelum redirect
+  if (loading || !user || (userRole && ADMIN_ROLES.includes(userRole))) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -34,7 +44,7 @@ export default function HomePage() {
     );
   }
   
-  // Jika user sudah login, tampilkan halaman utama.
+  // Jika user adalah non-admin (misal: Calon Pengantin), tampilkan halaman utama
   return (
     <div className="flex min-h-screen flex-col">
       <AppHeader />

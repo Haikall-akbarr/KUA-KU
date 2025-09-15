@@ -31,8 +31,7 @@ const navItems = [
   { href: "/#map", label: "Lokasi", icon: MapPinIcon, protected: true },
 ];
 
-// Example user roles - in a real app, this would come from a database or custom claims
-const userRoles = ['Calon Pengantin', 'Staff KUA', 'Kepala KUA', 'Administrator'];
+const ADMIN_ROLES = ['Staff KUA', 'Kepala KUA', 'Administrator', 'Penghulu'];
 
 const authNavItems = {
   login: { href: "/login", label: "Login", icon: LogIn },
@@ -116,6 +115,8 @@ export function AppHeader() {
       } else if (isHashLink) {
         const targetId = href.startsWith('/#') ? href.substring(2) : href.substring(1);
         router.push('/#' + targetId);
+      } else {
+        router.push(href);
       }
       
       if (providedOnClick) {
@@ -139,7 +140,7 @@ export function AppHeader() {
 
   const renderNavItems = (isMobile = false) => {
     const linkClass = isMobile ? "flex items-center gap-3 py-2 text-base" : "";
-    const showAdminDashboardLink = user && userRole && ['Staff KUA', 'Kepala KUA', 'Administrator'].includes(userRole);
+    const showAdminDashboardLink = user && userRole && ADMIN_ROLES.includes(userRole);
     
     const itemsToShow = user ? navItems : [];
 
