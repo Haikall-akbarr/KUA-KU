@@ -69,6 +69,7 @@ export function AdminSidebar() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsCollapsed(!isCollapsed)}
+                className={cn(isCollapsed && 'mx-auto')}
               >
                 {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
                 <span className="sr-only">Toggle Sidebar</span>
@@ -76,7 +77,7 @@ export function AdminSidebar() {
           </div>
           <nav className={cn("flex flex-col gap-1 px-2", isCollapsed ? "py-4 items-center" : "py-4")}>
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname.startsWith(item.href) && (item.href !== '/admin' || pathname === '/admin');
               return isCollapsed ? (
                 <Tooltip key={item.href} delayDuration={0}>
                   <TooltipTrigger asChild>
