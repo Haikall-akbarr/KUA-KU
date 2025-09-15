@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { Loader2 } from 'lucide-react';
 
-const ADMIN_ROLES = ['Staff KUA', 'Kepala KUA', 'Administrator'];
+const ADMIN_ROLES = ['Staff KUA', 'Kepala KUA', 'Administrator', 'Penghulu'];
 
 export default function AdminLayout({
   children,
