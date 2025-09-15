@@ -6,7 +6,7 @@ import { useForm, FormProvider, Controller, useFormContext } from "react-hook-fo
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z, ZodIssue } from "zod";
 import { AnimatePresence, motion } from "framer-motion";
-import { format, parseISO, differenceInYears, getDay } from "date-fns";
+import { format, parseISO, differenceInYears, getDay, addMonths } from "date-fns";
 import { id as IndonesianLocale } from 'date-fns/locale';
 import { useRouter } from "next/navigation";
 
@@ -233,6 +233,7 @@ const Step1 = () => {
                                     const today = new Date();
                                     today.setHours(0,0,0,0);
                                     if (date < new Date(new Date().setDate(today.getDate() + 10))) return true;
+                                    if (date > addMonths(today, 3)) return true;
                                     if (weddingLocation === 'Di KUA') {
                                         const day = getDay(date);
                                         return day === 0 || day === 6; // Disable Saturday & Sunday
@@ -929,3 +930,5 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
+
+    
