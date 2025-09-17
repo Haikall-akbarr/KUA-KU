@@ -157,7 +157,7 @@ const Step1 = () => {
                 <div className="space-y-2">
                     <Label htmlFor="province">Provinsi <span className="text-destructive">*</span></Label>
                     <Controller name="province" control={control} render={({ field }) => (
-                        <Select onValueChange={(value) => { field.onChange(value); setValue('regency', ''); setValue('district', ''); }} value={field.value}>
+                        <Select onValueChange={(value) => { field.onChange(value); setValue('regency', ''); setValue('district', ''); }} value={field.value} disabled>
                             <SelectTrigger id="province"><SelectValue placeholder="Pilih Provinsi" /></SelectTrigger>
                             <SelectContent>
                                 {kalimantanData.map(p => <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>)}
@@ -169,7 +169,7 @@ const Step1 = () => {
                 <div className="space-y-2">
                     <Label htmlFor="regency">Kabupaten/Kota <span className="text-destructive">*</span></Label>
                     <Controller name="regency" control={control} render={({ field }) => (
-                        <Select onValueChange={(value) => { field.onChange(value); setValue('district', ''); }} value={field.value} disabled={!selectedProvince}>
+                        <Select onValueChange={(value) => { field.onChange(value); setValue('district', ''); }} value={field.value} disabled>
                             <SelectTrigger id="regency"><SelectValue placeholder="Pilih Kabupaten/Kota" /></SelectTrigger>
                             <SelectContent>
                                 {regencies.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
@@ -181,7 +181,7 @@ const Step1 = () => {
                 <div className="space-y-2">
                     <Label htmlFor="district">Kecamatan <span className="text-destructive">*</span></Label>
                      <Controller name="district" control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedRegency}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled>
                             <SelectTrigger id="district"><SelectValue placeholder="Pilih Kecamatan" /></SelectTrigger>
                             <SelectContent>
                                 {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
@@ -725,7 +725,10 @@ export function MultiStepMarriageForm() {
     const methods = useForm<FullFormData>({
         mode: 'onChange',
         defaultValues: {
-            province: '', regency: '', district: '', kua: '',
+            province: 'KALIMANTAN SELATAN', 
+            regency: 'KOTA BANJARMASIN', 
+            district: 'BANJARMASIN UTARA', 
+            kua: 'KUA BANJARMASIN UTARA',
             weddingLocation: '', weddingTime: '', dispensationNumber: '',
             groomFullName: '', groomNik: '', groomCitizenship: 'WNI', groomPassportNumber: '', groomPlaceOfBirth: '', groomStatus: '', groomReligion: 'Islam', groomEducation: '', groomOccupation: '', groomOccupationDescription: '', groomPhoneNumber: '', groomEmail: '', groomAddress: '',
             brideFullName: '', brideNik: '', brideCitizenship: 'WNI', bridePassportNumber: '', bridePlaceOfBirth: '', brideStatus: '', brideReligion: 'Islam', brideEducation: '', brideOccupation: '', brideOccupationDescription: '', bridePhoneNumber: '', brideEmail: '', brideAddress: '',
@@ -930,5 +933,7 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
+
+    
 
     
