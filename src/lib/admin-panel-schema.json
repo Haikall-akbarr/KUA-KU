@@ -1,0 +1,134 @@
+{
+  "description": "Skema data untuk tampilan Admin Panel KUA Banjarmasin Utara. Ini mendefinisikan struktur data yang diharapkan oleh komponen frontend untuk setiap halaman di dalam dasbor admin, sesuai dengan peran pengguna.",
+  "general": {
+    "userObject": {
+      "description": "Objek pengguna standar yang digunakan di seluruh sistem.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID unik pengguna (e.g., 'usr_001')." },
+        "name": { "type": "string", "description": "Nama lengkap pengguna." },
+        "email": { "type": "string", "format": "email", "description": "Alamat email pengguna." },
+        "role": { "type": "string", "enum": ["Administrator", "Kepala KUA", "Staff KUA", "Penghulu", "Calon Pengantin"], "description": "Peran pengguna dalam sistem." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Tanggal dan waktu akun dibuat (format ISO 8601)." }
+      }
+    }
+  },
+  "pages": {
+    "dashboard": {
+      "routeName": "/admin",
+      "description": "Data untuk kartu statistik di halaman Dashboard utama. Dapat diakses oleh semua peran admin.",
+      "endpoint": "GET /api/admin/dashboard-stats",
+      "responsePayload": {
+        "type": "object",
+        "properties": {
+          "monthlyRegistrations": {
+            "type": "object",
+            "properties": {
+              "count": { "type": "number", "description": "Jumlah pendaftaran nikah bulan ini." },
+              "percentageChange": { "type": "number", "description": "Perubahan persentase dari bulan lalu (contoh: 15.2 untuk +15.2%)." }
+            }
+          },
+          "pendingVerifications": {
+            "type": "object",
+            "properties": {
+              "count": { "type": "number", "description": "Jumlah pendaftaran yang menunggu verifikasi." }
+            }
+          },
+          "weeklyScheduleCount": {
+            "type": "object",
+            "properties": {
+              "count": { "type": "number", "description": "Jumlah total jadwal (akad & bimbingan) dalam 7 hari ke depan." }
+            }
+          },
+          "activeStaffCount": {
+            "type": "object",
+            "properties": {
+              "count": { "type": "number", "description": "Jumlah total staf dan penghulu yang aktif." }
+            }
+          }
+        }
+      }
+    },
+    "userManagement": {
+      "routeName": "/admin/users",
+      "description": "Data untuk tabel manajemen pengguna. Dapat diakses oleh Kepala KUA dan Administrator.",
+      "endpoint": "GET /api/admin/users",
+      "responsePayload": {
+        "type": "array",
+        "items": { "$ref": "#/general/userObject" }
+      },
+      "actions": {
+        "addUser": {
+          "endpoint": "POST /api/admin/users",
+          "description": "Membuat pengguna baru (Staff, Penghulu, Kepala KUA).",
+          "requestPayload": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "required": true },
+              "nip": { "type": "string", "required": true, "description": "NIP atau ID unik pegawai." },
+              "email": { "type": "string", "format": "email", "required": true },
+              "role": { "type": "string", "enum": ["Staff KUA", "Penghulu", "Kepala KUA", "Administrator"], "required": true }
+            }
+          }
+        }
+      }
+    },
+    "marriageRegistrations": {
+      "routeName": "/admin/registrations",
+      "description": "Data untuk tabel manajemen pendaftaran nikah. Dapat diakses oleh Staff KUA, Kepala KUA, dan Administrator.",
+      "endpoint": "GET /api/admin/registrations",
+      "responsePayload": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "description": "ID unik pendaftaran (e.g., 'reg_001')." },
+            "groomName": { "type": "string", "description": "Nama lengkap calon suami." },
+            "brideName": { "type": "string", "description": "Nama lengkap calon istri." },
+            "registrationDate": { "type": "string", "format": "date-time", "description": "Tanggal pendaftaran dibuat." },
+            "weddingDate": { "type": "string", "format": "date-time", "description": "Tanggal akad nikah yang diajukan." },
+            "status": { "type": "string", "enum": ["Menunggu Verifikasi", "Disetujui", "Ditolak", "Selesai"], "description": "Status pendaftaran saat ini." },
+            "penghulu": { "type": "string", "nullable": true, "description": "Nama penghulu yang ditugaskan (jika ada)." }
+          }
+        }
+      }
+    },
+    "schedules": {
+      "routeName": "/admin/schedules",
+      "description": "Data untuk halaman manajemen jadwal. Dapat diakses oleh semua peran admin.",
+      "endpoint": "GET /api/admin/schedules",
+      "responsePayload": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "description": "ID unik jadwal (e.g., 'sch_001')." },
+            "title": { "type": "string", "description": "Judul kegiatan (e.g., 'Akad: Andi & Dewi')." },
+            "type": { "type": "string", "enum": ["Akad Nikah", "Bimbingan Perkawinan"], "description": "Tipe kegiatan." },
+            "startTime": { "type": "string", "format": "date-time", "description": "Waktu mulai kegiatan." },
+            "endTime": { "type": "string", "format": "date-time", "description": "Waktu selesai kegiatan." },
+            "penghulu": { "type": "string", "nullable": true, "description": "Nama penghulu yang bertugas (khusus Akad Nikah)." }
+          }
+        }
+      }
+    },
+    "guidance": {
+      "routeName": "/admin/guidance",
+      "description": "Data untuk halaman manajemen bimbingan perkawinan. Dapat diakses oleh Staff KUA, Kepala KUA, dan Administrator.",
+      "endpoint": "GET /api/admin/guidance-sessions",
+      "responsePayload": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "description": "ID unik sesi bimbingan (e.g., 'bim_001')." },
+            "sessionDate": { "type": "string", "format": "date-time", "description": "Tanggal pelaksanaan sesi." },
+            "participants": { "type": "number", "description": "Jumlah peserta yang sudah terdaftar." },
+            "maxCapacity": { "type": "number", "description": "Kapasitas maksimal peserta per sesi." },
+            "status": { "type": "string", "enum": ["Akan Datang", "Selesai", "Dibatalkan"], "description": "Status sesi bimbingan." }
+          }
+        }
+      }
+    }
+  }
+}
