@@ -820,28 +820,6 @@ export function MultiStepMarriageForm() {
         }
     }, [state, toast, router, methods, setError, clearErrors]);
 
-    const handleFormSubmit = handleSubmit(() => {
-        // This function triggers client-side validation.
-        // If it passes, the form's action will be executed.
-        if (formRef.current) {
-            // Manually format date fields before submission
-            const formData = new FormData(formRef.current);
-            const dateFields = ['weddingDate', 'groomDateOfBirth', 'brideDateOfBirth', 'groomFatherDateOfBirth', 'groomMotherDateOfBirth', 'brideFatherDateOfBirth', 'brideMotherDateOfBirth'];
-            const currentValues = methods.getValues();
-            
-            dateFields.forEach(field => {
-                const dateValue = (currentValues as any)[field];
-                if (dateValue instanceof Date) {
-                    formData.set(field, format(dateValue, 'yyyy-MM-dd'));
-                } else if (!dateValue) {
-                     formData.set(field, '');
-                }
-            });
-
-            formAction(formData);
-        }
-    });
-
     const handleTabChange = (stepIndex: 1 | 2, newTabValue: string) => {
         setActiveTabs(prev => ({ ...prev, [stepIndex]: newTabValue }));
     }
@@ -890,9 +868,12 @@ export function MultiStepMarriageForm() {
                         action={formAction}
                         onSubmit={(e) => {
                             e.preventDefault();
-                            if (currentStep === steps.length - 1) {
-                                handleFormSubmit();
-                            }
+                            handleSubmit(() => {
+                                // Only submit if client-side validation passes
+                                if (currentStep === steps.length - 1) {
+                                    formRef.current?.requestSubmit();
+                                }
+                            })(e);
                         }}
                      >
                          <AnimatePresence mode="wait">
@@ -933,7 +914,5 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
-
-    
 
     
