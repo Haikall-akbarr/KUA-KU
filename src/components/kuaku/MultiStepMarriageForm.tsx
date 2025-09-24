@@ -740,7 +740,7 @@ export function MultiStepMarriageForm() {
         }
     });
 
-    const { trigger, handleSubmit, formState: { isSubmitting }, setError, clearErrors } = methods;
+    const { trigger, handleSubmit, formState: { isSubmitting }, setError, clearErrors, getValues } = methods;
 
     const next = async () => {
         const currentStepConfig = steps[currentStep];
@@ -797,6 +797,8 @@ export function MultiStepMarriageForm() {
     };
 
     useEffect(() => {
+        if (state.message === "") return;
+
         if (!state.success && state.errors?.length) {
              toast({ title: "Pendaftaran Gagal", description: state.message, variant: "destructive" });
              clearErrors();
@@ -823,6 +825,13 @@ export function MultiStepMarriageForm() {
     const handleTabChange = (stepIndex: 1 | 2, newTabValue: string) => {
         setActiveTabs(prev => ({ ...prev, [stepIndex]: newTabValue }));
     }
+
+    const handleFormSubmit = handleSubmit(() => {
+        // This function is called when validation succeeds.
+        // We can now safely call the form action.
+        const formData = new FormData(formRef.current!);
+        formAction(formData);
+    });
     
     const delta = currentStep - previousStep;
     
@@ -865,16 +874,17 @@ export function MultiStepMarriageForm() {
                  <FormProvider {...methods}>
                     <form
                         ref={formRef}
-                        action={formAction}
                         onSubmit={(e) => {
-                            e.preventDefault();
-                            handleSubmit(() => {
-                                // Only submit if client-side validation passes
-                                if (currentStep === steps.length - 1) {
-                                    formRef.current?.requestSubmit();
-                                }
-                            })(e);
+                            // Prevent default form submission for all but the last step
+                            if (currentStep !== steps.length - 1) {
+                                e.preventDefault();
+                            } else {
+                                // For the last step, let react-hook-form handle validation
+                                // before the native form submission (which triggers the action)
+                                handleFormSubmit(e);
+                            }
                         }}
+                        action={formAction}
                      >
                          <AnimatePresence mode="wait">
                             <motion.div
@@ -914,5 +924,7 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
+
+    
 
     
