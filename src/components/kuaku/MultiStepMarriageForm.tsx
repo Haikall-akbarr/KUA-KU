@@ -785,7 +785,7 @@ export function MultiStepMarriageForm() {
     
             if (currentSubStepIndex > 0) {
                 const prevSubStep = subStepKeys[currentSubStepIndex - 1];
-                setActiveTabs(prev => ({ ...prev, [currentStep]: prevSubStep }));
+                setActiveTabs(prev => ({ ...prev, [stepIndex]: prevSubStep }));
                 return;
             }
         }
@@ -827,12 +827,11 @@ export function MultiStepMarriageForm() {
     }
 
     const handleFormSubmit = handleSubmit(() => {
-        // This function is called when validation succeeds.
-        // We can now safely call the form action.
-        const formData = new FormData(formRef.current!);
-        formAction(formData);
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
     });
-    
+
     const delta = currentStep - previousStep;
     
     return (
@@ -874,16 +873,6 @@ export function MultiStepMarriageForm() {
                  <FormProvider {...methods}>
                     <form
                         ref={formRef}
-                        onSubmit={(e) => {
-                            // Prevent default form submission for all but the last step
-                            if (currentStep !== steps.length - 1) {
-                                e.preventDefault();
-                            } else {
-                                // For the last step, let react-hook-form handle validation
-                                // before the native form submission (which triggers the action)
-                                handleFormSubmit(e);
-                            }
-                        }}
                         action={formAction}
                      >
                          <AnimatePresence mode="wait">
@@ -908,7 +897,7 @@ export function MultiStepMarriageForm() {
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
-                                    <Button type="submit" disabled={isPending}>
+                                    <Button type="button" onClick={handleFormSubmit} disabled={isPending}>
                                         {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
                                     </Button>
                                 ) : (
@@ -924,7 +913,5 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
-
-    
 
     
