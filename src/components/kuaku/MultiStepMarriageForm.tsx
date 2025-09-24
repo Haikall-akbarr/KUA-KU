@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useActionState, useEffect, useRef } from "react";
+import { useFormStatus } from "react-dom";
 import { useForm, FormProvider, Controller, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z, ZodIssue } from "zod";
@@ -721,7 +722,7 @@ export function MultiStepMarriageForm() {
     
     const initialState: MarriageRegistrationFormState = { message: "", success: false, errors: [] };
     const [state, formAction] = useActionState(submitMarriageRegistrationForm, initialState);
-    const isPending = useFormStatus().pending;
+    const { pending: isPending } = useFormStatus();
 
     const methods = useForm<FullFormData>({
         mode: 'onChange',
@@ -797,12 +798,13 @@ export function MultiStepMarriageForm() {
         }
     };
 
-    const handleFormSubmit = handleSubmit(() => {
-        if (formRef.current) {
-            // This will trigger the form's `action` prop
-            formRef.current.requestSubmit();
-        }
-    });
+    const handleFormSubmit = () => {
+        handleSubmit(() => {
+            if (formRef.current) {
+                formRef.current.requestSubmit();
+            }
+        })();
+    };
 
 
     useEffect(() => {
