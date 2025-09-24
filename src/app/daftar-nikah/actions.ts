@@ -127,7 +127,7 @@ export type MarriageRegistrationFormData = z.infer<typeof marriageRegistrationSc
 
 export type MarriageRegistrationFormState = {
   message: string;
-  errors?: ZodIssue[];
+  errors?: z.ZodIssue[];
   success: boolean;
   queueNumber?: string;
   data?: Partial<MarriageRegistrationFormData> & { weddingDate?: string, groomDateOfBirth?: string, brideDateOfBirth?: string, groomFatherDateOfBirth?: string, groomMotherDateOfBirth?: string, brideFatherDateOfBirth?: string, brideMotherDateOfBirth?: string };
@@ -135,7 +135,6 @@ export type MarriageRegistrationFormState = {
 
 const toDate = (value: any): Date | undefined => {
     if (!value) return undefined;
-    // Handle cases where value might already be a Date object
     if (value instanceof Date) return value;
     const date = new Date(value as string);
     return isNaN(date.getTime()) ? undefined : date;
@@ -148,13 +147,18 @@ export async function submitMarriageRegistrationForm(
 
   const rawFormData = Object.fromEntries(formData.entries());
   
-  // Convert date strings to Date objects, ensuring empty strings are handled
   const dateFields = ['weddingDate', 'groomDateOfBirth', 'brideDateOfBirth', 'groomFatherDateOfBirth', 'groomMotherDateOfBirth', 'brideFatherDateOfBirth', 'brideMotherDateOfBirth'];
   dateFields.forEach(field => {
       if (rawFormData[field] && typeof rawFormData[field] === 'string') {
-          rawFormData[field] = toDate(rawFormData[field]);
-      } else {
-         rawFormData[field] = undefined;
+          const convertedDate = toDate(rawFormData[field]);
+          if (convertedDate) {
+              rawFormData[field] = convertedDate;
+          } else {
+             delete rawFormData[field]; // Remove invalid or empty date strings
+          }
+      } else if (!rawFormData[field]) {
+          // ensure null/undefined/empty string becomes undefined
+          delete rawFormData[field];
       }
   });
 
@@ -196,7 +200,7 @@ export async function submitMarriageRegistrationForm(
     return {
       message: "Terjadi kesalahan pada server saat memproses pendaftaran. Silakan coba lagi.",
       success: false,
-      errors: [{ path: ['_form'], message: 'Gagal memproses pendaftaran.' }]
+      errors: [{ path: ['_form'], message: 'Gagal memproses pendaftaran.' }] as z.ZodIssue[],
     };
   }
 }

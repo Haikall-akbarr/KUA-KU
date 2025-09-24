@@ -47,29 +47,20 @@ const steps = [
     { id: "06", name: "Ringkasan", fields: [] },
 ];
 
-// We don't need a client-side Zod schema for the whole form, 
-// as validation is primarily handled by the server action.
-// We'll use react-hook-form's built-in validation trigger.
 const dummySchema = z.object({});
 type FullFormData = z.infer<typeof dummySchema>;
 
 const FieldErrorMessage = ({ name }: { name: string }) => {
-    const { formState: { errors: clientErrors }, getFieldState } = useFormContext<any>();
-    const { error: serverError } = getFieldState(name);
+    const { formState: { errors } } = useFormContext<any>();
+    const error = errors[name];
     
-    // Prefer server error message if it exists
-    if (serverError?.message) {
-        return <p className="text-sm text-destructive mt-1">{serverError.message}</p>;
-    }
-    
-    // Fallback to client error message
-    const clientError = clientErrors[name];
-    if (clientError?.message) {
-        return <p className="text-sm text-destructive mt-1">{clientError.message as string}</p>;
+    if (error?.message) {
+        return <p className="text-sm text-destructive mt-1">{error.message as string}</p>;
     }
     
     return null;
 };
+
 
 const Step1 = () => {
     const { control, watch, setValue } = useFormContext<FullFormData>();
@@ -96,7 +87,6 @@ const Step1 = () => {
         if (!weddingDate) return [];
         
         if (weddingLocation === 'Di Luar KUA') {
-            // Flexible hours for outside KUA
             return Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
         }
 
@@ -105,13 +95,13 @@ const Step1 = () => {
 
         if (dayOfWeek === 5) { // Friday
             return [
-                ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08, 09, 10
-                ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14, 15, 16
+                ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
+                ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
             ];
         } else { // Monday - Thursday
             return [
-                 ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`), // 08, 09, 10, 11
-                 ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`) // 14, 15
+                 ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
+                 ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
             ];
         }
     };
@@ -128,12 +118,12 @@ const Step1 = () => {
         if (weddingLocation === 'Di KUA') {
             const dayOfWeek = getDay(date);
             if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                 if (dayOfWeek === 5) { // Friday
+                 if (dayOfWeek === 5) {
                     newAvailableTimes = [
                         ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
                         ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
                     ];
-                } else { // Monday - Thursday
+                } else {
                     newAvailableTimes = [
                         ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
                         ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
@@ -194,7 +184,7 @@ const Step1 = () => {
                 <div className="space-y-2">
                     <Label htmlFor="kua">KUA <span className="text-destructive">*</span></Label>
                     <Controller name="kua" control={control} render={({ field }) => (
-                        <Input {...field} value={field.value || ''} disabled />
+                        <Input {...field} value={field.value || ''} readOnly />
                     )} />
                     <FieldErrorMessage name="kua" />
                 </div>
@@ -221,29 +211,32 @@ const Step1 = () => {
                 <div className="space-y-2">
                     <Label htmlFor="weddingDate">Tanggal Akad <span className="text-destructive">*</span></Label>
                     <Controller name="weddingDate" control={control} render={({ field }) => (
-                        <Popover open={weddingDateOpen} onOpenChange={setWeddingDateOpen}>
-                            <PopoverTrigger asChild>
-                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")} disabled={!weddingLocation}>
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {field.value ? format(field.value, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                                <Calendar mode="single" selected={field.value} onSelect={handleDateSelect} 
-                                disabled={(date) => {
-                                    const today = new Date();
-                                    today.setHours(0,0,0,0);
-                                    if (date < addDays(today, 10)) return true; // Min 10 days from now
-                                    if (date > addMonths(today, 3)) return true; // Max 3 months from now
-                                    if (weddingLocation === 'Di KUA') {
-                                        const day = getDay(date);
-                                        return day === 0 || day === 6; // Disable Saturday & Sunday
-                                    }
-                                    return false;
-                                }}
-                                initialFocus locale={IndonesianLocale} />
-                            </PopoverContent>
-                        </Popover>
+                        <>
+                            <input type="hidden" {...field} value={field.value ? format(field.value, "yyyy-MM-dd") : ""} />
+                            <Popover open={weddingDateOpen} onOpenChange={setWeddingDateOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")} disabled={!weddingLocation}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {field.value ? format(field.value, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar mode="single" selected={field.value} onSelect={handleDateSelect} 
+                                    disabled={(date) => {
+                                        const today = new Date();
+                                        today.setHours(0,0,0,0);
+                                        if (date < addDays(today, 10)) return true;
+                                        if (date > addMonths(today, 3)) return true;
+                                        if (weddingLocation === 'Di KUA') {
+                                            const day = getDay(date);
+                                            return day === 0 || day === 6;
+                                        }
+                                        return false;
+                                    }}
+                                    initialFocus locale={IndonesianLocale} />
+                                </PopoverContent>
+                            </Popover>
+                        </>
                     )} />
                     <FieldErrorMessage name="weddingDate" />
                 </div>
@@ -313,23 +306,26 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir <span className="text-destructive">*</span></Label>
                     <Controller name={`${prefix}DateOfBirth` as any} control={control} render={({ field }) => (
-                        <Popover open={dobOpen} onOpenChange={setDobOpen}>
-                            <PopoverTrigger asChild>
-                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {field.value ? format(field.value as Date, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal lahir</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                                <Calendar mode="single" selected={field.value as Date} onSelect={(date) => { field.onChange(date); setDobOpen(false); }} captionLayout="dropdown-buttons" fromYear={1950} toYear={new Date().getFullYear() - 17} disabled={(date) => date > new Date(new Date().setFullYear(new Date().getFullYear() - 17))} initialFocus locale={IndonesianLocale} />
-                            </PopoverContent>
-                        </Popover>
+                        <>
+                            <input type="hidden" {...field} value={field.value ? format(field.value, "yyyy-MM-dd") : ""} />
+                            <Popover open={dobOpen} onOpenChange={setDobOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {field.value ? format(field.value as Date, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal lahir</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar mode="single" selected={field.value as Date} onSelect={(date) => { field.onChange(date); setDobOpen(false); }} captionLayout="dropdown-buttons" fromYear={1950} toYear={new Date().getFullYear() - 17} disabled={(date) => date > new Date(new Date().setFullYear(new Date().getFullYear() - 17))} initialFocus locale={IndonesianLocale} />
+                                </PopoverContent>
+                            </Popover>
+                        </>
                     )} />
                     <FieldErrorMessage name={`${prefix}DateOfBirth`} />
                 </div>
                 <div className="space-y-2">
                     <Label>Umur</Label>
-                    <Input value={age !== null ? `${age} Tahun` : ''} disabled placeholder="Umur akan terisi otomatis"/>
+                    <Input value={age !== null ? `${age} Tahun` : ''} readOnly placeholder="Umur akan terisi otomatis"/>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Status`}>Status <span className="text-destructive">*</span></Label>
@@ -344,11 +340,6 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
                         <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Islam">Islam</SelectItem>
-                                <SelectItem value="Kristen Protestan">Kristen Protestan</SelectItem>
-                                <SelectItem value="Katolik">Katolik</SelectItem>
-                                <SelectItem value="Hindu">Hindu</SelectItem>
-                                <SelectItem value="Buddha">Buddha</SelectItem>
-                                <SelectItem value="Khonghucu">Khonghucu</SelectItem>
                             </SelectContent>
                         </Select>
                     )} />
@@ -466,17 +457,20 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}DateOfBirth` as any} control={control} render={({ field }) => (
-                        <Popover open={dobOpen} onOpenChange={setDobOpen}>
-                            <PopoverTrigger asChild>
-                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {field.value ? format(field.value as Date, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal lahir</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                                <Calendar mode="single" selected={field.value as Date | undefined} onSelect={(date) => { field.onChange(date); setDobOpen(false); }} captionLayout="dropdown-buttons" fromYear={1920} toYear={new Date().getFullYear()} initialFocus locale={IndonesianLocale} />
-                            </PopoverContent>
-                        </Popover>
+                        <>
+                            <input type="hidden" {...field} value={field.value ? format(field.value, "yyyy-MM-dd") : ""} />
+                            <Popover open={dobOpen} onOpenChange={setDobOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {field.value ? format(field.value as Date, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal lahir</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar mode="single" selected={field.value as Date | undefined} onSelect={(date) => { field.onChange(date); setDobOpen(false); }} captionLayout="dropdown-buttons" fromYear={1920} toYear={new Date().getFullYear()} initialFocus locale={IndonesianLocale} />
+                                </PopoverContent>
+                            </Popover>
+                        </>
                     )} />
                     <FieldErrorMessage name={`${prefix}DateOfBirth`} />
                 </div>
@@ -486,11 +480,6 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                         <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Islam">Islam</SelectItem>
-                                <SelectItem value="Kristen Protestan">Kristen Protestan</SelectItem>
-                                <SelectItem value="Katolik">Katolik</SelectItem>
-                                <SelectItem value="Hindu">Hindu</SelectItem>
-                                <SelectItem value="Buddha">Buddha</SelectItem>
-                                <SelectItem value="Khonghucu">Khonghucu</SelectItem>
                             </SelectContent>
                         </Select>
                     )} />
@@ -591,11 +580,6 @@ const Step4 = () => {
                         <Select onValueChange={field.onChange} value={field.value}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Islam">Islam</SelectItem>
-                                <SelectItem value="Kristen Protestan">Kristen Protestan</SelectItem>
-                                <SelectItem value="Katolik">Katolik</SelectItem>
-                                <SelectItem value="Hindu">Hindu</SelectItem>
-                                <SelectItem value="Buddha">Buddha</SelectItem>
-                                <SelectItem value="Khonghucu">Khonghucu</SelectItem>
                             </SelectContent>
                         </Select>
                     )} />
@@ -676,8 +660,8 @@ const Step6 = () => {
             <div className="space-y-4">
                 <h4 className="font-semibold text-lg text-primary">Jadwal & Lokasi</h4>
                 <SummaryItem label="Lokasi Nikah" value={formData.weddingLocation} />
-                <SummaryItem label="Tanggal Akad" value={formData.weddingDate ? format(formData.weddingDate, "EEEE, dd MMMM yyyy", { locale: IndonesianLocale }) : '-'} />
-                <SummaryItem label="Jam Akad" value={formData.weddingTime} />
+                <SummaryItem label="Tanggal Akad" value={formData.weddingDate ? format(new Date(formData.weddingDate), "EEEE, dd MMMM yyyy", { locale: IndonesianLocale }) : '-'} />
+                <SummaryItem label="Jam Akad" value={formData.weddingTime ? `${formData.weddingTime} WITA` : '-'} />
             </div>
             
             <Separator/>
@@ -712,13 +696,21 @@ const Step6 = () => {
     )
 };
 
+const SubmitButton = () => {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
+        </Button>
+    );
+}
+
 export function MultiStepMarriageForm() {
     const [currentStep, setCurrentStep] = useState(0);
     const [previousStep, setPreviousStep] = useState(0);
     const [activeTabs, setActiveTabs] = useState<{ [key: number]: string }>({ 1: "groom", 2: "bride" });
     const router = useRouter();
     const { toast } = useToast();
-    const formRef = useRef<HTMLFormElement>(null);
     
     const initialState: MarriageRegistrationFormState = { message: "", success: false, errors: [] };
     const [state, formAction] = useActionState(submitMarriageRegistrationForm, initialState);
@@ -738,11 +730,11 @@ export function MultiStepMarriageForm() {
             groomMotherPresenceStatus: '', groomMotherName: '', groomMotherNik: '', groomMotherCitizenship: 'WNI', groomMotherCountryOfOrigin: 'INDONESIA', groomMotherPassportNumber: '', groomMotherPlaceOfBirth: '', groomMotherDateOfBirth: null, groomMotherReligion: 'Islam', groomMotherOccupation: '', groomMotherOccupationDescription: '', groomMotherAddress: '',
             brideFatherPresenceStatus: '', brideFatherName: '', brideFatherNik: '', brideFatherCitizenship: 'WNI', brideFatherCountryOfOrigin: 'INDONESIA', brideFatherPassportNumber: '', brideFatherPlaceOfBirth: '', brideFatherDateOfBirth: null, brideFatherReligion: 'Islam', brideFatherOccupation: '', brideFatherOccupationDescription: '', brideFatherAddress: '',
             brideMotherPresenceStatus: '', brideMotherName: '', brideMotherNik: '', brideMotherCitizenship: 'WNI', brideMotherCountryOfOrigin: 'INDONESIA', brideMotherPassportNumber: '', brideMotherPlaceOfBirth: '', brideMotherDateOfBirth: null, brideMotherReligion: 'Islam', brideMotherOccupation: '', brideMotherOccupationDescription: '', brideMotherAddress: '',
-            guardianFullName: '', guardianNik: '', guardianRelationship: '', guardianStatus: '', guardianReligion: 'Islam', guardianAddress: '', guardianPhoneNumber: ''
+            guardianFullName: '', guardianNik: '', guardianRelationship: '', guardianStatus: 'Hidup', guardianReligion: 'Islam', guardianAddress: '', guardianPhoneNumber: ''
         }
     });
 
-    const { trigger, handleSubmit, formState: { isSubmitting }, setError, clearErrors, getValues } = methods;
+    const { trigger, handleSubmit, formState: { errors }, setError, clearErrors, getValues } = methods;
 
     const next = async () => {
         const currentStepConfig = steps[currentStep];
@@ -798,14 +790,6 @@ export function MultiStepMarriageForm() {
         }
     };
 
-    const handleFormSubmit = () => {
-        handleSubmit(() => {
-            if (formRef.current) {
-                formRef.current.requestSubmit();
-            }
-        })();
-    };
-
 
     useEffect(() => {
         if (state.message === "") return;
@@ -813,8 +797,9 @@ export function MultiStepMarriageForm() {
         if (!state.success && state.errors?.length) {
              toast({ title: "Pendaftaran Gagal", description: state.message, variant: "destructive" });
              clearErrors();
-             state.errors.forEach((error) => {
-                setError(error.path[0] as any, {
+             state.errors.forEach((error: ZodIssue) => {
+                const path = error.path.join('.');
+                setError(path as any, {
                     type: 'server',
                     message: error.message,
                 });
@@ -832,6 +817,7 @@ export function MultiStepMarriageForm() {
             methods.reset();
         }
     }, [state, toast, router, methods, setError, clearErrors]);
+    
 
     const handleTabChange = (stepIndex: 1 | 2, newTabValue: string) => {
         setActiveTabs(prev => ({ ...prev, [stepIndex]: newTabValue }));
@@ -876,10 +862,7 @@ export function MultiStepMarriageForm() {
                  <Separator className="my-8"/>
                  
                  <FormProvider {...methods}>
-                    <form
-                        ref={formRef}
-                        action={formAction}
-                     >
+                    <form action={formAction}>
                          <AnimatePresence mode="wait">
                             <motion.div
                                 key={`${currentStep}-${activeTabs[1]}-${activeTabs[2]}`}
@@ -902,9 +885,7 @@ export function MultiStepMarriageForm() {
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
-                                    <Button type="button" onClick={handleFormSubmit} disabled={isPending}>
-                                        {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
-                                    </Button>
+                                    <SubmitButton />
                                 ) : (
                                     <Button type="button" onClick={next} disabled={isPending}>
                                         Selanjutnya
@@ -918,5 +899,3 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
-
-    
