@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useActionState, useEffect, useRef } from "react";
-import { useFormStatus } from "react-dom";
+import { useFormStatus, useFormState } from "react-dom";
 import { useForm, FormProvider, Controller, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z, ZodIssue } from "zod";
@@ -392,7 +392,7 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
     const citizenship = watch(`${prefix}Citizenship` as any);
     const selectedOccupation = watch(`${prefix}Occupation` as any);
 
-    const isFieldsDisabled = presenceStatus === "Wafat" || presenceStatus === "Tidak Diketahui";
+    const isReadOnly = presenceStatus === "Wafat" || presenceStatus === "Tidak Diketahui";
 
     useEffect(() => {
         if (citizenship === 'WNI') {
@@ -401,12 +401,12 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
     }, [citizenship, setValue, prefix]);
 
     return (
-        <fieldset disabled={isFieldsDisabled} className="space-y-6">
+        <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 items-start">
                  <div className="space-y-2">
                     <Label htmlFor={`${prefix}PresenceStatus`}>Status Keberadaan <span className="text-destructive">*</span></Label>
                     <Controller name={`${prefix}PresenceStatus` as any} control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value as string} disabled={false}>
+                        <Select onValueChange={field.onChange} value={field.value as string}>
                             <SelectTrigger><SelectValue placeholder="Pilih Status" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Hidup">Hidup</SelectItem>
@@ -418,9 +418,9 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     <FieldErrorMessage name={`${prefix}PresenceStatus`} />
                 </div>
                  <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Citizenship`}>Warga Negara {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
+                    <Label htmlFor={`${prefix}Citizenship`}>Warga Negara {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}Citizenship` as any} control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value as string}>
+                        <Select onValueChange={field.onChange} value={field.value as string} disabled={isReadOnly}>
                             <SelectTrigger><SelectValue placeholder="Pilih Kewarganegaraan" /></SelectTrigger>
                             <SelectContent> <SelectItem value="WNI">WNI</SelectItem> <SelectItem value="WNA">WNA</SelectItem> </SelectContent>
                         </Select>
@@ -428,40 +428,40 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     <FieldErrorMessage name={`${prefix}Citizenship`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}CountryOfOrigin`}>Negara Asal {citizenship !== 'WNA' || isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
+                    <Label htmlFor={`${prefix}CountryOfOrigin`}>Negara Asal {citizenship !== 'WNA' || isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}CountryOfOrigin` as any} control={control} render={({ field }) => (
-                        <Input {...field} value={field.value as string || ''} placeholder="Negara Asal" disabled={citizenship !== 'WNA'} />
+                        <Input {...field} value={field.value as string || ''} placeholder="Negara Asal" readOnly={isReadOnly || citizenship !== 'WNA'} />
                     )} />
                     <FieldErrorMessage name={`${prefix}CountryOfOrigin`} />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor={`${prefix}PassportNumber`}>No. Paspor (jika WNA)</Label>
-                    <Controller name={`${prefix}PassportNumber` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Nomor Paspor" disabled={citizenship !== 'WNA'}/>} />
+                    <Controller name={`${prefix}PassportNumber` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Nomor Paspor" readOnly={isReadOnly || citizenship !== 'WNA'}/>} />
                      <FieldErrorMessage name={`${prefix}PassportNumber`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Nik`}>NIK {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
-                    <Controller name={`${prefix}Nik` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`16 Digit NIK ${personType}`} maxLength={16} />} />
+                    <Label htmlFor={`${prefix}Nik`}>NIK {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
+                    <Controller name={`${prefix}Nik` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`16 Digit NIK ${personType}`} maxLength={16} readOnly={isReadOnly} />} />
                     <FieldErrorMessage name={`${prefix}Nik`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Name`}>Nama Lengkap {personType} {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
-                    <Controller name={`${prefix}Name` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`Nama Lengkap ${personType}`} />} />
+                    <Label htmlFor={`${prefix}Name`}>Nama Lengkap {personType} {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
+                    <Controller name={`${prefix}Name` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`Nama Lengkap ${personType}`} readOnly={isReadOnly} />} />
                     <FieldErrorMessage name={`${prefix}Name`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}PlaceOfBirth`}>Tempat Lahir {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
-                    <Controller name={`${prefix}PlaceOfBirth` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Kota Kelahiran" />} />
+                    <Label htmlFor={`${prefix}PlaceOfBirth`}>Tempat Lahir {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
+                    <Controller name={`${prefix}PlaceOfBirth` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Kota Kelahiran" readOnly={isReadOnly} />} />
                     <FieldErrorMessage name={`${prefix}PlaceOfBirth`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
+                    <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}DateOfBirth` as any} control={control} render={({ field }) => (
                         <>
                             <input type="hidden" {...field} value={field.value ? format(field.value, "yyyy-MM-dd") : ""} />
                             <Popover open={dobOpen} onOpenChange={setDobOpen}>
                                 <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                    <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")} disabled={isReadOnly}>
                                         <CalendarIcon className="mr-2 h-4 w-4" />
                                         {field.value ? format(field.value as Date, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal lahir</span>}
                                     </Button>
@@ -475,9 +475,9 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     <FieldErrorMessage name={`${prefix}DateOfBirth`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Religion`}>Agama {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
+                    <Label htmlFor={`${prefix}Religion`}>Agama {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}Religion` as any} control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
+                        <Select onValueChange={field.onChange} value={field.value as string} disabled={isReadOnly}><SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Islam">Islam</SelectItem>
                             </SelectContent>
@@ -486,24 +486,24 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                     <FieldErrorMessage name={`${prefix}Religion`} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor={`${prefix}Occupation`}>Pekerjaan {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
+                    <Label htmlFor={`${prefix}Occupation`}>Pekerjaan {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
                     <Controller name={`${prefix}Occupation` as any} control={control} render={({ field }) => (
-                         <Select onValueChange={field.onChange} value={field.value as string}><SelectTrigger><SelectValue placeholder="Pilih Pekerjaan" /></SelectTrigger><SelectContent>{occupations.map(job => <SelectItem key={job} value={job}>{job}</SelectItem>)}</SelectContent></Select>
+                         <Select onValueChange={field.onChange} value={field.value as string} disabled={isReadOnly}><SelectTrigger><SelectValue placeholder="Pilih Pekerjaan" /></SelectTrigger><SelectContent>{occupations.map(job => <SelectItem key={job} value={job}>{job}</SelectItem>)}</SelectContent></Select>
                     )} />
                     <FieldErrorMessage name={`${prefix}Occupation`} />
                 </div>
                  <div className="space-y-2 lg:col-span-2">
                     <Label htmlFor={`${prefix}OccupationDescription`}>Jika Pekerjaan Lainnya</Label>
-                    <Controller name={`${prefix}OccupationDescription` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Sebutkan pekerjaan" disabled={selectedOccupation !== 'Lainnya' || isFieldsDisabled} />} />
+                    <Controller name={`${prefix}OccupationDescription` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Sebutkan pekerjaan" readOnly={isReadOnly || selectedOccupation !== 'Lainnya'} />} />
                     <FieldErrorMessage name={`${prefix}OccupationDescription`}/>
                 </div>
                  <div className="space-y-2 md:col-span-3">
-                    <Label htmlFor={`${prefix}Address`}>Alamat (sesuai KTP) {isFieldsDisabled ? '' : <span className="text-destructive">*</span>}</Label>
-                    <Controller name={`${prefix}Address` as any} control={control} render={({ field }) => <Textarea {...field} value={field.value as string || ''} placeholder={`Alamat lengkap ${personType} sesuai KTP`} />} />
+                    <Label htmlFor={`${prefix}Address`}>Alamat (sesuai KTP) {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
+                    <Controller name={`${prefix}Address` as any} control={control} render={({ field }) => <Textarea {...field} value={field.value as string || ''} placeholder={`Alamat lengkap ${personType} sesuai KTP`} readOnly={isReadOnly} />} />
                     <FieldErrorMessage name={`${prefix}Address`} />
                 </div>
             </div>
-        </fieldset>
+        </div>
     )
 }
 
@@ -696,10 +696,10 @@ const Step6 = () => {
     )
 };
 
-const SubmitButton = () => {
+const SubmitButton = ({ onClick }: { onClick: (e: React.MouseEvent<HTMLButtonElement>) => void }) => {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} onClick={onClick}>
             {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
         </Button>
     );
@@ -724,8 +724,8 @@ export function MultiStepMarriageForm() {
             district: 'BANJARMASIN UTARA', 
             kua: 'KUA BANJARMASIN UTARA',
             weddingLocation: '', weddingTime: '', dispensationNumber: '',
-            groomFullName: '', groomNik: '', groomCitizenship: 'WNI', groomPassportNumber: '', groomPlaceOfBirth: '', groomStatus: '', groomReligion: 'Islam', groomEducation: '', groomOccupation: '', groomOccupationDescription: '', groomPhoneNumber: '', groomEmail: '', groomAddress: '',
-            brideFullName: '', brideNik: '', brideCitizenship: 'WNI', bridePassportNumber: '', bridePlaceOfBirth: '', brideStatus: '', brideReligion: 'Islam', brideEducation: '', brideOccupation: '', brideOccupationDescription: '', bridePhoneNumber: '', brideEmail: '', brideAddress: '',
+            groomFullName: '', groomNik: '', groomCitizenship: 'WNI', groomPassportNumber: '', groomPlaceOfBirth: '', groomDateOfBirth: undefined, groomStatus: '', groomReligion: 'Islam', groomEducation: '', groomOccupation: '', groomOccupationDescription: '', groomPhoneNumber: '', groomEmail: '', groomAddress: '',
+            brideFullName: '', brideNik: '', brideCitizenship: 'WNI', bridePassportNumber: '', bridePlaceOfBirth: '', brideDateOfBirth: undefined, brideStatus: '', brideReligion: 'Islam', brideEducation: '', brideOccupation: '', brideOccupationDescription: '', bridePhoneNumber: '', brideEmail: '', brideAddress: '',
             groomFatherPresenceStatus: '', groomFatherName: '', groomFatherNik: '', groomFatherCitizenship: 'WNI', groomFatherCountryOfOrigin: 'INDONESIA', groomFatherPassportNumber: '', groomFatherPlaceOfBirth: '', groomFatherDateOfBirth: null, groomFatherReligion: 'Islam', groomFatherOccupation: '', groomFatherOccupationDescription: '', groomFatherAddress: '',
             groomMotherPresenceStatus: '', groomMotherName: '', groomMotherNik: '', groomMotherCitizenship: 'WNI', groomMotherCountryOfOrigin: 'INDONESIA', groomMotherPassportNumber: '', groomMotherPlaceOfBirth: '', groomMotherDateOfBirth: null, groomMotherReligion: 'Islam', groomMotherOccupation: '', groomMotherOccupationDescription: '', groomMotherAddress: '',
             brideFatherPresenceStatus: '', brideFatherName: '', brideFatherNik: '', brideFatherCitizenship: 'WNI', brideFatherCountryOfOrigin: 'INDONESIA', brideFatherPassportNumber: '', brideFatherPlaceOfBirth: '', brideFatherDateOfBirth: null, brideFatherReligion: 'Islam', brideFatherOccupation: '', brideFatherOccupationDescription: '', brideFatherAddress: '',
@@ -818,6 +818,11 @@ export function MultiStepMarriageForm() {
         }
     }, [state, toast, router, methods, setError, clearErrors]);
     
+    const handleFormSubmit = handleSubmit((data) => {
+        // This is intentionally left blank. 
+        // The form submission is handled by the `formAction` prop on the `<form>` element.
+        // We use `handleSubmit` here only to trigger client-side validation.
+    });
 
     const handleTabChange = (stepIndex: 1 | 2, newTabValue: string) => {
         setActiveTabs(prev => ({ ...prev, [stepIndex]: newTabValue }));
@@ -885,7 +890,13 @@ export function MultiStepMarriageForm() {
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
-                                    <SubmitButton />
+                                    <SubmitButton onClick={(e) => {
+                                        handleFormSubmit((e as unknown) as React.FormEvent<HTMLFormElement>);
+                                        // If there are errors, the form won't submit, so we prevent default.
+                                        if (Object.keys(errors).length > 0) {
+                                            e.preventDefault();
+                                        }
+                                    }} />
                                 ) : (
                                     <Button type="button" onClick={next} disabled={isPending}>
                                         Selanjutnya
@@ -899,3 +910,5 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
+
+    
