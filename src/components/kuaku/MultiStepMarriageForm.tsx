@@ -2,10 +2,8 @@
 "use client";
 
 import React, { useState, useActionState, useEffect, useRef } from "react";
-import { useFormStatus } from "react-dom";
+import { useFormStatus, useFormState } from "react-dom";
 import { useForm, FormProvider, Controller, useFormContext } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z, ZodIssue } from "zod";
 import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO, differenceInYears, getDay, addDays, addMonths } from "date-fns";
 import { id as IndonesianLocale } from 'date-fns/locale';
@@ -23,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { submitMarriageRegistrationForm, type MarriageRegistrationFormState, type FormattedMarriageRegistration } from "@/app/daftar-nikah/actions";
+import { submitMarriageRegistrationForm, type MarriageRegistrationFormState } from "@/app/daftar-nikah/actions";
 import { Loader2, CalendarIcon, User, Users, FileText, CheckCircle, Info, MapPin, Building, Clock, FileUp, FileCheck2, AlertCircle } from "lucide-react";
 import { educationLevels, occupations } from "@/lib/form-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,8 +45,7 @@ const steps = [
     { id: "06", name: "Ringkasan", fields: [] },
 ];
 
-const dummySchema = z.object({});
-type FullFormData = z.infer<typeof dummySchema>;
+type FullFormData = any;
 
 const FieldErrorMessage = ({ name }: { name: string }) => {
     const { formState: { errors } } = useFormContext<any>();
@@ -361,7 +358,7 @@ const PersonSubForm = ({ prefix, personType }: { prefix: 'groom' | 'bride', pers
                 </div>
                  <div className="space-y-2 lg:col-span-2">
                     <Label htmlFor={`${prefix}OccupationDescription`}>Jika Pekerjaan Lainnya</Label>
-                    <Controller name={`${prefix}OccupationDescription` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Sebutkan pekerjaan" disabled={selectedOccupation !== 'Lainnya'} />} />
+                    <Controller name={`${prefix}OccupationDescription` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Sebutkan pekerjaan" readOnly={selectedOccupation !== 'Lainnya'} />} />
                     <FieldErrorMessage name={`${prefix}OccupationDescription`}/>
                 </div>
                  <div className="space-y-2">
@@ -713,10 +710,9 @@ export function MultiStepMarriageForm() {
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     
-    const initialState: MarriageRegistrationFormState = { message: "", success: false, errors: [] };
+    const initialState: MarriageRegistrationFormState = { message: "", success: false };
     const [state, formAction] = useActionState(submitMarriageRegistrationForm, initialState);
-    const { pending: isPending } = useFormStatus();
-
+    
     const methods = useForm<FullFormData>({
         mode: 'onChange',
         defaultValues: {
@@ -735,19 +731,14 @@ export function MultiStepMarriageForm() {
         }
     });
 
-    const { trigger, handleSubmit, formState: { errors }, setError, clearErrors, getValues } = methods;
+    const { trigger, handleSubmit } = methods;
 
     const next = async () => {
         const currentStepConfig = steps[currentStep];
         
+        // No validation, just move to the next step/tab
         if (currentStepConfig.subSteps) {
             const currentSubStepName = activeTabs[currentStep];
-            const fieldsToValidate = (currentStepConfig.subSteps as any)[currentSubStepName] as any[];
-            
-            const output = await trigger(fieldsToValidate, { shouldFocus: true });
-            
-            if (!output) return;
-
             const subStepKeys = Object.keys(currentStepConfig.subSteps);
             const currentSubStepIndex = subStepKeys.indexOf(currentSubStepName);
 
@@ -755,12 +746,6 @@ export function MultiStepMarriageForm() {
                 const nextSubStep = subStepKeys[currentSubStepIndex + 1];
                 setActiveTabs(prev => ({ ...prev, [currentStep]: nextSubStep }));
                 return;
-            }
-        } else {
-            const fields = currentStepConfig.fields;
-            if (fields && fields.length > 0) {
-                const output = await trigger(fields as any[], { shouldFocus: true });
-                if (!output) return;
             }
         }
 
@@ -791,29 +776,14 @@ export function MultiStepMarriageForm() {
         }
     };
 
-    const handleFormSubmit = handleSubmit(() => {
-        if (formRef.current) {
-             formRef.current.requestSubmit();
-        }
-    });
-
     useEffect(() => {
         if (state.message === "") return;
 
         if (!state.success && state.errors?.length) {
              toast({ title: "Pendaftaran Gagal", description: state.message, variant: "destructive" });
-             clearErrors();
-             state.errors.forEach((error: ZodIssue) => {
-                const path = error.path.join('.');
-                setError(path as any, {
-                    type: 'server',
-                    message: error.message,
-                });
-             });
         } else if (state.success && state.data && state.queueNumber && state.newRegistration) {
             toast({ title: "Berhasil!", description: state.message, variant: "default" });
 
-            // Store new registration in localStorage to be picked up by admin dashboard
             try {
                 const existing = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
                 localStorage.setItem('marriageRegistrations', JSON.stringify([...existing, state.newRegistration]));
@@ -831,7 +801,7 @@ export function MultiStepMarriageForm() {
             router.push(`/daftar-nikah/sukses?${params.toString()}`);
             methods.reset();
         }
-    }, [state, toast, router, methods, setError, clearErrors]);
+    }, [state, toast, router, methods]);
     
     const delta = currentStep - previousStep;
     
@@ -862,9 +832,9 @@ export function MultiStepMarriageForm() {
                  { !state.success && state.errors && state.errors.length > 0 && (
                     <Alert variant="destructive" className="mb-6">
                         <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Validasi Gagal</AlertTitle>
+                        <AlertTitle>Pendaftaran Gagal</AlertTitle>
                         <AlertDescription>
-                            Terdapat kesalahan pada data yang Anda masukkan. Silakan periksa kembali kolom yang ditandai merah di setiap langkah.
+                           {state.message}
                         </AlertDescription>
                     </Alert>
                  )}
@@ -872,11 +842,7 @@ export function MultiStepMarriageForm() {
                  <Separator className="my-8"/>
                  
                  <FormProvider {...methods}>
-                    <form ref={formRef} action={formAction} onSubmit={(e) => {
-                        if (currentStep !== steps.length - 1) {
-                            e.preventDefault();
-                        }
-                    }}>
+                    <form ref={formRef} action={formAction} >
                          <AnimatePresence mode="wait">
                             <motion.div
                                 key={`${currentStep}-${activeTabs[1]}-${activeTabs[2]}`}
@@ -899,11 +865,9 @@ export function MultiStepMarriageForm() {
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
-                                     <Button type="button" onClick={handleFormSubmit} disabled={isPending}>
-                                        {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
-                                     </Button>
+                                     <SubmitButton />
                                 ) : (
-                                    <Button type="button" onClick={next} disabled={isPending}>
+                                    <Button type="button" onClick={next}>
                                         Selanjutnya
                                     </Button>
                                 )}
@@ -915,5 +879,3 @@ export function MultiStepMarriageForm() {
         </Card>
     );
 }
-
-    
