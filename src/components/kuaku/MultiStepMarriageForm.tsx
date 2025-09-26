@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useActionState, useEffect, useRef } from "react";
-import { useFormStatus, useFormState } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { useForm, FormProvider, Controller, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z, ZodIssue } from "zod";
@@ -696,10 +696,10 @@ const Step6 = () => {
     )
 };
 
-const SubmitButton = ({ onClick }: { onClick: (e: React.MouseEvent<HTMLButtonElement>) => void }) => {
+const SubmitButton = () => {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending} onClick={onClick}>
+        <Button type="submit" disabled={pending}>
             {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
         </Button>
     );
@@ -872,7 +872,11 @@ export function MultiStepMarriageForm() {
                  <Separator className="my-8"/>
                  
                  <FormProvider {...methods}>
-                    <form ref={formRef} action={formAction}>
+                    <form ref={formRef} action={formAction} onSubmit={(e) => {
+                        if (currentStep !== steps.length - 1) {
+                            e.preventDefault();
+                        }
+                    }}>
                          <AnimatePresence mode="wait">
                             <motion.div
                                 key={`${currentStep}-${activeTabs[1]}-${activeTabs[2]}`}
@@ -895,10 +899,9 @@ export function MultiStepMarriageForm() {
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
-                                     <SubmitButton onClick={(e) => {
-                                        e.preventDefault();
-                                        handleFormSubmit();
-                                    }} />
+                                     <Button type="button" onClick={handleFormSubmit} disabled={isPending}>
+                                        {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Mengirim...</> : 'Kirim Pendaftaran'}
+                                     </Button>
                                 ) : (
                                     <Button type="button" onClick={next} disabled={isPending}>
                                         Selanjutnya
