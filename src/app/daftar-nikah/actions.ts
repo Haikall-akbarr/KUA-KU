@@ -22,7 +22,7 @@ const personSchema = (prefix: 'groom' | 'bride') => z.object({
   [`${prefix}Address`]: z.string().min(10, `Alamat minimal 10 karakter.`),
 });
 
-// Skema untuk orang tua dengan validasi kondisional
+// Skema untuk orang tua dengan validasi kondisional yang disederhanakan
 const parentSchema = (prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'brideMother') => z.object({
     [`${prefix}PresenceStatus`]: z.string({ required_error: "Status keberadaan wajib diisi." }),
     [`${prefix}Name`]: z.string().optional(),
@@ -36,42 +36,38 @@ const parentSchema = (prefix: 'groomFather' | 'groomMother' | 'brideFather' | 'b
     [`${prefix}Occupation`]: z.string().optional(),
     [`${prefix}OccupationDescription`]: z.string().optional(),
     [`${prefix}Address`]: z.string().optional(),
-}).superRefine((data, ctx) => {
-    const presenceStatus = data[`${prefix}PresenceStatus`];
-    // Hanya validasi jika statusnya 'Hidup'
-    if (presenceStatus === "Hidup") {
-        if (!data[`${prefix}Name`] || (data[`${prefix}Name`] as string).length < 3) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nama ayah/ibu minimal 3 karakter.", path: [`${prefix}Name`] });
-        }
-        if (data[`${prefix}Nik`] && (!/^\d{16}$/.test(data[`${prefix}Nik`] as string))) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "NIK ayah/ibu harus 16 digit angka.", path: [`${prefix}Nik`] });
-        }
-        if (!data[`${prefix}Citizenship`]) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Kewarganegaraan wajib diisi.", path: [`${prefix}Citizenship`] });
-        }
-        if (data[`${prefix}Citizenship`] === 'WNA' && (!data[`${prefix}PassportNumber`] || (data[`${prefix}PassportNumber`] as string).length < 3) ) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nomor paspor wajib diisi untuk WNA.", path: [`${prefix}PassportNumber`] });
-        }
-        if (!data[`${prefix}PlaceOfBirth`] || (data[`${prefix}PlaceOfBirth`] as string).length < 2) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Tempat lahir minimal 2 karakter.", path: [`${prefix}PlaceOfBirth`] });
-        }
-        if (!data[`${prefix}DateOfBirth`]) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Tanggal lahir wajib diisi.", path: [`${prefix}DateOfBirth`] });
-        }
-        if (!data[`${prefix}Religion`]) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Agama wajib diisi.", path: [`${prefix}Religion`] });
-        }
-        if (!data[`${prefix}Occupation`]) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Pekerjaan wajib diisi.", path: [`${prefix}Occupation`] });
-        }
-        if (data[`${prefix}Occupation`] === "Lainnya" && (!data[`${prefix}OccupationDescription`] || (data[`${prefix}OccupationDescription`] as string).length < 3)) {
-             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Deskripsi pekerjaan lainnya wajib diisi.", path: [`${prefix}OccupationDescription`] });
-        }
-        if (!data[`${prefix}Address`] || (data[`${prefix}Address`] as string).length < 10) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Alamat minimal 10 karakter.", path: [`${prefix}Address`] });
-        }
-    }
+})
+.refine(data => data[`${prefix}PresenceStatus`] !== 'Hidup' || (data[`${prefix}Name`] && data[`${prefix}Name`]!.length >= 3), {
+    message: "Nama ayah/ibu minimal 3 karakter.", path: [`${prefix}Name`]
+})
+.refine(data => data[`${prefix}PresenceStatus`] !== 'Hidup' || (data[`${prefix}Nik`] && /^\d{16}$/.test(data[`${prefix}Nik`]!)), {
+    message: "NIK ayah/ibu harus 16 digit angka.", path: [`${prefix}Nik`]
+})
+.refine(data => data[`${prefix}PresenceStatus`] !== 'Hidup' || !!data[`${prefix}Citizenship`], {
+    message: "Kewarganegaraan wajib diisi.", path: [`${prefix}Citizenship`]
+})
+.refine(data => !(data[`${prefix}PresenceStatus`] === 'Hidup' && data[`${prefix}Citizenship`] === 'WNA') || (data[`${prefix}PassportNumber`] && data[`${prefix}PassportNumber`]!.length >= 3), {
+    message: "Nomor paspor wajib diisi untuk WNA.", path: [`${prefix}PassportNumber`]
+})
+.refine(data => data[`${prefix}PresenceStatus`] !== 'Hidup' || (data[`${prefix}PlaceOfBirth`] && data[`${prefix}PlaceOfBirth`]!.length >= 2), {
+    message: "Tempat lahir minimal 2 karakter.", path: [`${prefix}PlaceOfBirth`]
+})
+.refine(data => data[`${prefix}PresenceStatus`] !== 'Hidup' || !!data[`${prefix}DateOfBirth`], {
+    message: "Tanggal lahir wajib diisi.", path: [`${prefix}DateOfBirth`]
+})
+.refine(data => data[`${prefix}PresenceStatus`] !== 'Hidup' || !!data[`${prefix}Religion`], {
+    message: "Agama wajib diisi.", path: [`${prefix}Religion`]
+})
+.refine(data => data[`${prefix}PresenceStatus`] !== 'Hidup' || !!data[`${prefix}Occupation`], {
+    message: "Pekerjaan wajib diisi.", path: [`${prefix}Occupation`]
+})
+.refine(data => !(data[`${prefix}PresenceStatus`] === 'Hidup' && data[`${prefix}Occupation`] === "Lainnya") || (data[`${prefix}OccupationDescription`] && data[`${prefix}OccupationDescription`]!.length >= 3), {
+    message: "Deskripsi pekerjaan lainnya wajib diisi.", path: [`${prefix}OccupationDescription`]
+})
+.refine(data => data[`${prefix}PresenceStatus`] !== 'Hidup' || (data[`${prefix}Address`] && data[`${prefix}Address`]!.length >= 10), {
+    message: "Alamat minimal 10 karakter.", path: [`${prefix}Address`]
 });
+
 
 // Skema untuk wali
 const guardianSchema = z.object({
@@ -104,14 +100,14 @@ const marriageRegistrationSchema = z.object({
   ...parentSchema('brideMother').shape,
   ...guardianSchema.shape,
 
-}).refine(data => {
-    if (data.groomOccupation === "Lainnya") return !!data.groomOccupationDescription && data.groomOccupationDescription.length > 2;
-    return true;
-}, { message: "Deskripsi pekerjaan lainnya wajib diisi (minimal 3 karakter).", path: ["groomOccupationDescription"],
-}).refine(data => {
-    if (data.brideOccupation === "Lainnya") return !!data.brideOccupationDescription && data.brideOccupationDescription.length > 2;
-    return true;
-}, { message: "Deskripsi pekerjaan lainnya wajib diisi (minimal 3 karakter).", path: ["brideOccupationDescription"],
+})
+.refine(data => data.groomOccupation !== 'Lainnya' || (data.groomOccupationDescription && data.groomOccupationDescription.length >= 3), {
+    message: "Deskripsi pekerjaan lainnya untuk calon suami wajib diisi (minimal 3 karakter).",
+    path: ["groomOccupationDescription"],
+})
+.refine(data => data.brideOccupation !== 'Lainnya' || (data.brideOccupationDescription && data.brideOccupationDescription.length >= 3), {
+    message: "Deskripsi pekerjaan lainnya untuk calon istri wajib diisi (minimal 3 karakter).",
+    path: ["brideOccupationDescription"],
 });
 
 
@@ -217,5 +213,3 @@ export async function submitMarriageRegistrationForm(
     };
   }
 }
-
-    
