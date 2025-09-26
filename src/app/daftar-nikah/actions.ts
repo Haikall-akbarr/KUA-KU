@@ -117,12 +117,24 @@ const marriageRegistrationSchema = z.object({
 
 export type MarriageRegistrationFormData = z.infer<typeof marriageRegistrationSchema>;
 
+export type FormattedMarriageRegistration = {
+    id: string;
+    groomName: string;
+    brideName: string;
+    registrationDate: string;
+    weddingDate: string;
+    status: "Menunggu Verifikasi" | "Disetujui" | "Ditolak" | "Selesai";
+    penghulu?: string;
+    [key: string]: any; // Allow other properties
+};
+
 export type MarriageRegistrationFormState = {
   message: string;
   errors?: z.ZodIssue[];
   success: boolean;
   queueNumber?: string;
   data?: Partial<MarriageRegistrationFormData> & { weddingDate?: string, groomDateOfBirth?: string, brideDateOfBirth?: string, groomFatherDateOfBirth?: string, groomMotherDateOfBirth?: string, brideFatherDateOfBirth?: string, brideMotherDateOfBirth?: string };
+  newRegistration?: FormattedMarriageRegistration;
 };
 
 const toDate = (value: any): Date | undefined => {
@@ -171,8 +183,17 @@ export async function submitMarriageRegistrationForm(
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    console.log("Marriage Registration Submitted:", validatedFields.data);
-
+    const newRegistration: FormattedMarriageRegistration = {
+        id: `reg_${new Date().getTime()}`,
+        groomName: validatedFields.data.groomFullName,
+        brideName: validatedFields.data.brideFullName,
+        registrationDate: new Date().toISOString(),
+        weddingDate: validatedFields.data.weddingDate.toISOString(),
+        status: 'Menunggu Verifikasi',
+        ...validatedFields.data,
+    };
+    
+    // This is for client-side redirection and data display
     const successData: any = { ...validatedFields.data };
     dateFields.forEach(field => {
         if (successData[field] instanceof Date) {
@@ -181,10 +202,11 @@ export async function submitMarriageRegistrationForm(
     });
 
     return {
-      message: "Pendaftaran antrean nikah berhasil! Silakan periksa dan unduh bukti pendaftaran Anda.",
+      message: "Pendaftaran antrean nikah berhasil! Data Anda telah diteruskan ke staf KUA untuk verifikasi.",
       success: true,
       queueNumber: queueNumber,
-      data: successData
+      data: successData,
+      newRegistration: newRegistration, // Pass the new registration data to the client
     };
   } catch (error) {
     console.error("Error processing marriage registration:", error);

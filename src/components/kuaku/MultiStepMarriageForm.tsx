@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { submitMarriageRegistrationForm, type MarriageRegistrationFormState } from "@/app/daftar-nikah/actions";
+import { submitMarriageRegistrationForm, type MarriageRegistrationFormState, type FormattedMarriageRegistration } from "@/app/daftar-nikah/actions";
 import { Loader2, CalendarIcon, User, Users, FileText, CheckCircle, Info, MapPin, Building, Clock, FileUp, FileCheck2, AlertCircle } from "lucide-react";
 import { educationLevels, occupations } from "@/lib/form-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -711,6 +711,7 @@ export function MultiStepMarriageForm() {
     const [activeTabs, setActiveTabs] = useState<{ [key: number]: string }>({ 1: "groom", 2: "bride" });
     const router = useRouter();
     const { toast } = useToast();
+    const formRef = useRef<HTMLFormElement>(null);
     
     const initialState: MarriageRegistrationFormState = { message: "", success: false, errors: [] };
     const [state, formAction] = useActionState(submitMarriageRegistrationForm, initialState);
@@ -790,6 +791,11 @@ export function MultiStepMarriageForm() {
         }
     };
 
+    const handleFormSubmit = handleSubmit(() => {
+        if (formRef.current) {
+             formRef.current.requestSubmit();
+        }
+    });
 
     useEffect(() => {
         if (state.message === "") return;
@@ -804,8 +810,17 @@ export function MultiStepMarriageForm() {
                     message: error.message,
                 });
              });
-        } else if (state.success && state.data && state.queueNumber) {
+        } else if (state.success && state.data && state.queueNumber && state.newRegistration) {
             toast({ title: "Berhasil!", description: state.message, variant: "default" });
+
+            // Store new registration in localStorage to be picked up by admin dashboard
+            try {
+                const existing = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
+                localStorage.setItem('marriageRegistrations', JSON.stringify([...existing, state.newRegistration]));
+            } catch (e) {
+                console.error("Could not save to localStorage", e);
+            }
+
             const params = new URLSearchParams();
             for (const [key, value] of Object.entries(state.data)) {
                 if (value !== null && value !== undefined && typeof value !== 'object') {
@@ -818,16 +833,6 @@ export function MultiStepMarriageForm() {
         }
     }, [state, toast, router, methods, setError, clearErrors]);
     
-    const handleFormSubmit = handleSubmit((data) => {
-        // This is intentionally left blank. 
-        // The form submission is handled by the `formAction` prop on the `<form>` element.
-        // We use `handleSubmit` here only to trigger client-side validation.
-    });
-
-    const handleTabChange = (stepIndex: 1 | 2, newTabValue: string) => {
-        setActiveTabs(prev => ({ ...prev, [stepIndex]: newTabValue }));
-    }
-
     const delta = currentStep - previousStep;
     
     return (
@@ -867,7 +872,7 @@ export function MultiStepMarriageForm() {
                  <Separator className="my-8"/>
                  
                  <FormProvider {...methods}>
-                    <form action={formAction}>
+                    <form ref={formRef} action={formAction}>
                          <AnimatePresence mode="wait">
                             <motion.div
                                 key={`${currentStep}-${activeTabs[1]}-${activeTabs[2]}`}
@@ -877,8 +882,8 @@ export function MultiStepMarriageForm() {
                                 transition={{ duration: 0.3 }}
                             >
                                 {currentStep === 0 && <Step1 />}
-                                {currentStep === 1 && <Step2 activeTab={activeTabs[1]} onTabChange={(value) => handleTabChange(1, value)} />}
-                                {currentStep === 2 && <Step3 activeTab={activeTabs[2]} onTabChange={(value) => handleTabChange(2, value)} />}
+                                {currentStep === 1 && <Step2 activeTab={activeTabs[1]} onTabChange={(value) => setActiveTabs(p => ({...p, 1: value}))} />}
+                                {currentStep === 2 && <Step3 activeTab={activeTabs[2]} onTabChange={(value) => setActiveTabs(p => ({...p, 2: value}))} />}
                                 {currentStep === 3 && <Step4 />}
                                 {currentStep === 4 && <Step5 />}
                                 {currentStep === 5 && <Step6 />}
@@ -890,12 +895,9 @@ export function MultiStepMarriageForm() {
                                     Sebelumnya
                                 </Button>
                                 {currentStep === steps.length - 1 ? (
-                                    <SubmitButton onClick={(e) => {
-                                        handleFormSubmit((e as unknown) as React.FormEvent<HTMLFormElement>);
-                                        // If there are errors, the form won't submit, so we prevent default.
-                                        if (Object.keys(errors).length > 0) {
-                                            e.preventDefault();
-                                        }
+                                     <SubmitButton onClick={(e) => {
+                                        e.preventDefault();
+                                        handleFormSubmit();
                                     }} />
                                 ) : (
                                     <Button type="button" onClick={next} disabled={isPending}>
