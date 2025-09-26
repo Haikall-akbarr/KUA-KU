@@ -16,7 +16,7 @@
   "pages": {
     "dashboard": {
       "routeName": "/admin",
-      "description": "Data untuk kartu statistik di halaman Dashboard utama. Dapat diakses oleh semua peran admin.",
+      "description": "Data untuk kartu statistik di halaman Dashboard utama. Dapat diakses oleh semua peran admin (Administrator, Kepala KUA, Staff KUA, Penghulu).",
       "endpoint": "GET /api/admin/dashboard-stats",
       "responsePayload": {
         "type": "object",
@@ -60,16 +60,33 @@
       "actions": {
         "addUser": {
           "endpoint": "POST /api/admin/users",
-          "description": "Membuat pengguna baru (Staff, Penghulu, Kepala KUA).",
+          "description": "Membuat pengguna baru (Staff, Penghulu, Kepala KUA). Hanya bisa dilakukan oleh Administrator atau Kepala KUA.",
           "requestPayload": {
             "type": "object",
             "properties": {
               "name": { "type": "string", "required": true },
               "nip": { "type": "string", "required": true, "description": "NIP atau ID unik pegawai." },
               "email": { "type": "string", "format": "email", "required": true },
-              "role": { "type": "string", "enum": ["Staff KUA", "Penghulu", "Kepala KUA", "Administrator"], "required": true }
+              "role": { "type": "string", "enum": ["Staff KUA", "Penghulu", "Kepala KUA"], "required": true }
             }
           }
+        },
+        "editUser": {
+            "endpoint": "PUT /api/admin/users/{userId}",
+            "description": "Mengubah data pengguna, termasuk peran.",
+            "requestPayload": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "nip": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "role": { "type": "string", "enum": ["Staff KUA", "Penghulu", "Kepala KUA"] }
+                }
+            }
+        },
+        "deleteUser": {
+            "endpoint": "DELETE /api/admin/users/{userId}",
+            "description": "Menghapus akun pengguna."
         }
       }
     },
@@ -91,6 +108,28 @@
             "penghulu": { "type": "string", "nullable": true, "description": "Nama penghulu yang ditugaskan (jika ada)." }
           }
         }
+      },
+      "actions": {
+          "updateStatus": {
+              "endpoint": "PATCH /api/admin/registrations/{registrationId}/status",
+              "description": "Mengubah status pendaftaran. Bisa dilakukan Staff KUA (verifikasi awal), Kepala KUA (approval).",
+              "requestPayload": {
+                  "type": "object",
+                  "properties": {
+                      "status": { "type": "string", "enum": ["Disetujui", "Ditolak"] }
+                  }
+              }
+          },
+          "assignPenghulu": {
+              "endpoint": "PATCH /api/admin/registrations/{registrationId}/assign",
+              "description": "Menugaskan penghulu ke sebuah pendaftaran. Hanya bisa dilakukan oleh Kepala KUA.",
+              "requestPayload": {
+                  "type": "object",
+                  "properties": {
+                      "penghuluId": { "type": "string", "description": "ID unik dari penghulu yang ditugaskan."}
+                  }
+              }
+          }
       }
     },
     "schedules": {
@@ -126,6 +165,19 @@
             "participants": { "type": "number", "description": "Jumlah peserta yang sudah terdaftar." },
             "maxCapacity": { "type": "number", "description": "Kapasitas maksimal peserta per sesi." },
             "status": { "type": "string", "enum": ["Akan Datang", "Selesai", "Dibatalkan"], "description": "Status sesi bimbingan." }
+          }
+        }
+      },
+      "actions": {
+        "createSession": {
+          "endpoint": "POST /api/admin/guidance-sessions",
+          "description": "Membuat sesi bimbingan baru.",
+          "requestPayload": {
+            "type": "object",
+            "properties": {
+              "sessionDate": { "type": "string", "format": "date-time", "required": true },
+              "maxCapacity": { "type": "number", "required": true }
+            }
           }
         }
       }
