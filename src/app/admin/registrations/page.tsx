@@ -1,13 +1,14 @@
 
 'use client';
 
-import type { Metadata } from 'next';
+// This is a Client Component, so we can't use Metadata directly.
+// We'll set the title in the parent layout or a Server Component if needed.
+// import type { Metadata } from 'next';
 import { RegistrationsTable } from '@/components/admin/RegistrationsTable';
 import { marriageRegistrations as initialData, type MarriageRegistration } from '@/lib/admin-data';
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
-// Metadata for a client component should be defined statically if needed, or moved to a parent server component.
 // export const metadata: Metadata = {
 //   title: 'Manajemen Pendaftaran Nikah - KUA Banjarmasin Utara',
 //   description: 'Verifikasi dan kelola pendaftaran nikah yang masuk.',
@@ -21,18 +22,23 @@ export default function RegistrationsPage() {
     // Simulate fetching data, including from localStorage
     try {
       const storedData = localStorage.getItem('marriageRegistrations');
-      const localRegistrations = storedData ? JSON.parse(storedData) : [];
+      const localRegistrations: MarriageRegistration[] = storedData ? JSON.parse(storedData) : [];
       
       // Combine initial data with local storage data, avoiding duplicates
-      const combinedData = [...initialData];
-      const existingIds = new Set(combinedData.map(item => item.id));
+      const combinedDataMap = new Map<string, MarriageRegistration>();
 
+      // Add initial data to the map
+      for (const item of initialData) {
+        combinedDataMap.set(item.id, item);
+      }
+
+      // Add/update with local data. If an ID exists, the local one will overwrite it.
       for (const localItem of localRegistrations) {
-        if (!existingIds.has(localItem.id)) {
-          combinedData.push(localItem);
-        }
+        combinedDataMap.set(localItem.id, localItem);
       }
       
+      const combinedData = Array.from(combinedDataMap.values());
+
       // Sort by registration date, newest first
       combinedData.sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime());
 
@@ -65,5 +71,3 @@ export default function RegistrationsPage() {
     </div>
   );
 }
-
-    

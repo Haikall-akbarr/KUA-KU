@@ -18,7 +18,7 @@ export async function generateStaticParams() {
     slug: service.slug,
   }));
 }
-
+//disni akanberika edkit defbih
 function getServiceFromSlug(slug: string) {
   return services.find((service) => service.slug === slug);
 }
@@ -27,7 +27,7 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
   const service = getServiceFromSlug(params.slug);
 
   if (!service || !service.details) {
-    notFound();
+    notFound();  
   }
 
   const { title, details, iconName } = service;

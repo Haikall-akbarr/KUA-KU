@@ -41,6 +41,9 @@ export async function submitMarriageRegistrationForm(
 
   const rawFormData = Object.fromEntries(formData.entries());
   
+  // Since we removed validation, we directly process the data.
+  // In a real scenario, you'd have your Zod schema here.
+  
   try {
     const datePart = format(new Date(), 'yyyyMMdd');
     const randomPart = Math.floor(100 + Math.random() * 900);
@@ -50,6 +53,7 @@ export async function submitMarriageRegistrationForm(
 
     const weddingDate = toDate(rawFormData.weddingDate);
 
+    // This is the data that will be saved to local storage for the admin dashboard
     const newRegistration: FormattedMarriageRegistration = {
         id: `reg_${new Date().getTime()}`,
         groomName: rawFormData.groomFullName as string,
@@ -60,7 +64,7 @@ export async function submitMarriageRegistrationForm(
         ...rawFormData,
     };
     
-    // This is for client-side redirection and data display
+    // This is the data for client-side redirection to the success page
     const successData: any = { ...rawFormData };
     const dateFields = ['weddingDate', 'groomDateOfBirth', 'brideDateOfBirth', 'groomFatherDateOfBirth', 'groomMotherDateOfBirth', 'brideFatherDateOfBirth', 'brideMotherDateOfBirth'];
     dateFields.forEach(field => {
@@ -74,8 +78,8 @@ export async function submitMarriageRegistrationForm(
       message: "Pendaftaran antrean nikah berhasil! Data Anda telah diteruskan ke staf KUA untuk verifikasi.",
       success: true,
       queueNumber: queueNumber,
-      data: successData,
-      newRegistration: newRegistration, // Pass the new registration data to the client
+      data: successData, // Pass all raw form data
+      newRegistration: newRegistration, // Pass the new registration data to be saved in localStorage
     };
   } catch (error) {
     console.error("Error processing marriage registration:", error);
