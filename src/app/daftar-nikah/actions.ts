@@ -61,11 +61,12 @@ export async function submitMarriageRegistrationForm(
         registrationDate: new Date().toISOString(),
         weddingDate: weddingDate ? weddingDate.toISOString() : new Date().toISOString(),
         status: 'Menunggu Verifikasi',
-        ...rawFormData,
+        ...rawFormData, // Pass all raw form data to be stored
     };
     
     // This is the data for client-side redirection to the success page
     const successData: any = { ...rawFormData };
+    // We need to format dates back to string for URL params if they are dates
     const dateFields = ['weddingDate', 'groomDateOfBirth', 'brideDateOfBirth', 'groomFatherDateOfBirth', 'groomMotherDateOfBirth', 'brideFatherDateOfBirth', 'brideMotherDateOfBirth'];
     dateFields.forEach(field => {
         const dateValue = toDate(successData[field]);

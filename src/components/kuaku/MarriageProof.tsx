@@ -110,13 +110,13 @@ export function MarriageProof() {
                       <ul className="list-disc list-inside mt-1 space-y-1">
                           <li>Harap simpan dan/atau cetak tanda bukti ini.</li>
                           <li>Ini adalah bukti untuk mengambil nomor antrean di kantor kami, bukan bukti pernikahan.</li>
-                          <li>Langkah selanjutnya adalah datang ke kantor KUA dengan membawa semua berkas persyaratan fisik (asli dan fotokopi) sesuai dengan tanggal yang telah dijadwalkan oleh petugas kami (akan dihubungi).</li>
+                          <li>Langkah selanjutnya adalah datang ke kantor KUA dengan membawa semua berkas persyaratan fisik (asli dan fotokopi) sesuai dengan tanggal yang akan diinformasikan oleh petugas kami.</li>
                       </ul>
                   </div>
               </CardFooter>
           </Card>
         </div>
-        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4 print:hidden">
             <Button onClick={handleDownloadPdf} className="w-full sm:w-auto" disabled={isDownloading || isPrinting}>
                 {isDownloading ? (
                     <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mengunduh... </>
