@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from 'react';
@@ -32,23 +31,22 @@ export default function HomePage() {
       router.push('/admin');
     }
     // Jika user adalah 'Calon Pengantin' atau peran non-admin lainnya, biarkan di halaman utama.
-
   }, [user, userRole, loading, router]);
 
-  // Tampilkan loading spinner selama proses autentikasi atau sebelum redirect
+  // Tampilkan layar pemuatan saat memeriksa status otentikasi atau saat mengalihkan
   if (loading || !user || (userRole && ADMIN_ROLES.includes(userRole))) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-12 w-12" />
       </div>
     );
   }
-  
-  // Jika user adalah non-admin (misal: Calon Pengantin), tampilkan halaman utama
+
+  // Render konten halaman utama untuk pengguna non-admin
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
       <AppHeader />
-      <main className="flex-grow">
+      <main>
         <HeroSection />
         <ServiceSection />
         <ContactInfo />
@@ -56,6 +54,6 @@ export default function HomePage() {
         <ContactForm />
       </main>
       <AppFooter />
-    </div>
+    </>
   );
 }

@@ -1,68 +1,111 @@
+// src/context/AuthContext.tsx
 
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { Loader2 } from 'lucide-react';
-import { users } from '@/lib/admin-data'; // Dummy data for roles
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  userRole: string | null; // Add userRole to context
+// --- Ini adalah SATU-SATUNYA sumber kebenaran untuk peran admin ---
+export const ADMIN_ROLES = [
+  'staff',
+  'kepala_kua', 
+  'administrator',
+  'penghulu'
+];
+// ------------------------------------
+
+// Definisikan tipe untuk User (berdasarkan respons API Anda)
+interface ApiUser {
+  user_id: string;
+  nama: string;
+  email: string;
+  role: string;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  userRole: null,
-});
+// Definisikan tipe untuk Context
+interface AuthContextType {
+  user: ApiUser | null;
+  userRole: string | null;
+  token: string | null;
+  loading: boolean;
+  login: (user: ApiUser, token: string) => void;
+  logout: () => void;
+}
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
+// Buat Context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  useEffect(() => {
-    if (auth) {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setUser(user);
-        if (user) {
-          // In a real app, you would get the role from Firestore/DB or custom claims
-          // For now, we'll find the role from our dummy data
-          const currentUserData = users.find(u => u.email === user.email);
-          setUserRole(currentUserData ? currentUserData.role : 'Calon Pengantin');
-        } else {
-          setUserRole(null);
-        }
-        setLoading(false);
-      });
-      return () => unsubscribe();
-    } else {
-      setLoading(false);
-    }
-  }, []);
+// Buat Provider
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); // Mulai dengan loading
+  const router = useRouter();
 
-  const value = { user, loading, userRole };
+  // Efek ini berjalan saat aplikasi dimuat:
+  // Memeriksa localStorage untuk menjaga user tetap login
+  useEffect(() => {
+    try {
+      // --- PERBAIKAN: Karakter '_' yang nyasar telah dihapus ---
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('token');
+      
+      if (storedUser && storedToken) {
+        const parsedUser: ApiUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setToken(storedToken);
+        setUserRole(parsedUser.role);
+      }
+    } catch (error) {
+      console.error("Gagal memuat auth dari localStorage", error);
+      // Hapus data korup jika ada
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false); // Selesai loading
+    }
+  }, []);
 
-  return (
-    <AuthContext.Provider value={value}>
-      {loading ? (
-        <div className="flex min-h-screen w-full items-center justify-center bg-background">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      ) : (
-        children
-      )}
-    </AuthContext.Provider>
-  );
-};
+  // Fungsi untuk dipanggil dari LoginForm
+  const login = (apiUser: ApiUser, apiToken: string) => {
+    setUser(apiUser);
+    setToken(apiToken);
+    setUserRole(apiUser.role);
+    
+    // Simpan ke localStorage
+    localStorage.setItem('user', JSON.stringify(apiUser));
+    localStorage.setItem('token', apiToken);
+  };
 
+  // Fungsi untuk logout
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    setUserRole(null);
+    
+    // Hapus dari localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    
+    // Arahkan ke login
+    router.push('/login');
+  };
+
+  const value = { user, userRole, token, loading, login, logout };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+// Buat Hook 'useAuth'
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth harus digunakan di dalam AuthProvider');
+  }
+  return context;
 };

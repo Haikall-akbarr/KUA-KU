@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 export const metadata: Metadata = {
   title: 'KUA Banjarmasin Utara - Layanan Informasi Terpadu',
   description: 'Selamat datang di KUA Banjarmasin Utara. Temukan informasi layanan, kontak, dan lainnya.',
-  icons: null,
 };
 
 export default function RootLayout({
