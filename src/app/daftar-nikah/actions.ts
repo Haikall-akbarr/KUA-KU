@@ -43,7 +43,7 @@ export async function submitMarriageRegistrationForm(
       groomPlaceOfBirth: rawFormData.groomPlaceOfBirth,
       groomDateOfBirth: formatDateForAPI(rawFormData.groomDateOfBirth),
       groomStatus: rawFormData.groomStatus,
-      groomReligion: rawFormData.groomReligion,
+      groomReligion: 'Islam',
       groomEducation: rawFormData.groomEducation,
       groomOccupation: rawFormData.groomOccupation,
       groomOccupationDescription: rawFormData.groomOccupationDescription || "",
@@ -59,7 +59,7 @@ export async function submitMarriageRegistrationForm(
       bridePlaceOfBirth: rawFormData.bridePlaceOfBirth,
       brideDateOfBirth: formatDateForAPI(rawFormData.brideDateOfBirth),
       brideStatus: rawFormData.brideStatus,
-      brideReligion: rawFormData.brideReligion,
+      brideReligion: 'Islam',
       brideEducation: rawFormData.brideEducation,
       brideOccupation: rawFormData.brideOccupation,
       brideOccupationDescription: rawFormData.brideOccupationDescription || "",
@@ -71,13 +71,13 @@ export async function submitMarriageRegistrationForm(
       groomFather: {
         groomFatherPresenceStatus: rawFormData.groomFatherPresenceStatus,
         groomFatherName: rawFormData.groomFatherName,
-        groomFatherNik: rawFormData.groomFatherNik,
-        groomFatherCitizenship: rawFormData.groomFatherCitizenship,
+        groomFatherNik: rawFormData.groomFatherNik || "",
+        groomFatherCitizenship: rawFormData.groomFatherCitizenship || "WNI",
         groomFatherCountryOfOrigin: rawFormData.groomFatherCountryOfOrigin || "Indonesia",
         groomFatherPassportNumber: rawFormData.groomFatherPassportNumber || "",
         groomFatherPlaceOfBirth: rawFormData.groomFatherPlaceOfBirth,
         groomFatherDateOfBirth: formatDateForAPI(rawFormData.groomFatherDateOfBirth),
-        groomFatherReligion: rawFormData.groomFatherReligion,
+        groomFatherReligion: 'Islam',
         groomFatherOccupation: rawFormData.groomFatherOccupation,
         groomFatherOccupationDescription: rawFormData.groomFatherOccupationDescription || "",
         groomFatherAddress: rawFormData.groomFatherAddress
@@ -85,13 +85,13 @@ export async function submitMarriageRegistrationForm(
       groomMother: {
         groomMotherPresenceStatus: rawFormData.groomMotherPresenceStatus,
         groomMotherName: rawFormData.groomMotherName,
-        groomMotherNik: rawFormData.groomMotherNik,
-        groomMotherCitizenship: rawFormData.groomMotherCitizenship,
+        groomMotherNik: rawFormData.groomMotherNik || "",
+        groomMotherCitizenship: rawFormData.groomMotherCitizenship || "WNI",
         groomMotherCountryOfOrigin: rawFormData.groomMotherCountryOfOrigin || "Indonesia",
         groomMotherPassportNumber: rawFormData.groomMotherPassportNumber || "",
         groomMotherPlaceOfBirth: rawFormData.groomMotherPlaceOfBirth,
         groomMotherDateOfBirth: formatDateForAPI(rawFormData.groomMotherDateOfBirth),
-        groomMotherReligion: rawFormData.groomMotherReligion,
+        groomMotherReligion: 'Islam',
         groomMotherOccupation: rawFormData.groomMotherOccupation,
         groomMotherOccupationDescription: rawFormData.groomMotherOccupationDescription || "",
         groomMotherAddress: rawFormData.groomMotherAddress
@@ -101,13 +101,13 @@ export async function submitMarriageRegistrationForm(
       brideFather: {
         brideFatherPresenceStatus: rawFormData.brideFatherPresenceStatus,
         brideFatherName: rawFormData.brideFatherName,
-        brideFatherNik: rawFormData.brideFatherNik,
-        brideFatherCitizenship: rawFormData.brideFatherCitizenship,
+        brideFatherNik: rawFormData.brideFatherNik || "",
+        brideFatherCitizenship: rawFormData.brideFatherCitizenship || "WNI",
         brideFatherCountryOfOrigin: rawFormData.brideFatherCountryOfOrigin || "Indonesia",
         brideFatherPassportNumber: rawFormData.brideFatherPassportNumber || "",
         brideFatherPlaceOfBirth: rawFormData.brideFatherPlaceOfBirth,
         brideFatherDateOfBirth: formatDateForAPI(rawFormData.brideFatherDateOfBirth),
-        brideFatherReligion: rawFormData.brideFatherReligion,
+        brideFatherReligion: 'Islam',
         brideFatherOccupation: rawFormData.brideFatherOccupation,
         brideFatherOccupationDescription: rawFormData.brideFatherOccupationDescription || "",
         brideFatherAddress: rawFormData.brideFatherAddress
@@ -115,13 +115,13 @@ export async function submitMarriageRegistrationForm(
       brideMother: {
         brideMotherPresenceStatus: rawFormData.brideMotherPresenceStatus,
         brideMotherName: rawFormData.brideMotherName,
-        brideMotherNik: rawFormData.brideMotherNik,
-        brideMotherCitizenship: rawFormData.brideMotherCitizenship,
+        brideMotherNik: rawFormData.brideMotherNik || "",
+        brideMotherCitizenship: rawFormData.brideMotherCitizenship || "WNI",
         brideMotherCountryOfOrigin: rawFormData.brideMotherCountryOfOrigin || "Indonesia",
         brideMotherPassportNumber: rawFormData.brideMotherPassportNumber || "",
         brideMotherPlaceOfBirth: rawFormData.brideMotherPlaceOfBirth,
         brideMotherDateOfBirth: formatDateForAPI(rawFormData.brideMotherDateOfBirth),
-        brideMotherReligion: rawFormData.brideMotherReligion,
+        brideMotherReligion: 'Islam',
         brideMotherOccupation: rawFormData.brideMotherOccupation,
         brideMotherOccupationDescription: rawFormData.brideMotherOccupationDescription || "",
         brideMotherAddress: rawFormData.brideMotherAddress
@@ -132,27 +132,45 @@ export async function submitMarriageRegistrationForm(
       guardianNik: rawFormData.guardianNik,
       guardianRelationship: rawFormData.guardianRelationship,
       guardianStatus: rawFormData.guardianStatus,
-      guardianReligion: rawFormData.guardianReligion,
+      guardianReligion: 'Islam',
       guardianAddress: rawFormData.guardianAddress,
       guardianPhoneNumber: rawFormData.guardianPhoneNumber
     }
   };
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
+
   try {
-    const response = await fetch('https://kua-api.vercel.app/simnikah/pendaftaran/form-baru', {
+    const response = await fetch('https://simnikah-api-production.up.railway.app/simnikah/pendaftaran/form-baru', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(apiRequestData),
+      signal: controller.signal, 
     });
+
+    clearTimeout(timeoutId); 
+
+    // Check if the response is not JSON
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error(">>> NON-JSON RESPONSE:", text);
+        return {
+            success: false,
+            message: "Respons server tidak valid.",
+            errors: `Server memberikan respons yang tidak terduga. Status: ${response.status}. Isi: ${text.substring(0, 100)}...`,
+        };
+    }
 
     const result = await response.json();
 
     if (!response.ok) {
       return {
         success: false,
-        message: result.error || "Terjadi kesalahan validasi",
+        message: result.error || "Terjadi kesalahan validasi dari server.",
         errors: typeof result.details === 'string' ? result.details : JSON.stringify(result.details),
       };
     }
@@ -173,11 +191,20 @@ export async function submitMarriageRegistrationForm(
     };
 
   } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+        return {
+            success: false,
+            message: "Gagal terhubung ke server.",
+            errors: "Waktu tunggu server habis (timeout). Ini bisa berarti server sedang sibuk atau tidak dapat dijangkau. Silakan coba lagi nanti.",
+        };
+    }
+    
     console.error(">>> DETAILED FETCH ERROR:", error);
     return {
       success: false,
       message: "Terjadi masalah koneksi atau kesalahan pada server.",
-      errors: error instanceof Error ? error.message : "Tidak dapat terhubung ke server. Silakan coba beberapa saat lagi.",
+      errors: error instanceof Error ? error.message : "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.",
     };
-  }
+  } 
 }
