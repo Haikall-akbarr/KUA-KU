@@ -269,9 +269,56 @@ export async function submitMarriageRegistrationForm(
 
     if (!response.ok || result.error || !result.success) {
       console.error(">>> API ERROR DETECTED:", result.error || result.message || "Unknown error");
+
+      const rawMessage = result.error || result.message || "Terjadi kesalahan dari server.";
+      const lowerMsg = String(rawMessage).toLowerCase();
+
+      // Detect specific case where the API says a profile for calon suami/istri already exists
+      if (
+        lowerMsg.includes('profile calon suami') ||
+        lowerMsg.includes('calon suami sudah terdaftar') ||
+        lowerMsg.includes('profile calon istri') ||
+        lowerMsg.includes('calon istri sudah terdaftar')
+      ) {
+        // Try to fetch the existing profile so the client can pre-fill or instruct the user
+        try {
+          const profileResp = await fetch('https://simnikah-api-production.up.railway.app/profile', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            signal: controller.signal,
+          });
+
+          let profileData = null;
+          if (profileResp.ok) {
+            const profileJson = await profileResp.json();
+            // API might return { user: {...} } or the user object directly
+            profileData = profileJson.user || profileJson;
+          } else {
+            console.warn('Could not fetch profile, status:', profileResp.status);
+          }
+
+          return {
+            success: false,
+            message: rawMessage + ' Silakan perbarui profil Anda di halaman Profil sebelum melakukan pendaftaran atau gunakan data yang sudah ada.',
+            data: { existing_profile: profileData },
+            errors: typeof result.details === 'string' ? result.details : JSON.stringify(result.details || {}),
+          };
+        } catch (e) {
+          console.error('Error fetching existing profile:', e);
+          return {
+            success: false,
+            message: rawMessage + ' Silakan perbarui profil Anda di halaman Profil sebelum melakukan pendaftaran.',
+            errors: typeof result.details === 'string' ? result.details : JSON.stringify(result.details || {}),
+          };
+        }
+      }
+
       return {
         success: false,
-        message: result.error || result.message || "Terjadi kesalahan dari server.",
+        message: rawMessage,
         errors: typeof result.details === 'string' ? result.details : JSON.stringify(result.details || {}),
       };
     }

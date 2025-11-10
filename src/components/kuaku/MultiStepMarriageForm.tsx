@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO, differenceInYears, getDay, addDays, addMonths } from "date-fns";
 import { id as IndonesianLocale } from 'date-fns/locale';
 import { useRouter } from "next/navigation";
+import Link from 'next/link';
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -911,6 +912,33 @@ export function MultiStepMarriageForm() {
              toast({ title: "Pendaftaran Gagal", description: state.message, variant: "destructive" });
         }
     }, [state, toast, router, methods]);
+
+    // Prefill handler: fill groom fields from existing profile
+    const handleUseExistingProfile = (profile: any) => {
+        if (!profile) return;
+
+        try {
+            const currentValues = methods.getValues();
+
+            const newValues = {
+                ...currentValues,
+                groomFullName: profile.nama_lengkap || profile.nama || profile.fullName || currentValues.groomFullName || '',
+                groomNik: profile.nik || profile.NIK || currentValues.groomNik || '',
+                groomPhoneNumber: profile.no_hp || profile.phone || profile.telepon || currentValues.groomPhoneNumber || '',
+                groomEmail: profile.email || currentValues.groomEmail || '',
+                groomAddress: profile.alamat || profile.address || currentValues.groomAddress || ''
+            };
+
+            methods.reset(newValues);
+            setCurrentStep(1); // Move to Calon Suami step
+            setActiveTabs(p => ({ ...p, 1: 'groom' }));
+
+            toast({ title: 'Form terisi dari Profil', description: 'Data calon suami telah diisi dari profil Anda.' });
+        } catch (e) {
+            console.error('Gagal pre-fill dari profil:', e);
+            toast({ title: 'Gagal', description: 'Tidak dapat mengisi form dari profil.', variant: 'destructive' });
+        }
+    }
     
     const delta = currentStep - previousStep;
     
@@ -944,6 +972,15 @@ export function MultiStepMarriageForm() {
                         <AlertTitle>Pendaftaran Gagal</AlertTitle>
                         <AlertDescription>
                            {state.message}
+
+                           {state.data?.existing_profile && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                <Link href="/profile">
+                                    <Button variant="outline">Buka Profil</Button>
+                                </Link>
+                                <Button onClick={() => handleUseExistingProfile(state.data.existing_profile)}>Isi dari Profil</Button>
+                            </div>
+                           )}
                         </AlertDescription>
                     </Alert>
                  )}
