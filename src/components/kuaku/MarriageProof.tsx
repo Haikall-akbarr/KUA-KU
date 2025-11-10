@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useRef, useState } from 'react';
@@ -12,126 +11,133 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 interface DetailItemProps {
-  label: string;
-  value: string | undefined | null;
+  label: string;
+  value: string | undefined | null;
 }
 
 const DetailItem: React.FC<DetailItemProps> = ({ label, value }) => (
-  <div className="flex flex-col sm:flex-row py-2 border-b last:border-b-0">
-    <dt className="w-full sm:w-1/3 font-medium text-muted-foreground">{label}</dt>
-    <dd className="w-full sm:w-2/3 mt-1 sm:mt-0 font-semibold text-foreground">{value || '-'}</dd>
-  </div>
+  <div className="flex flex-col sm:flex-row py-2 border-b last:border-b-0">
+    <dt className="w-full sm:w-1/3 font-medium text-muted-foreground">{label}</dt>
+    <dd className="w-full sm:w-2/3 mt-1 sm:mt-0 font-semibold text-foreground">{value || '-'}</dd>
+  </div>
 );
 
-export function MarriageProof() {
-  const searchParams = useSearchParams();
-  const proofRef = useRef<HTMLDivElement>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
+// Anda bisa letakkan komponen ini di src/app/daftar-nikah/sukses/page.tsx
+// atau di src/components/MarriageProof.tsx lalu impor ke page.tsx
+export default function MarriageProofPage() { // Ganti nama komponen agar jelas ini adalah halaman
+  const searchParams = useSearchParams();
+  const proofRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
-  const registrationData = {
-    queueNumber: searchParams.get('queueNumber'),
-    groomFullName: searchParams.get('groomFullName'),
-    brideFullName: searchParams.get('brideFullName'),
-    weddingDate: searchParams.get('weddingDate'),
-    weddingTime: searchParams.get('weddingTime'),
-    weddingLocation: searchParams.get('weddingLocation'),
-  };
+  // ✅ DISESUAIKAN DENGAN NAMA DARI SERVER ACTION
+  const registrationData = {
+    nomorPendaftaran: searchParams.get('nomor_pendaftaran'),
+    namaSuami: searchParams.get('nama_suami'),
+    namaIstri: searchParams.get('nama_istri'),
+    tanggalNikah: searchParams.get('tanggal_nikah'),
+    // Anda mungkin perlu menambahkan ini juga dari Server Action:
+    waktuNikah: searchParams.get('weddingTime'), // Pastikan 'weddingTime' ada di 'successDataForUrl'
+    lokasiNikah: searchParams.get('weddingLocation'), // Pastikan 'weddingLocation' ada di 'successDataForUrl'
+  };
 
-  const formattedWeddingDate = registrationData.weddingDate
-    ? format(parseISO(registrationData.weddingDate), 'EEEE, dd MMMM yyyy', { locale: IndonesianLocale })
-    : '-';
-    
-  const handleDownloadPdf = async () => {
-    const element = proofRef.current;
-    if (!element) return;
-    
-    setIsDownloading(true);
-    try {
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: true,
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight,
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-        });
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`bukti-antrean-nikah-${registrationData.queueNumber}.pdf`);
-    } catch (error) {
-        console.error("Error generating PDF:", error);
-    } finally {
-        setIsDownloading(false);
-    }
-  };
+  const formattedWeddingDate = registrationData.tanggalNikah
+    ? format(parseISO(registrationData.tanggalNikah), 'EEEE, dd MMMM yyyy', { locale: IndonesianLocale })
+    : '-';
+    
+  const handleDownloadPdf = async () => {
+    const element = proofRef.current;
+    if (!element) return;
+    
+    setIsDownloading(true);
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            logging: true,
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight,
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        // ✅ Nama file download disesuaikan
+        pdf.save(`bukti-pendaftaran-nikah-${registrationData.nomorPendaftaran}.pdf`);
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+    } finally {
+        setIsDownloading(false);
+    }
+  };
 
-  const handlePrint = () => {
-    setIsPrinting(true);
-    window.print();
-    // Use a timeout to reset printing state, as there's no direct callback for when the print dialog closes.
-    setTimeout(() => setIsPrinting(false), 3000);
-  };
+  const handlePrint = () => {
+    setIsPrinting(true);
+    window.print();
+    // Use a timeout to reset printing state, as there's no direct callback for when the print dialog closes.
+    setTimeout(() => setIsPrinting(false), 3000);
+  };
 
-  return (
-    <div className="max-w-3xl mx-auto">
-        <div ref={proofRef} className="bg-white p-2">
-          <Card className="shadow-lg border-2 border-primary">
-              <CardHeader className="text-center border-b-2 border-primary pb-4">
-                  <h1 className="font-headline text-2xl font-bold text-primary">BUKTI PENDAFTARAN NIKAH</h1>
-                  <p className="text-muted-foreground">Layanan Online KUA Banjarmasin Utara</p>
-              </CardHeader>
-              <CardContent className="pt-6">
-                  <div className="space-y-4">
-                      <div className="text-center bg-accent/20 text-accent-foreground p-4 rounded-lg border border-accent">
-                          <p className="font-medium">Nomor Antrean Pendaftaran Anda:</p>
-                          <strong className="text-3xl font-bold tracking-wider text-primary">{registrationData.queueNumber}</strong>
-                      </div>
-                      <dl className="space-y-1 text-sm mt-6">
-                          <DetailItem label="Calon Suami" value={registrationData.groomFullName} />
-                          <DetailItem label="Calon Istri" value={registrationData.brideFullName} />
-                          <DetailItem label="Tanggal Akad" value={formattedWeddingDate} />
-                          <DetailItem label="Waktu Akad" value={registrationData.weddingTime ? `${registrationData.weddingTime} WITA` : '-'} />
-                          <DetailItem label="KUA Pendaftaran" value="KUA Banjarmasin Utara" />
-                          <DetailItem label="Lokasi Akad Nikah" value={registrationData.weddingLocation} />
-                      </dl>
-                  </div>
-              </CardContent>
-              <CardFooter className="mt-6 border-t-2 border-primary pt-6">
-                  <div className="w-full text-xs text-muted-foreground">
-                      <p className="font-bold text-destructive">Penting:</p>
-                      <ul className="list-disc list-inside mt-1 space-y-1">
-                          <li>Harap simpan dan/atau cetak tanda bukti ini.</li>
-                          <li>Ini adalah bukti untuk mengambil nomor antrean di kantor kami, bukan bukti pernikahan.</li>
-                          <li>Langkah selanjutnya adalah datang ke kantor KUA dengan membawa semua berkas persyaratan fisik (asli dan fotokopi) sesuai dengan tanggal yang akan diinformasikan oleh petugas kami.</li>
-                      </ul>
-                  </div>
-              </CardFooter>
-          </Card>
-        </div>
-        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4 print:hidden">
-            <Button onClick={handleDownloadPdf} className="w-full sm:w-auto" disabled={isDownloading || isPrinting}>
-                {isDownloading ? (
-                    <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mengunduh... </>
-                ) : (
-                    <> <Download className="mr-2 h-4 w-4" /> Unduh sebagai PDF </>
-                )}
-            </Button>
-            <Button variant="outline" onClick={handlePrint} className="w-full sm:w-auto" disabled={isPrinting || isDownloading}>
-                 {isPrinting ? (
-                    <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mempersiapkan... </>
-                ) : (
-                    <> <Printer className="mr-2 h-4 w-4" /> Cetak Halaman </>
-                )}
-            </Button>
-        </div>
-    </div>
-  );
+  return (
+    <div className="max-w-3xl mx-auto my-8 px-4"> {/* Tambah margin dan padding */}
+        <div ref={proofRef} className="bg-white p-2">
+          <Card className="shadow-lg border-2 border-primary">
+              <CardHeader className="text-center border-b-2 border-primary pb-4">
+                  <h1 className="font-headline text-2xl font-bold text-primary">BUKTI PENDAFTARAN NIKAH</h1>
+                  <p className="text-muted-foreground">Layanan Online KUA Banjarmasin Utara</p>
+              </CardHeader>
+              <CardContent className="pt-6">
+                  <div className="space-y-4">
+                      <div className="text-center bg-accent/20 text-accent-foreground p-4 rounded-lg border border-accent">
+                          <p className="font-medium">Nomor Pendaftaran Anda:</p>
+                        {/* ✅ Disesuaikan */}
+                          <strong className="text-3xl font-bold tracking-wider text-primary">{registrationData.nomorPendaftaran}</strong>
+                      </div>
+                      <dl className="space-y-1 text-sm mt-6">
+                        {/* ✅ Disesuaikan */}
+                          <DetailItem label="Calon Suami" value={registrationData.namaSuami} />
+                          <DetailItem label="Calon Istri" value={registrationData.namaIstri} />
+                          <DetailItem label="Tanggal Akad" value={formattedWeddingDate} />
+                          <DetailItem label="Waktu Akad" value={registrationData.waktuNikah ? `${registrationData.waktuNikah} WITA` : '-'} />
+                          <DetailItem label="KUA Pendaftaran" value="KUA Banjarmasin Utara" />
+                          <DetailItem label="Lokasi Akad Nikah" value={registrationData.lokasiNikah} />
+                      </dl>
+                  </div>
+              </CardContent>
+              <CardFooter className="mt-6 border-t-2 border-primary pt-6">
+                  <div className="w-full text-xs text-muted-foreground">
+                      <p className="font-bold text-destructive">Penting:</p>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                          <li>Harap simpan dan/atau cetak tanda bukti ini.</li>
+                          <li>Ini adalah bukti untuk mengambil nomor antrean di kantor kami, bukan bukti pernikahan.</li>
+                      	  <li>Langkah selanjutnya adalah datang ke kantor KUA dengan membawa semua berkas persyaratan fisik (asli dan fotokopi) sesuai dengan tanggal yang akan diinformasikan oleh petugas kami.</li>
+              	      </ul>
+          	      </div>
+              </CardFooter>
+          </Card>
+    	  </div>
+    	  <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4 print:hidden">
+        	  <Button onClick={handleDownloadPdf} className="w-full sm:w-auto" disabled={isDownloading || isPrinting}>
+          	  {isDownloading ? (
+            	  <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mengunduh... </>
+          	  ) : (
+            	  <> <Download className="mr-2 h-4 w-4" /> Unduh sebagai PDF </>
+          	  )}
+        	  </Button>
+        	  <Button variant="outline" onClick={handlePrint} className="w-full sm:w-auto" disabled={isPrinting || isDownloading}>
+          	  {isPrinting ? (
+            	  <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mempersiapkan... </>
+          	  ) : (
+          	  <> <Printer className="mr-2 h-4 w-4" /> Cetak Halaman </>
+      	  	  )}
+        	  </Button>
+    	  </div>
+    </div>
+  );
 }

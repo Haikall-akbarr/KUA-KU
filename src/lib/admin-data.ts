@@ -73,8 +73,10 @@ export type MarriageRegistration = {
   brideName: string;
   registrationDate: string;
   weddingDate: string;
+  weddingTime?: string;
+  weddingLocation?: string;
   status: "Menunggu Verifikasi" | "Disetujui" | "Ditolak" | "Selesai";
-  penghulu?: string;
+  penghulu?: string | null;
 };
 
 export const marriageRegistrations: MarriageRegistration[] = [

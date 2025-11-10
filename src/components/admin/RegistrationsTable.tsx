@@ -40,7 +40,9 @@ import { Badge } from "@/components/ui/badge"
 
 import type { MarriageRegistration } from "@/lib/admin-data"
 
-const getStatusInfo = (status: MarriageRegistration["status"]) => {
+type BadgeVariant = "secondary" | "default" | "destructive" | "outline";
+
+const getStatusInfo = (status: MarriageRegistration["status"]): { variant: BadgeVariant; icon: any; label: string } => {
     switch (status) {
         case 'Menunggu Verifikasi': return { variant: 'secondary', icon: Clock, label: 'Menunggu Verifikasi' };
         case 'Disetujui': return { variant: 'default', icon: CheckCircle, label: 'Disetujui' };
@@ -58,17 +60,37 @@ export const columns: ColumnDef<MarriageRegistration>[] = [
   {
     accessorKey: "groomName",
     header: "Calon Suami",
+    cell: ({ row }) => {
+      const name = row.getValue("groomName");
+      return <div className="font-medium">{name || 'Data tidak tersedia'}</div>;
+    }
   },
   {
     accessorKey: "brideName",
     header: "Calon Istri",
+    cell: ({ row }) => {
+      const name = row.getValue("brideName");
+      return <div className="font-medium">{name || 'Data tidak tersedia'}</div>;
+    }
   },
   {
     accessorKey: "weddingDate",
     header: "Tanggal Akad",
     cell: ({ row }) => {
-        const date = new Date(row.getValue("weddingDate"))
-        return <div>{date.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric'})}</div>
+        const weddingDate = row.getValue("weddingDate") as string;
+        if (!weddingDate || weddingDate === '') return <div>-</div>;
+        
+        try {
+            const date = new Date(weddingDate);
+            if (isNaN(date.getTime())) {
+                console.error("Invalid date:", weddingDate);
+                return <div>Format tanggal tidak valid</div>;
+            }
+            return <div>{date.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric'})}</div>;
+        } catch (error) {
+            console.error("Error parsing date:", error);
+            return <div>Format tanggal tidak valid</div>;
+        }
     }
   },
   {
@@ -100,8 +122,88 @@ export const columns: ColumnDef<MarriageRegistration>[] = [
             <DropdownMenuSub>
                 <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                    <DropdownMenuItem>Setujui</DropdownMenuItem>
-                    <DropdownMenuItem>Tolak</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                        try {
+                            const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
+                            const index = registrations.findIndex((item: MarriageRegistration) => item.id === registration.id);
+                            if (index !== -1) {
+                                // Update status
+                                registrations[index] = {
+                                    ...registrations[index],
+                                    status: 'Disetujui'
+                                };
+                                
+                                // Save to localStorage
+                                localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
+                                
+                                // Add notification for the user
+                                if (registration.id) {
+                                    const userNotif = {
+                                        id: `notif_${Date.now()}`,
+                                        title: 'Pendaftaran Disetujui',
+                                        description: 'Pendaftaran nikah Anda telah disetujui oleh KUA.',
+                                        type: 'success',
+                                        read: false,
+                                        registrationId: registration.id,
+                                        createdAt: new Date().toISOString()
+                                    };
+                                    
+                                    const notifications = JSON.parse(localStorage.getItem(`notifications_${registration.id}`) || '[]');
+                                    notifications.unshift(userNotif);
+                                    localStorage.setItem(`notifications_${registration.id}`, JSON.stringify(notifications));
+                                }
+                                
+                                window.location.reload();
+                            }
+                        } catch (error) {
+                            console.error('Error updating status:', error);
+                            alert('Gagal mengubah status pendaftaran');
+                        }
+                    }}>
+                        <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                        <span>Setujui</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                        try {
+                            const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
+                            const index = registrations.findIndex((item: MarriageRegistration) => item.id === registration.id);
+                            if (index !== -1) {
+                                // Update status
+                                registrations[index] = {
+                                    ...registrations[index],
+                                    status: 'Ditolak'
+                                };
+                                
+                                // Save to localStorage
+                                localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
+                                
+                                // Add notification for the user
+                                if (registration.id) {
+                                    const userNotif = {
+                                        id: `notif_${Date.now()}`,
+                                        title: 'Pendaftaran Ditolak',
+                                        description: 'Pendaftaran nikah Anda telah ditolak oleh KUA. Silakan hubungi KUA untuk informasi lebih lanjut.',
+                                        type: 'error',
+                                        read: false,
+                                        registrationId: registration.id,
+                                        createdAt: new Date().toISOString()
+                                    };
+                                    
+                                    const notifications = JSON.parse(localStorage.getItem(`notifications_${registration.id}`) || '[]');
+                                    notifications.unshift(userNotif);
+                                    localStorage.setItem(`notifications_${registration.id}`, JSON.stringify(notifications));
+                                }
+                                
+                                window.location.reload();
+                            }
+                        } catch (error) {
+                            console.error('Error updating status:', error);
+                            alert('Gagal mengubah status pendaftaran');
+                        }
+                    }}>
+                        <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                        <span>Tolak</span>
+                    </DropdownMenuItem>
                 </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuItem>Assign Penghulu</DropdownMenuItem>

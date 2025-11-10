@@ -2,6 +2,7 @@
 'use server';
 
 import { format, parseISO } from 'date-fns';
+import { cookies } from 'next/headers';
 
 export type MarriageRegistrationFormState = {
   message: string;
@@ -29,112 +30,172 @@ export async function submitMarriageRegistrationForm(
 
   const apiRequestData = {
     scheduleAndLocation: {
-      weddingLocation: rawFormData.weddingLocation,
-      weddingAddress: rawFormData.kua,
-      weddingDate: formatDateForAPI(rawFormData.weddingDate),
-      weddingTime: rawFormData.weddingTime,
+      weddingLocation: rawFormData.weddingLocation || "",
+      weddingAddress: rawFormData.kua || "",
+      weddingDate: formatDateForAPI(rawFormData.weddingDate) || "",
+      weddingTime: rawFormData.weddingTime || "",
       dispensationNumber: rawFormData.dispensationNumber || ""
     },
     groom: {
-      groomFullName: rawFormData.groomFullName,
-      groomNik: rawFormData.groomNik,
-      groomCitizenship: rawFormData.groomCitizenship,
+      groomFullName: rawFormData.groomFullName || "",
+      groomNik: rawFormData.groomNik || "",
+      groomCitizenship: rawFormData.groomCitizenship || "",
       groomPassportNumber: rawFormData.groomPassportNumber || "",
-      groomPlaceOfBirth: rawFormData.groomPlaceOfBirth,
-      groomDateOfBirth: formatDateForAPI(rawFormData.groomDateOfBirth),
-      groomStatus: rawFormData.groomStatus,
+      groomPlaceOfBirth: rawFormData.groomPlaceOfBirth || "",
+      groomDateOfBirth: formatDateForAPI(rawFormData.groomDateOfBirth) || "",
+      groomStatus: rawFormData.groomStatus || "",
       groomReligion: 'Islam',
-      groomEducation: rawFormData.groomEducation,
-      groomOccupation: rawFormData.groomOccupation,
+      groomEducation: rawFormData.groomEducation || "",
+      groomOccupation: rawFormData.groomOccupation || "",
       groomOccupationDescription: rawFormData.groomOccupationDescription || "",
-      groomPhoneNumber: rawFormData.groomPhoneNumber,
-      groomEmail: rawFormData.groomEmail,
-      groomAddress: rawFormData.groomAddress
+      groomPhoneNumber: rawFormData.groomPhoneNumber || "",
+      groomEmail: rawFormData.groomEmail || "",
+      groomAddress: rawFormData.groomAddress || ""
     },
     bride: {
-      brideFullName: rawFormData.brideFullName,
-      brideNik: rawFormData.brideNik,
-      brideCitizenship: rawFormData.brideCitizenship,
+      brideFullName: rawFormData.brideFullName || "",
+      brideNik: rawFormData.brideNik || "",
+      brideCitizenship: rawFormData.brideCitizenship || "",
       bridePassportNumber: rawFormData.bridePassportNumber || "",
-      bridePlaceOfBirth: rawFormData.bridePlaceOfBirth,
-      brideDateOfBirth: formatDateForAPI(rawFormData.brideDateOfBirth),
-      brideStatus: rawFormData.brideStatus,
+      bridePlaceOfBirth: rawFormData.bridePlaceOfBirth || "",
+      brideDateOfBirth: formatDateForAPI(rawFormData.brideDateOfBirth) || "",
+      brideStatus: rawFormData.brideStatus || "",
       brideReligion: 'Islam',
-      brideEducation: rawFormData.brideEducation,
-      brideOccupation: rawFormData.brideOccupation,
+      brideEducation: rawFormData.brideEducation || "",
+      brideOccupation: rawFormData.brideOccupation || "",
       brideOccupationDescription: rawFormData.brideOccupationDescription || "",
-      bridePhoneNumber: rawFormData.bridePhoneNumber,
-      brideEmail: rawFormData.brideEmail,
-      brideAddress: rawFormData.brideAddress
+      bridePhoneNumber: rawFormData.bridePhoneNumber || "",
+      brideEmail: rawFormData.brideEmail || "",
+      brideAddress: rawFormData.brideAddress || ""
     },
     groomParents: {
       groomFather: {
-        groomFatherPresenceStatus: rawFormData.groomFatherPresenceStatus,
-        groomFatherName: rawFormData.groomFatherName,
+        groomFatherPresenceStatus: rawFormData.groomFatherPresenceStatus || "",
+        groomFatherName: rawFormData.groomFatherName || "",
         groomFatherNik: rawFormData.groomFatherNik || "",
         groomFatherCitizenship: rawFormData.groomFatherCitizenship || "WNI",
         groomFatherCountryOfOrigin: rawFormData.groomFatherCountryOfOrigin || "Indonesia",
         groomFatherPassportNumber: rawFormData.groomFatherPassportNumber || "",
-        groomFatherPlaceOfBirth: rawFormData.groomFatherPlaceOfBirth,
-        groomFatherDateOfBirth: formatDateForAPI(rawFormData.groomFatherDateOfBirth),
+        groomFatherPlaceOfBirth: rawFormData.groomFatherPlaceOfBirth || "",
+        groomFatherDateOfBirth: formatDateForAPI(rawFormData.groomFatherDateOfBirth) || "",
         groomFatherReligion: 'Islam',
-        groomFatherOccupation: rawFormData.groomFatherOccupation,
+        groomFatherOccupation: rawFormData.groomFatherOccupation || "",
         groomFatherOccupationDescription: rawFormData.groomFatherOccupationDescription || "",
-        groomFatherAddress: rawFormData.groomFatherAddress
+        groomFatherAddress: rawFormData.groomFatherAddress || ""
       },
       groomMother: {
-        groomMotherPresenceStatus: rawFormData.groomMotherPresenceStatus,
-        groomMotherName: rawFormData.groomMotherName,
+        groomMotherPresenceStatus: rawFormData.groomMotherPresenceStatus || "",
+        groomMotherName: rawFormData.groomMotherName || "",
         groomMotherNik: rawFormData.groomMotherNik || "",
         groomMotherCitizenship: rawFormData.groomMotherCitizenship || "WNI",
         groomMotherCountryOfOrigin: rawFormData.groomMotherCountryOfOrigin || "Indonesia",
         groomMotherPassportNumber: rawFormData.groomMotherPassportNumber || "",
-        groomMotherPlaceOfBirth: rawFormData.groomMotherPlaceOfBirth,
-        groomMotherDateOfBirth: formatDateForAPI(rawFormData.groomMotherDateOfBirth),
+        groomMotherPlaceOfBirth: rawFormData.groomMotherPlaceOfBirth || "",
+        groomMotherDateOfBirth: formatDateForAPI(rawFormData.groomMotherDateOfBirth) || "",
         groomMotherReligion: 'Islam',
-        groomMotherOccupation: rawFormData.groomMotherOccupation,
+        groomMotherOccupation: rawFormData.groomMotherOccupation || "",
         groomMotherOccupationDescription: rawFormData.groomMotherOccupationDescription || "",
-        groomMotherAddress: rawFormData.groomMotherAddress
+        groomMotherAddress: rawFormData.groomMotherAddress || ""
+      }
+    },
+    OrangTuaCalonSuami: {
+      Ayah: {
+        StatusKeberadaan: rawFormData.groomFatherPresenceStatus || "",
+        NamaLengkap: rawFormData.groomFatherName || "",
+        Nik: rawFormData.groomFatherNik || "",
+        Kewarganegaraan: rawFormData.groomFatherCitizenship || "WNI",
+        NegaraAsalWNA: rawFormData.groomFatherCountryOfOrigin || "Indonesia",
+        NomorPaspor: rawFormData.groomFatherPassportNumber || "",
+        TempatLahir: rawFormData.groomFatherPlaceOfBirth || "",
+        TanggalLahir: formatDateForAPI(rawFormData.groomFatherDateOfBirth) || "",
+        Agama: 'Islam',
+        Pekerjaan: rawFormData.groomFatherOccupation || "",
+        KeteranganPekerjaan: rawFormData.groomFatherOccupationDescription || "",
+        Alamat: rawFormData.groomFatherAddress || ""
+      },
+      Ibu: {
+        StatusKeberadaan: rawFormData.groomMotherPresenceStatus || "",
+        NamaLengkap: rawFormData.groomMotherName || "",
+        Nik: rawFormData.groomMotherNik || "",
+        Kewarganegaraan: rawFormData.groomMotherCitizenship || "WNI",
+        NegaraAsalWNA: rawFormData.groomMotherCountryOfOrigin || "Indonesia",
+        NomorPaspor: rawFormData.groomMotherPassportNumber || "",
+        TempatLahir: rawFormData.groomMotherPlaceOfBirth || "",
+        TanggalLahir: formatDateForAPI(rawFormData.groomMotherDateOfBirth) || "",
+        Agama: 'Islam',
+        Pekerjaan: rawFormData.groomMotherOccupation || "",
+        KeteranganPekerjaan: rawFormData.groomMotherOccupationDescription || "",
+        Alamat: rawFormData.groomMotherAddress || ""
       }
     },
     brideParents: {
       brideFather: {
-        brideFatherPresenceStatus: rawFormData.brideFatherPresenceStatus,
-        brideFatherName: rawFormData.brideFatherName,
+        brideFatherPresenceStatus: rawFormData.brideFatherPresenceStatus || "",
+        brideFatherName: rawFormData.brideFatherName || "",
         brideFatherNik: rawFormData.brideFatherNik || "",
         brideFatherCitizenship: rawFormData.brideFatherCitizenship || "WNI",
         brideFatherCountryOfOrigin: rawFormData.brideFatherCountryOfOrigin || "Indonesia",
         brideFatherPassportNumber: rawFormData.brideFatherPassportNumber || "",
-        brideFatherPlaceOfBirth: rawFormData.brideFatherPlaceOfBirth,
-        brideFatherDateOfBirth: formatDateForAPI(rawFormData.brideFatherDateOfBirth),
+        brideFatherPlaceOfBirth: rawFormData.brideFatherPlaceOfBirth || "",
+        brideFatherDateOfBirth: formatDateForAPI(rawFormData.brideFatherDateOfBirth) || "",
         brideFatherReligion: 'Islam',
-        brideFatherOccupation: rawFormData.brideFatherOccupation,
+        brideFatherOccupation: rawFormData.brideFatherOccupation || "",
         brideFatherOccupationDescription: rawFormData.brideFatherOccupationDescription || "",
-        brideFatherAddress: rawFormData.brideFatherAddress
+        brideFatherAddress: rawFormData.brideFatherAddress || ""
       },
       brideMother: {
-        brideMotherPresenceStatus: rawFormData.brideMotherPresenceStatus,
-        brideMotherName: rawFormData.brideMotherName,
+        brideMotherPresenceStatus: rawFormData.brideMotherPresenceStatus || "",
+        brideMotherName: rawFormData.brideMotherName || "",
         brideMotherNik: rawFormData.brideMotherNik || "",
         brideMotherCitizenship: rawFormData.brideMotherCitizenship || "WNI",
         brideMotherCountryOfOrigin: rawFormData.brideMotherCountryOfOrigin || "Indonesia",
         brideMotherPassportNumber: rawFormData.brideMotherPassportNumber || "",
-        brideMotherPlaceOfBirth: rawFormData.brideMotherPlaceOfBirth,
-        brideMotherDateOfBirth: formatDateForAPI(rawFormData.brideMotherDateOfBirth),
+        brideMotherPlaceOfBirth: rawFormData.brideMotherPlaceOfBirth || "",
+        brideMotherDateOfBirth: formatDateForAPI(rawFormData.brideMotherDateOfBirth) || "",
         brideMotherReligion: 'Islam',
-        brideMotherOccupation: rawFormData.brideMotherOccupation,
+        brideMotherOccupation: rawFormData.brideMotherOccupation || "",
         brideMotherOccupationDescription: rawFormData.brideMotherOccupationDescription || "",
-        brideMotherAddress: rawFormData.brideMotherAddress
+        brideMotherAddress: rawFormData.brideMotherAddress || ""
+      }
+    },
+    OrangTuaCalonIstri: {
+      Ayah: {
+        StatusKeberadaan: rawFormData.brideFatherPresenceStatus || "",
+        NamaLengkap: rawFormData.brideFatherName || "",
+        Nik: rawFormData.brideFatherNik || "",
+        Kewarganegaraan: rawFormData.brideFatherCitizenship || "WNI",
+        NegaraAsalWNA: rawFormData.brideFatherCountryOfOrigin || "Indonesia",
+        NomorPaspor: rawFormData.brideFatherPassportNumber || "",
+        TempatLahir: rawFormData.brideFatherPlaceOfBirth || "",
+        TanggalLahir: formatDateForAPI(rawFormData.brideFatherDateOfBirth) || "",
+        Agama: 'Islam',
+        Pekerjaan: rawFormData.brideFatherOccupation || "",
+        KeteranganPekerjaan: rawFormData.brideFatherOccupationDescription || "",
+        Alamat: rawFormData.brideFatherAddress || ""
+      },
+      Ibu: {
+        StatusKeberadaan: rawFormData.brideMotherPresenceStatus || "",
+        NamaLengkap: rawFormData.brideMotherName || "",
+        Nik: rawFormData.brideMotherNik || "",
+        Kewarganegaraan: rawFormData.brideMotherCitizenship || "WNI",
+        NegaraAsalWNA: rawFormData.brideMotherCountryOfOrigin || "Indonesia",
+        NomorPaspor: rawFormData.brideMotherPassportNumber || "",
+        TempatLahir: rawFormData.brideMotherPlaceOfBirth || "",
+        TanggalLahir: formatDateForAPI(rawFormData.brideMotherDateOfBirth) || "",
+        Agama: 'Islam',
+        Pekerjaan: rawFormData.brideMotherOccupation || "",
+        KeteranganPekerjaan: rawFormData.brideMotherOccupationDescription || "",
+        Alamat: rawFormData.brideMotherAddress || ""
       }
     },
     guardian: {
-      guardianFullName: rawFormData.guardianFullName,
-      guardianNik: rawFormData.guardianNik,
-      guardianRelationship: rawFormData.guardianRelationship,
-      guardianStatus: rawFormData.guardianStatus,
+      guardianFullName: rawFormData.guardianFullName || "",
+      guardianNik: rawFormData.guardianNik || "",
+      guardianRelationship: rawFormData.guardianRelationship || "",
+      guardianStatus: rawFormData.guardianStatus || "",
       guardianReligion: 'Islam',
-      guardianAddress: rawFormData.guardianAddress,
-      guardianPhoneNumber: rawFormData.guardianPhoneNumber
+      guardianAddress: rawFormData.guardianAddress || "",
+      guardianPhoneNumber: rawFormData.guardianPhoneNumber || ""
     }
   };
 
@@ -142,10 +203,23 @@ export async function submitMarriageRegistrationForm(
   const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
 
   try {
+    // Get token from cookies (passed from client via form submission)
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    
+    if (!token) {
+      return {
+        success: false,
+        message: "Token autentikasi tidak ditemukan. Silakan login terlebih dahulu.",
+        errors: "Token tidak tersedia di cookies. User mungkin belum login.",
+      };
+    }
+
     const response = await fetch('https://simnikah-api-production.up.railway.app/simnikah/pendaftaran/form-baru', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(apiRequestData),
       signal: controller.signal, 
@@ -167,26 +241,55 @@ export async function submitMarriageRegistrationForm(
 
     const result = await response.json();
 
-    if (!response.ok) {
+    
+    console.log(">>> API Response Status:", response.status);
+    console.log(">>> API Response Data:", JSON.stringify(result, null, 2));
+
+    if (result.type === "duplicate" && result.data?.nomor_pendaftaran) {
+      console.log(">>> DUPLICATE REGISTRATION - EXISTING:", result.data.nomor_pendaftaran);
+      const successDataForUrl = {
+        nomor_pendaftaran: result.data?.pendaftaran?.nomor_pendaftaran || result.data?.nomor_pendaftaran || '',
+        status_pendaftaran: result.data?.pendaftaran?.status_pendaftaran || result.data?.status || "Menunggu Verifikasi",
+        tanggal_nikah: result.data?.pendaftaran?.tanggal_nikah || result.data?.tanggal_nikah || '',
+        nama_suami: result.data?.calon_suami?.nama_lengkap || result.data?.nama_suami || '',
+        nama_istri: result.data?.calon_istri?.nama_lengkap || result.data?.nama_istri || '',
+        weddingTime: result.data?.pendaftaran?.waktu_nikah || result.data?.waktu_nikah || apiRequestData.scheduleAndLocation.weddingTime || '',
+        weddingLocation: result.data?.pendaftaran?.tempat_nikah || result.data?.tempat_nikah || apiRequestData.scheduleAndLocation.weddingLocation || '',
+        next_steps: JSON.stringify(result.data?.next_steps || [])
+      };
+      
+      console.log(">>> DUPLICATE: Redirecting with data:", successDataForUrl);
+      
+      return {
+        success: true,
+        message: result.message || "Pendaftaran sudah ada dan masih aktif",
+        data: successDataForUrl,
+      };
+    }
+
+    if (!response.ok || result.error || !result.success) {
+      console.error(">>> API ERROR DETECTED:", result.error || result.message || "Unknown error");
       return {
         success: false,
-        message: result.error || "Terjadi kesalahan validasi dari server.",
-        errors: typeof result.details === 'string' ? result.details : JSON.stringify(result.details),
+        message: result.error || result.message || "Terjadi kesalahan dari server.",
+        errors: typeof result.details === 'string' ? result.details : JSON.stringify(result.details || {}),
       };
     }
 
     const successDataForUrl = {
-        nomor_pendaftaran: result.data.pendaftaran.nomor_pendaftaran,
-        status_pendaftaran: result.data.pendaftaran.status_pendaftaran,
-        tanggal_nikah: result.data.pendaftaran.tanggal_nikah,
-        nama_suami: result.data.calon_suami.nama_lengkap,
-        nama_istri: result.data.calon_istri.nama_lengkap,
+        nomor_pendaftaran: result.data?.pendaftaran?.nomor_pendaftaran || result.data?.nomor_pendaftaran || '',
+        status_pendaftaran: result.data?.pendaftaran?.status_pendaftaran || result.data?.status_pendaftaran || '',
+        tanggal_nikah: result.data?.pendaftaran?.tanggal_nikah || result.data?.tanggal_nikah || '',
+        nama_suami: result.data?.calon_suami?.nama_lengkap || '',
+        nama_istri: result.data?.calon_istri?.nama_lengkap || '',
+        weddingTime: result.data?.pendaftaran?.waktu_nikah || apiRequestData.scheduleAndLocation.weddingTime || '',
+        weddingLocation: result.data?.pendaftaran?.tempat_nikah || apiRequestData.scheduleAndLocation.weddingLocation || '',
         next_steps: JSON.stringify(result.next_steps || [])
     }
 
     return {
       success: true,
-      message: result.message,
+      message: result.message || "Pendaftaran berhasil dibuat",
       data: successDataForUrl, 
     };
 

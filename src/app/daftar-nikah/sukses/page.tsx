@@ -4,7 +4,7 @@
 import type { Metadata } from 'next';
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppFooter } from "@/components/layout/AppFooter";
-import { MarriageProof } from "@/components/kuaku/MarriageProof";
+import MarriageProof from "@/components/kuaku/MarriageProof";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 import { Suspense } from 'react';
 

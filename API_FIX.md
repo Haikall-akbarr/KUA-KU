@@ -148,58 +148,58 @@ API sudah dikonfigurasi untuk menerima request dari:
 
 ---
 
-### 1.2 Login
+  ### 1.2 Login
 
-**Endpoint:** `POST /login`  
-**Auth Required:** No  
-**Rate Limit:** 10 requests/minute
+  **Endpoint:** `POST /login`  
+  **Auth Required:** No  
+  **Rate Limit:** 10 requests/minute
 
-**Request Body:**
-```json
-{
-  "username": "johndoe",
-  "password": "SecurePass123!"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "message": "Login berhasil",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "user_id": "USR1730268000",
-    "email": "john.doe@example.com",
-    "role": "user_biasa",
-    "nama": "John Doe"
+  **Request Body:**
+  ```json
+  {
+    "username": "johndoe",
+    "password": "SecurePass123!"
   }
-}
-```
+  ```
 
-**Error Responses:**
+  **Success Response (200):**
+  ```json
+  {
+    "message": "Login berhasil",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "user_id": "USR1730268000",
+      "email": "john.doe@example.com",
+      "role": "user_biasa",
+      "nama": "John Doe"
+    }
+  }
+  ```
 
-*401 - Invalid Credentials:*
-```json
-{
-  "error": "Username tidak ditemukan"
-}
-```
+  **Error Responses:**
 
-*401 - Wrong Password:*
-```json
-{
-  "error": "Password salah"
-}
-```
+  *401 - Invalid Credentials:*
+  ```json
+  {
+    "error": "Username tidak ditemukan"
+  }
+  ```
 
-*401 - User Inactive:*
-```json
-{
-  "error": "User tidak aktif"
-}
-```
+  *401 - Wrong Password:*
+  ```json
+  {
+    "error": "Password salah"
+  }
+  ```
 
----
+  *401 - User Inactive:*
+  ```json
+  {
+    "error": "User tidak aktif"
+  }
+  ```
+
+  ---
 
 ### 1.3 Get Profile
 

@@ -3,8 +3,6 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
 
@@ -26,11 +24,13 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  UserCircle,
 } from 'lucide-react';
 import React from 'react';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/profile', label: 'Profil Saya', icon: UserCircle },
   { href: '/admin/users', label: 'Pengguna', icon: Users },
   { href: '/admin/registrations', label: 'Pendaftaran Nikah', icon: FileText },
   { href: '/admin/schedules', label: 'Jadwal', icon: Calendar },
@@ -41,12 +41,13 @@ const navItems = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, userRole } = useAuth();
+  const { user, userRole, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.push('/login');
+  const handleLogout = () => {
+    // Hapus token dari cookies
+    document.cookie = 'token=; path=/; max-age=0';
+    logout();
   };
 
   return (
@@ -124,8 +125,8 @@ export function AdminSidebar() {
            ) : (
              <>
                 <div className="px-2 py-2">
-                    <p className="text-sm font-semibold truncate">{user?.displayName || 'Admin User'}</p>
-                    <p className="text-xs text-muted-foreground">{userRole}</p>
+                    <p className="text-sm font-semibold truncate">{user?.nama || 'Admin User'}</p>
+                    <p className="text-xs text-muted-foreground">{user?.role || userRole}</p>
                 </div>
                 <Button onClick={handleLogout} variant="destructive" size="sm" className="justify-start">
                     <LogOut className="mr-3 h-5 w-5" />

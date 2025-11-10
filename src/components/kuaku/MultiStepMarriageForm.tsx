@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useActionState, useEffect, useRef } from "react";
+import React, { useState, useActionState, useEffect, useRef, useTransition } from "react";
 import { useFormStatus, useFormState } from "react-dom";
 import { useForm, FormProvider, Controller, useFormContext } from "react-hook-form";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 import { submitMarriageRegistrationForm, type MarriageRegistrationFormState } from "@/app/daftar-nikah/actions";
 import { Loader2, CalendarIcon, User, Users, FileText, CheckCircle, Info, MapPin, Building, Clock, FileUp, FileCheck2, AlertCircle } from "lucide-react";
 import { educationLevels, occupations } from "@/lib/form-data";
@@ -708,7 +709,30 @@ export function MultiStepMarriageForm() {
     const [activeTabs, setActiveTabs] = useState<{ [key: number]: string }>({ 1: "groom", 2: "bride" });
     const router = useRouter();
     const { toast } = useToast();
+    const { user } = useAuth();
     const formRef = useRef<HTMLFormElement>(null);
+    
+    // Reset registration data when component mounts with a new user
+    useEffect(() => {
+      if (user?.user_id) {
+        // Check if there's any existing registration
+        const existingData = localStorage.getItem('marriageRegistrations');
+        if (existingData) {
+          const registrations = JSON.parse(existingData);
+          const userHasActiveRegistration = registrations.some((reg: any) => 
+            reg.userId === user.user_id && 
+            reg.status !== "Ditolak" && 
+            reg.status !== "Selesai"
+          );
+          
+          if (!userHasActiveRegistration) {
+            // Clean up old registrations for this user
+            const filteredRegistrations = registrations.filter((reg: any) => reg.userId !== user.user_id);
+            localStorage.setItem('marriageRegistrations', JSON.stringify(filteredRegistrations));
+          }
+        }
+      }
+    }, [user]);
     
     const initialState: MarriageRegistrationFormState = { message: "", success: false };
     const [state, formAction] = useActionState(submitMarriageRegistrationForm, initialState);
@@ -731,7 +755,25 @@ export function MultiStepMarriageForm() {
         }
     });
 
-    const { trigger, handleSubmit } = methods;
+    const { trigger, handleSubmit, getValues } = methods;
+    const [isPending, startTransition] = useTransition();
+
+    const onSubmit = async (formData: FullFormData) => {
+        // Build FormData from form state explicitly
+        const fd = new FormData();
+        for (const [key, value] of Object.entries(formData)) {
+            if (value === null || value === undefined) {
+                fd.append(key, "");
+            } else if (value instanceof Date) {
+                fd.append(key, format(value, "yyyy-MM-dd"));
+            } else {
+                fd.append(key, String(value));
+            }
+        }
+        
+        // Submit to server action with transition
+        startTransition(() => formAction(fd));
+    };
 
     const next = async () => {
         const currentStepConfig = steps[currentStep];
@@ -779,16 +821,82 @@ export function MultiStepMarriageForm() {
     useEffect(() => {
         if (state.message === "") return;
 
-        if (!state.success && state.errors?.length) {
-             toast({ title: "Pendaftaran Gagal", description: state.message, variant: "destructive" });
-        } else if (state.success && state.data && state.queueNumber && state.newRegistration) {
+        console.log('Form submission state:', state);
+        
+        if (state.success && state.data) {
             toast({ title: "Berhasil!", description: state.message, variant: "default" });
 
             try {
-                const existing = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
-                localStorage.setItem('marriageRegistrations', JSON.stringify([...existing, state.newRegistration]));
+                console.log('Starting to save registration data...');
+                // Generate unique ID if not provided
+                const registrationId = state.data.nomor_pendaftaran || `reg_${Date.now()}`;                    // Ambil data dari form state untuk memastikan data yang valid
+                    const values = getValues();
+                    
+                    // Get the raw form values
+                    const formValues = methods.getValues();
+                    
+                    const registrationData = {
+                        id: registrationId,
+                        userId: user?.user_id,  // Tambahkan userId
+                        groomName: formValues.groomFullName || state.data?.nama_suami || '',
+                        brideName: formValues.brideFullName || state.data?.nama_istri || '',
+                        registrationDate: new Date().toISOString(),
+                        weddingDate: formValues.weddingDate ? 
+                          (formValues.weddingDate instanceof Date ? 
+                            formValues.weddingDate.toISOString().split('T')[0] : 
+                            String(formValues.weddingDate)
+                          ) : state.data?.tanggal_nikah || '',
+                        weddingTime: formValues.weddingTime || state.data?.weddingTime || '',
+                        weddingLocation: formValues.weddingLocation || state.data?.weddingLocation || '',
+                        status: "Menunggu Verifikasi",
+                        penghulu: null,
+                        groomNik: formValues.groomNik || '',  // Tambahkan NIK untuk pengecekan duplikasi
+                        brideNik: formValues.brideNik || ''
+                    };
+                    
+                    console.log('Saving registration data:', registrationData);
+                    
+                    const existing = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');                // Tambah data baru di awal array (unshift) agar muncul di paling atas
+                existing.unshift(registrationData);
+                
+                // Simpan ke localStorage
+                localStorage.setItem('marriageRegistrations', JSON.stringify(existing));
             } catch (e) {
                 console.error("Could not save to localStorage", e);
+            }
+
+            // Tambahkan notifikasi untuk user yang melakukan pendaftaran
+            try {
+                if (user && user.user_id) {
+                    const userNotifKey = `notifications_${user.user_id}`;
+                    const notif = {
+                        id: `notif_${Date.now()}`,
+                        title: 'Pendaftaran Nikah Diterima',
+                        description: 'Berkas Anda sedang diverifikasi oleh staf kami.',
+                        read: false,
+                        related_registration: state.data?.nomor_pendaftaran || null,
+                        createdAt: new Date().toISOString()
+                    };
+                    const existingNotifs = JSON.parse(localStorage.getItem(userNotifKey) || '[]');
+                    existingNotifs.unshift(notif);
+                    localStorage.setItem(userNotifKey, JSON.stringify(existingNotifs));
+                }
+
+                // Tambahkan notifikasi untuk staff (agar muncul di dashboard admin yang membaca dari localStorage)
+                const staffKey = 'staff_notifications';
+                const staffNotif = {
+                    id: `staff_notif_${Date.now()}`,
+                    title: `Pendaftaran baru: ${state.data?.nomor_pendaftaran || 'N/A'}`,
+                    description: `${state.data?.nama_suami || ''} & ${state.data?.nama_istri || ''}`,
+                    registrationId: state.data?.nomor_pendaftaran || null,
+                    read: false,
+                    createdAt: new Date().toISOString()
+                };
+                const existingStaff = JSON.parse(localStorage.getItem(staffKey) || '[]');
+                existingStaff.unshift(staffNotif);
+                localStorage.setItem(staffKey, JSON.stringify(existingStaff));
+            } catch (e) {
+                console.error('Could not save notifications to localStorage', e);
             }
 
             const params = new URLSearchParams();
@@ -797,9 +905,10 @@ export function MultiStepMarriageForm() {
                     params.append(key, String(value));
                 }
             }
-            params.append('queueNumber', state.queueNumber);
             router.push(`/daftar-nikah/sukses?${params.toString()}`);
             methods.reset();
+        } else if (!state.success) {
+             toast({ title: "Pendaftaran Gagal", description: state.message, variant: "destructive" });
         }
     }, [state, toast, router, methods]);
     
@@ -829,7 +938,7 @@ export function MultiStepMarriageForm() {
                     </ol>
                 </div>
                 
-                 { !state.success && state.errors && state.errors.length > 0 && (
+                 { !state.success && state.message && (
                     <Alert variant="destructive" className="mb-6">
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>Pendaftaran Gagal</AlertTitle>
@@ -842,7 +951,7 @@ export function MultiStepMarriageForm() {
                  <Separator className="my-8"/>
                  
                  <FormProvider {...methods}>
-                    <form ref={formRef} action={formAction} >
+                    <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
                          <AnimatePresence mode="wait">
                             <motion.div
                                 key={`${currentStep}-${activeTabs[1]}-${activeTabs[2]}`}

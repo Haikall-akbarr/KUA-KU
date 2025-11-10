@@ -79,20 +79,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Fungsi untuk logout
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    setUserRole(null);
-    
-    // Hapus dari localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    
-    // Arahkan ke login
-    router.push('/login');
-  };
-
-  const value = { user, userRole, token, loading, login, logout };
+  const logout = () => {
+    // Simpan data registrasi yang ada sebelum logout
+    const registrations = localStorage.getItem('marriageRegistrations');
+    const notifications: Record<string, string | null> = {};
+    
+    // Simpan semua notifikasi user yang ada
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith('notifications_')) {
+        notifications[key] = localStorage.getItem(key);
+      }
+    }
+    
+    // Hapus data autentikasi
+    setUser(null);
+    setToken(null);
+    setUserRole(null);
+    
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    
+    // Kembalikan data registrasi dan notifikasi
+    if (registrations) {
+      localStorage.setItem('marriageRegistrations', registrations);
+    }
+    
+    // Kembalikan notifikasi
+    Object.entries(notifications).forEach(([key, value]) => {
+      if (value) {
+        localStorage.setItem(key, value);
+      }
+    });
+    
+    // Arahkan ke login
+    router.push('/login');
+  };  const value = { user, userRole, token, loading, login, logout };
 
   return (
     <AuthContext.Provider value={value}>

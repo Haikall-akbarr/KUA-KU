@@ -6,8 +6,6 @@ import Image from "next/image";
 import type { MouseEvent } from "react";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from 'next/navigation';
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 
 import { Input } from "@/components/ui/input";
@@ -23,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { UserProfileMenu } from "@/components/shared/UserProfileMenu";
 
 const navItems = [
   { href: "/#services", label: "Layanan", icon: Briefcase, protected: true },
@@ -38,33 +37,30 @@ const authNavItems = {
   register: { href: "/register", label: "Register", icon: UserPlus },
 };
 
-const notifications = [
-  {
-    id: "1",
-    title: "Pendaftaran Nikah Diterima",
-    description: "Berkas Anda sedang diverifikasi oleh staf kami.",
-    read: false,
-  },
-  {
-    id: "2",
-    title: "Jadwal Bimbingan Perkawinan",
-    description: "Anda dijadwalkan pada 25 Des 2024, pukul 10:00.",
-    read: false,
-  },
-  {
-    id: "3",
-    title: "Info Layanan",
-    description: "Layanan KUA tutup pada hari libur nasional.",
-    read: true,
-  },
-];
+// Notifications are loaded per-user from localStorage key `notifications_<user_id>`
 
 
 export function AppHeader() {
-  const { user, userRole } = useAuth();
+  const { user, userRole, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [notifications, setNotifications] = useState<any[]>([]);
+  
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
+    const key = `notifications_${user.user_id}`;
+    try {
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      setNotifications(arr);
+    } catch (e) {
+      console.error('Failed to load notifications from localStorage', e);
+      setNotifications([]);
+    }
+  }, [user]);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -95,9 +91,9 @@ export function AppHeader() {
     }
   };
   
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.push('/login');
+  const handleLogout = () => {
+    document.cookie = 'token=; path=/; max-age=0';
+    logout();
   };
 
   const NavLink = ({ href, children, onClick: providedOnClick, className }: { href: string, children: React.ReactNode, onClick?: () => void, className?: string }) => {
@@ -193,23 +189,36 @@ export function AppHeader() {
                     <span className="sr-only">Buka Notifikasi</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notifikasi</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {notifications.length > 0 ? (
-                    notifications.map(notif => (
-                         <DropdownMenuItem key={notif.id} className={cn("flex-col items-start whitespace-normal", !notif.read && "bg-primary/5")}>
-                            <div className="flex items-center w-full">
-                                <p className={cn("font-medium", !notif.read && "font-bold")}>{notif.title}</p>
-                                {!notif.read && <div className="ml-auto h-2 w-2 rounded-full bg-primary"></div>}
-                            </div>
-                            <p className="text-xs text-muted-foreground">{notif.description}</p>
-                        </DropdownMenuItem>
-                    ))
-                ) : (
-                    <p className="p-2 text-center text-sm text-muted-foreground">Tidak ada notifikasi baru.</p>
-                )}
-            </DropdownMenuContent>
+      <DropdownMenuContent align="end" className="w-80">
+        <DropdownMenuLabel>Notifikasi</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {notifications.length > 0 ? (
+          notifications.map(notif => (
+             <DropdownMenuItem key={notif.id} className={cn("flex-col items-start whitespace-normal", !notif.read && "bg-primary/5")} onClick={() => {
+               // mark as read locally
+               if (user) {
+                 try {
+                   const key = `notifications_${user.user_id}`;
+                   const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                   const updated = arr.map((n: any) => n.id === notif.id ? { ...n, read: true } : n);
+                   localStorage.setItem(key, JSON.stringify(updated));
+                   setNotifications(updated);
+                 } catch (e) {
+                   console.error('Failed to mark notification as read', e);
+                 }
+               }
+             }}>
+              <div className="flex items-center w-full">
+                <p className={cn("font-medium", !notif.read && "font-bold")}>{notif.title}</p>
+                {!notif.read && <div className="ml-auto h-2 w-2 rounded-full bg-primary"></div>}
+              </div>
+              <p className="text-xs text-muted-foreground">{notif.description}</p>
+            </DropdownMenuItem>
+          ))
+        ) : (
+          <p className="p-2 text-center text-sm text-muted-foreground">Tidak ada notifikasi baru.</p>
+        )}
+      </DropdownMenuContent>
         </DropdownMenu>
 
          {isMobile ? (
@@ -218,10 +227,7 @@ export function AppHeader() {
               Logout
             </button>
           ) : (
-            <Button onClick={handleLogout} variant="outline" size="sm">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
+            <UserProfileMenu />
           )}
        </div>
      )

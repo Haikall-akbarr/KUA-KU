@@ -66,17 +66,16 @@ export function LoginForm() {
         throw new Error(errorMessage);
       }
 
-      // Jika respons sukses
-      const result = await response.json(); 
+      // Jika respons sukses
+      const result = await response.json(); 
 
-      // Hapus console.log jika sudah tidak diperlukan
-      console.log('DATA USER DARI API:', result.user);
-      console.log('ROLE TERDETEKSI:', result.user.role);
+     
 
-      // Simpan sesi login ke Context
-      login(result.user, result.token); 
+      // Simpan token ke cookies untuk digunakan oleh server actions
+      document.cookie = `token=${result.token}; path=/; max-age=${24 * 60 * 60}`;
 
-      toast({
+      // Simpan sesi login ke Context
+      login(result.user, result.token);      toast({
         title: 'Login Berhasil!',
         description: `Selamat datang kembali, ${result.user.nama}.`,
       });
