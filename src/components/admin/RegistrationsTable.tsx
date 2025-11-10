@@ -13,7 +13,7 @@ import {
   ColumnFiltersState,
   getFilteredRowModel,
 } from "@tanstack/react-table"
-import { MoreHorizontal, PlusCircle, CheckCircle, XCircle, Clock, Check, HelpCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, CheckCircle, XCircle, Clock, Check, HelpCircle, FileText } from "lucide-react"
 
 import {
   Table,
@@ -151,6 +151,21 @@ export const columns: ColumnDef<MarriageRegistration>[] = [
                                     const notifications = JSON.parse(localStorage.getItem(`notifications_${registration.id}`) || '[]');
                                     notifications.unshift(userNotif);
                                     localStorage.setItem(`notifications_${registration.id}`, JSON.stringify(notifications));
+
+                                    // Add notification for Kepala KUA
+                                    const kepalaNotif = {
+                                        id: `notif_kepala_${Date.now()}`,
+                                        title: 'Pendaftaran Membutuhkan Penghulu',
+                                        description: `Pendaftaran nikah ${registration.groomName} & ${registration.brideName} telah diverifikasi dan membutuhkan penugasan penghulu.`,
+                                        type: 'info',
+                                        read: false,
+                                        registrationId: registration.id,
+                                        createdAt: new Date().toISOString()
+                                    };
+
+                                    const kepalaNotifications = JSON.parse(localStorage.getItem('notifications_kepala_kua') || '[]');
+                                    kepalaNotifications.unshift(kepalaNotif);
+                                    localStorage.setItem('notifications_kepala_kua', JSON.stringify(kepalaNotifications));
                                 }
                                 
                                 window.location.reload();
@@ -207,7 +222,62 @@ export const columns: ColumnDef<MarriageRegistration>[] = [
                 </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuItem>Assign Penghulu</DropdownMenuItem>
-            <DropdownMenuItem>Terbitkan Surat</DropdownMenuItem>
+            <DropdownMenuItem 
+              disabled={registration.status !== 'Disetujui'}
+              onClick={() => {
+                if (registration.status === 'Disetujui') {
+                  try {
+                    // Update status to 'Selesai' after generating the letter
+                    const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
+                    const index = registrations.findIndex((item: MarriageRegistration) => item.id === registration.id);
+                    if (index !== -1) {
+                      registrations[index] = {
+                        ...registrations[index],
+                        status: 'Selesai'
+                      };
+                      localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
+
+                      // Add notification for the user
+                      if (registration.id) {
+                        const userNotif = {
+                          id: `notif_${Date.now()}`,
+                          title: 'Surat Nikah Terbit',
+                          description: 'Surat nikah Anda telah diterbitkan dan siap untuk diambil di KUA.',
+                          type: 'success',
+                          read: false,
+                          registrationId: registration.id,
+                          createdAt: new Date().toISOString()
+                        };
+                        
+                        const notifications = JSON.parse(localStorage.getItem(`notifications_${registration.id}`) || '[]');
+                        notifications.unshift(userNotif);
+                        localStorage.setItem(`notifications_${registration.id}`, JSON.stringify(notifications));
+                      }
+
+                      // TODO: Add logic to generate and download the marriage letter
+                      alert('Surat nikah telah diterbitkan dan status telah diperbarui');
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error('Error menerbitkan surat:', error);
+                    alert('Gagal menerbitkan surat nikah');
+                  }
+                }
+              }}
+              className={registration.status !== 'Disetujui' ? 'text-muted-foreground cursor-not-allowed' : 'cursor-pointer'}
+            >
+              {registration.status === 'Disetujui' ? (
+                <>
+                  <FileText className="mr-2 h-4 w-4 text-green-600" />
+                  <span>Terbitkan Surat</span>
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>Terbitkan Surat (Status harus disetujui)</span>
+                </>
+              )}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )

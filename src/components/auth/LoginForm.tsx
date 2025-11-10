@@ -80,19 +80,26 @@ export function LoginForm() {
         description: `Selamat datang kembali, ${result.user.nama}.`,
       });
       
-      // Logika Pengarahan Berbasis Peran
-      const userRole = result.user.role; 
+      // Logika Pengarahan Berbasis Peran
+      const userRole = result.user.role; 
 
-      // --- PERBAIKAN: Logika ini sekarang menggunakan ADMIN_ROLES dari Context ---
-      if (userRole && ADMIN_ROLES.includes(userRole)) {
-        console.log('Mengarahkan ke /admin');
-        router.push('/admin'); // Ke dashboard admin
-      } else {
-        console.log('Mengarahkan ke /');
-        router.push('/'); // Ke dashboard user biasa
-      }
-
-    } catch (error: any) {
+      // Pengarahan berdasarkan role spesifik
+      switch(userRole) {
+        case 'kepala_kua':
+          router.push('/admin/kepala'); // Ke dashboard Kepala KUA
+          break;
+        case 'staff':
+          router.push('/admin'); // Ke dashboard Staff
+          break;
+        case 'penghulu':
+          router.push('/admin/penghulu'); // Ke dashboard Penghulu
+          break;
+        case 'administrator':
+          router.push('/admin'); // Ke dashboard Admin
+          break;
+        default:
+          router.push('/'); // Ke dashboard user biasa
+      }    } catch (error: any) {
       toast({
         title: 'Gagal Login',
         description: error.message || 'Terjadi kesalahan. Silakan coba lagi.',
