@@ -1,19 +1,11 @@
 
 'use client';
 
-// This is a Client Component, so we can't use Metadata directly.
-// We'll set the title in the parent layout or a Server Component if needed.
-// import type { Metadata } from 'next';
 import { RegistrationsTable } from '@/components/admin/RegistrationsTable';
 import { marriageRegistrations as initialData, type MarriageRegistration } from '@/lib/admin-data';
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-
-// export const metadata: Metadata = {
-//   title: 'Manajemen Pendaftaran Nikah - KUA Banjarmasin Utara',
-//   description: 'Verifikasi dan kelola pendaftaran nikah yang masuk.',
-// };
 
 export default function RegistrationsPage() {
   const [registrations, setRegistrations] = useState<MarriageRegistration[]>([]);
@@ -106,11 +98,14 @@ export default function RegistrationsPage() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // Load staff notifications
   useEffect(() => {
     try {
-      const s = JSON.parse(localStorage.getItem('staff_notifications') || '[]');
-      setStaffNotifications(Array.isArray(s) ? s : []);
+      const stored = localStorage.getItem('staff_notifications');
+      const notifications = stored ? JSON.parse(stored) : [];
+      setStaffNotifications(Array.isArray(notifications) ? notifications : []);
     } catch (e) {
+      console.error('Error loading staff notifications:', e);
       setStaffNotifications([]);
     }
   }, []);

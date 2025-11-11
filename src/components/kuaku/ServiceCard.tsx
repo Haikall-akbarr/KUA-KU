@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from '@/lib/utils';
 
 // Mapping of all lucide-react icons
-const icons = LucideIcons as { [key: string]: LucideIcons.LucideIcon };
+const icons = LucideIcons as unknown as { [key: string]: LucideIcons.LucideIcon };
 
 interface ServiceCardProps {
   slug: string;

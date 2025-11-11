@@ -176,7 +176,7 @@ export function RegistrationForm() {
                     mode="single"
                     selected={form.watch("dateOfBirth")}
                     onSelect={(date) => {
-                        form.setValue("dateOfBirth", date || undefined, { shouldValidate: true });
+                        form.setValue("dateOfBirth", date as any, { shouldValidate: true });
                         setDateOfBirthOpen(false);
                     }}
                     captionLayout="dropdown-buttons"

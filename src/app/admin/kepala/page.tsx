@@ -27,7 +27,7 @@ export default function KepalaKUADashboard() {
       try {
         const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
         // Filter registrations that are approved but don't have penghulu assigned
-        const pending = registrations.filter(reg => 
+        const pending = registrations.filter((reg: any) => 
           reg.status === 'Disetujui' && !reg.penghulu
         );
         setPendingAssignments(pending);

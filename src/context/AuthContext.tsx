@@ -76,18 +76,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Simpan ke localStorage
     localStorage.setItem('user', JSON.stringify(apiUser));
     localStorage.setItem('token', apiToken);
+    
+    // Pengarahan setelah login berdasarkan role (fallback jika komponen login tidak mengarahkan)
+    try {
+      switch (apiUser.role) {
+        case 'kepala_kua':
+          router.push('/admin/kepala');
+          break;
+        case 'staff':
+          router.push('/admin');
+          break;
+        case 'penghulu':
+          router.push('/penghulu');
+          break;
+        case 'administrator':
+          router.push('/admin');
+          break;
+        default:
+          router.push('/');
+      }
+    } catch (err) {
+      // Jika router belum siap atau terjadi kesalahan, biarkan pemanggil yang mengarahkan
+      console.warn('Redirect after login failed or deferred:', err);
+    }
   };
 
-  // Fungsi untuk logout
+  // Fungsi untuk logout
   const logout = () => {
     // Simpan data registrasi yang ada sebelum logout
     const registrations = localStorage.getItem('marriageRegistrations');
-    const notifications: Record<string, string | null> = {};
+    const notificationsBackup: { [key: string]: string | null } = {};
     
     // Simpan semua notifikasi user yang ada
     for (const key of Object.keys(localStorage)) {
       if (key.startsWith('notifications_')) {
-        notifications[key] = localStorage.getItem(key);
+        notificationsBackup[key] = localStorage.getItem(key);
       }
     }
     
@@ -105,15 +128,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     // Kembalikan notifikasi
-    Object.entries(notifications).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(notificationsBackup)) {
       if (value) {
         localStorage.setItem(key, value);
       }
-    });
+    }
     
     // Arahkan ke login
     router.push('/login');
-  };  const value = { user, userRole, token, loading, login, logout };
+  };
+
+  const value = { user, userRole, token, loading, login, logout };
 
   return (
     <AuthContext.Provider value={value}>

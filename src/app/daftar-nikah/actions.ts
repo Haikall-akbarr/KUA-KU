@@ -21,6 +21,9 @@ const formatDateForAPI = (value: any): string | undefined => {
     }
 };
 
+// Use env var for API base (server-side)
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production.up.railway.app';
+
 export async function submitMarriageRegistrationForm(
   prevState: MarriageRegistrationFormState,
   formData: FormData
@@ -215,7 +218,7 @@ export async function submitMarriageRegistrationForm(
       };
     }
 
-    const response = await fetch('https://simnikah-api-production.up.railway.app/simnikah/pendaftaran/form-baru', {
+  const response = await fetch(`${API_BASE}/simnikah/pendaftaran/form-baru`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -282,7 +285,7 @@ export async function submitMarriageRegistrationForm(
       ) {
         // Try to fetch the existing profile so the client can pre-fill or instruct the user
         try {
-          const profileResp = await fetch('https://simnikah-api-production.up.railway.app/profile', {
+          const profileResp = await fetch(`${API_BASE}/profile`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',

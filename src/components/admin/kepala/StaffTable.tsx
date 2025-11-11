@@ -50,13 +50,13 @@ export function StaffTable() {
         if (s.id === staffId) {
           return {
             ...s,
-            status: s.status === 'Aktif' ? 'Nonaktif' : 'Aktif'
+            status: (s.status === 'Aktif' ? 'Nonaktif' : 'Aktif') as "Aktif" | "Nonaktif"
           };
         }
         return s;
       });
 
-      setStaff(updatedStaff);
+      setStaff(updatedStaff as typeof staff);
       localStorage.setItem('staff', JSON.stringify(updatedStaff));
 
       // Update user status in users collection

@@ -37,7 +37,8 @@ export function UserProfileMenu() {
             }
 
             try {
-                const response = await fetch('https://simnikah-api-production.up.railway.app/profile', {
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production.up.railway.app';
+                const response = await fetch(`${apiBase}/profile`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },

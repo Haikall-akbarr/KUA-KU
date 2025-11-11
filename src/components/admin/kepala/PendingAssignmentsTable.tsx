@@ -63,11 +63,13 @@ export function PendingAssignmentsTable({ data }: PendingAssignmentsTableProps) 
       const index = registrations.findIndex((r: any) => r.id === selectedRegistration.id);
       
       if (index !== -1) {
-        // Update the registration with penghulu assignment
+        // Update the registration with penghulu assignment and new status
         registrations[index] = {
           ...registrations[index],
           penghulu: penghulu.name,
-          penghuluId: penghulu.id
+          penghuluId: penghulu.id,
+          status: 'Menunggu Verifikasi Penghulu', // Change status from 'Disetujui' to 'Menunggu Verifikasi Penghulu'
+          assignedAt: new Date().toISOString()
         };
 
         // Save back to localStorage

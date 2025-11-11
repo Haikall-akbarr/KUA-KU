@@ -51,12 +51,15 @@ export function RegistrationProof() {
     weddingLocation: searchParams.get('weddingLocation'),
     groomName: searchParams.get('nama_suami'),
     brideName: searchParams.get('nama_istri'),
+    // Fallback query keys for additional fields
+    fullName: searchParams.get('fullName') || searchParams.get('nama_lengkap') || searchParams.get('nama'),
+    nik: searchParams.get('nik') || searchParams.get('nik_pendaftar'),
+    placeOfBirth: searchParams.get('tempat_lahir') || searchParams.get('placeOfBirth'),
+    dateOfBirth: searchParams.get('tanggal_lahir') || searchParams.get('dateOfBirth'),
+    phoneNumber: searchParams.get('phone') || searchParams.get('phoneNumber') || searchParams.get('no_hp'),
+    email: searchParams.get('email'),
     nextSteps: searchParams.get('next_steps') ? JSON.parse(searchParams.get('next_steps')!) : [],
   };
-
-  const formattedWeddingDate = registrationData.weddingDate
-    ? format(parseISO(registrationData.weddingDate), 'EEEE, dd MMMM yyyy', { locale: IndonesianLocale })
-    : '-';
 
   const handleDownloadPdf = async () => {
     const element = proofRef.current;
@@ -113,11 +116,12 @@ export function RegistrationProof() {
                             <strong className="text-3xl font-bold tracking-wider text-primary">{registrationData.registrationNumber}</strong>
                         </div>
                         <dl className="divide-y divide-border/50">
-                            <DetailItem label="Nama Lengkap" value={registrationData.fullName} />
-                            <DetailItem label="NIK" value={registrationData.nik} />
-                            <DetailItem label="Tempat, Tanggal Lahir" value={placeAndDateOfBirth} />
-                            <DetailItem label="Nomor Telepon" value={registrationData.phoneNumber} />
-                            <DetailItem label="Alamat Email" value={registrationData.email} />
+                            <DetailItem label="Calon Suami" value={registrationData.groomName} />
+                            <DetailItem label="Calon Istri" value={registrationData.brideName} />
+                            <DetailItem label="Tanggal Akad" value={registrationData.weddingDate ? format(parseISO(registrationData.weddingDate), 'EEEE, dd MMMM yyyy', { locale: IndonesianLocale }) : '-'} />
+                            <DetailItem label="Waktu Akad" value={registrationData.weddingTime ? `${registrationData.weddingTime} WITA` : '-'} />
+                            <DetailItem label="Lokasi Akad" value={registrationData.weddingLocation || '-'} />
+                            <DetailItem label="Status Pendaftaran" value={registrationData.status || '-'} />
                         </dl>
                     </div>
                 </CardContent>
@@ -180,11 +184,12 @@ export function RegistrationProof() {
                             <strong className="text-3xl font-bold tracking-wider text-primary">{registrationData.registrationNumber}</strong>
                         </div>
                         <dl className="divide-y divide-border/50">
-                            <DetailItem label="Nama Lengkap" value={registrationData.fullName} />
-                            <DetailItem label="NIK" value={registrationData.nik} />
-                            <DetailItem label="Tempat, Tanggal Lahir" value={placeAndDateOfBirth} />
-                            <DetailItem label="Nomor Telepon" value={registrationData.phoneNumber} />
-                            <DetailItem label="Alamat Email" value={registrationData.email} />
+                            <DetailItem label="Calon Suami" value={registrationData.groomName} />
+                            <DetailItem label="Calon Istri" value={registrationData.brideName} />
+                            <DetailItem label="Tanggal Akad" value={registrationData.weddingDate ? format(parseISO(registrationData.weddingDate), 'EEEE, dd MMMM yyyy', { locale: IndonesianLocale }) : '-'} />
+                            <DetailItem label="Waktu Akad" value={registrationData.weddingTime ? `${registrationData.weddingTime} WITA` : '-'} />
+                            <DetailItem label="Lokasi Akad" value={registrationData.weddingLocation || '-'} />
+                            <DetailItem label="Status Pendaftaran" value={registrationData.status || '-'} />
                         </dl>
                     </div>
                 </CardContent>

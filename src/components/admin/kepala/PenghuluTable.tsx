@@ -49,13 +49,13 @@ export function PenghuluTable() {
         if (p.id === penghuluId) {
           return {
             ...p,
-            status: p.status === 'Aktif' ? 'Nonaktif' : 'Aktif'
+            status: (p.status === 'Aktif' ? 'Nonaktif' : 'Aktif') as "Aktif" | "Nonaktif"
           };
         }
         return p;
       });
 
-      setPenghulus(updatedPenghulus);
+      setPenghulus(updatedPenghulus as typeof penghulus);
       localStorage.setItem('penghulus', JSON.stringify(updatedPenghulus));
 
       // Update user status in users collection

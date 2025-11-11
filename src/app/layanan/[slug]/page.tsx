@@ -11,7 +11,7 @@ import { ArrowLeft, CheckCircle } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 
 // Mapping of all lucide-react icons
-const icons = LucideIcons as { [key: string]: LucideIcons.LucideIcon };
+const icons = LucideIcons as unknown as { [key: string]: LucideIcons.LucideIcon };
 
 export async function generateStaticParams() {
   return services.map((service) => ({

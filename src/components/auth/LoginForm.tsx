@@ -92,7 +92,7 @@ export function LoginForm() {
           router.push('/admin'); // Ke dashboard Staff
           break;
         case 'penghulu':
-          router.push('/admin/penghulu'); // Ke dashboard Penghulu
+          router.push('/penghulu'); // Ke dashboard Penghulu
           break;
         case 'administrator':
           router.push('/admin'); // Ke dashboard Admin

@@ -2,7 +2,7 @@
 
 **Version:** 2.0  
 **Last Updated:** 30 Oktober 2025  
-**Base URL:** `https://your-api.railway.app` (atau `http://localhost:8080` untuk development)
+**Base URL:** `https://simnikah-api-production.up.railway.app` (atau `http://localhost:8080` untuk development)
 
 ---
 
@@ -33,7 +33,7 @@
 
 ```
 Development: http://localhost:8080
-Production:  https://your-api.railway.app
+Production:  https://simnikah-api-production.up.railway.app
 ```
 
 ### Headers

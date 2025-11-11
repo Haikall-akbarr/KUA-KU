@@ -8,7 +8,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { format, parseISO, differenceInYears, getDay, addDays, addMonths } from "date-fns";
 import { id as IndonesianLocale } from 'date-fns/locale';
 import { useRouter } from "next/navigation";
-import Link from 'next/link';
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -440,22 +439,44 @@ const ParentSubForm = ({ prefix, personType }: { prefix: 'groomFather' | 'groomM
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Nik`}>NIK {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
-                    <Controller name={`${prefix}Nik` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`16 Digit NIK ${personType}`} maxLength={16} readOnly={isReadOnly} />} />
+                    <Controller
+                        name={`${prefix}Nik` as any}
+                        control={control}
+                        rules={{
+                            required: presenceStatus === 'Hidup' ? 'NIK wajib diisi jika status hidup' : false,
+                            minLength: presenceStatus === 'Hidup' ? { value: 16, message: 'NIK harus 16 digit' } : undefined
+                        }}
+                        render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`16 Digit NIK ${personType}`} maxLength={16} readOnly={isReadOnly} />}
+                    />
                     <FieldErrorMessage name={`${prefix}Nik`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}Name`}>Nama Lengkap {personType} {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
-                    <Controller name={`${prefix}Name` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`Nama Lengkap ${personType}`} readOnly={isReadOnly} />} />
+                    <Controller
+                        name={`${prefix}Name` as any}
+                        control={control}
+                        rules={{ required: presenceStatus === 'Hidup' ? 'Nama wajib diisi jika status hidup' : false }}
+                        render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder={`Nama Lengkap ${personType}`} readOnly={isReadOnly} />}
+                    />
                     <FieldErrorMessage name={`${prefix}Name`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}PlaceOfBirth`}>Tempat Lahir {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
-                    <Controller name={`${prefix}PlaceOfBirth` as any} control={control} render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Kota Kelahiran" readOnly={isReadOnly} />} />
+                    <Controller
+                        name={`${prefix}PlaceOfBirth` as any}
+                        control={control}
+                        rules={{ required: presenceStatus === 'Hidup' ? 'Tempat lahir wajib diisi jika status hidup' : false }}
+                        render={({ field }) => <Input {...field} value={field.value as string || ''} placeholder="Kota Kelahiran" readOnly={isReadOnly} />}
+                    />
                     <FieldErrorMessage name={`${prefix}PlaceOfBirth`} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`${prefix}DateOfBirth`}>Tanggal Lahir {isReadOnly ? '' : <span className="text-destructive">*</span>}</Label>
-                    <Controller name={`${prefix}DateOfBirth` as any} control={control} render={({ field }) => (
+                    <Controller
+                        name={`${prefix}DateOfBirth` as any}
+                        control={control}
+                        rules={{ required: presenceStatus === 'Hidup' ? 'Tanggal lahir wajib diisi jika status hidup' : false }}
+                        render={({ field }) => (
                         <>
                             <input type="hidden" {...field} value={field.value ? format(field.value, "yyyy-MM-dd") : ""} />
                             <Popover open={dobOpen} onOpenChange={setDobOpen}>
@@ -912,33 +933,6 @@ export function MultiStepMarriageForm() {
              toast({ title: "Pendaftaran Gagal", description: state.message, variant: "destructive" });
         }
     }, [state, toast, router, methods]);
-
-    // Prefill handler: fill groom fields from existing profile
-    const handleUseExistingProfile = (profile: any) => {
-        if (!profile) return;
-
-        try {
-            const currentValues = methods.getValues();
-
-            const newValues = {
-                ...currentValues,
-                groomFullName: profile.nama_lengkap || profile.nama || profile.fullName || currentValues.groomFullName || '',
-                groomNik: profile.nik || profile.NIK || currentValues.groomNik || '',
-                groomPhoneNumber: profile.no_hp || profile.phone || profile.telepon || currentValues.groomPhoneNumber || '',
-                groomEmail: profile.email || currentValues.groomEmail || '',
-                groomAddress: profile.alamat || profile.address || currentValues.groomAddress || ''
-            };
-
-            methods.reset(newValues);
-            setCurrentStep(1); // Move to Calon Suami step
-            setActiveTabs(p => ({ ...p, 1: 'groom' }));
-
-            toast({ title: 'Form terisi dari Profil', description: 'Data calon suami telah diisi dari profil Anda.' });
-        } catch (e) {
-            console.error('Gagal pre-fill dari profil:', e);
-            toast({ title: 'Gagal', description: 'Tidak dapat mengisi form dari profil.', variant: 'destructive' });
-        }
-    }
     
     const delta = currentStep - previousStep;
     
@@ -972,15 +966,6 @@ export function MultiStepMarriageForm() {
                         <AlertTitle>Pendaftaran Gagal</AlertTitle>
                         <AlertDescription>
                            {state.message}
-
-                           {state.data?.existing_profile && (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                                <Link href="/profile">
-                                    <Button variant="outline">Buka Profil</Button>
-                                </Link>
-                                <Button onClick={() => handleUseExistingProfile(state.data.existing_profile)}>Isi dari Profil</Button>
-                            </div>
-                           )}
                         </AlertDescription>
                     </Alert>
                  )}

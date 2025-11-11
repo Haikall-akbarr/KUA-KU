@@ -21,7 +21,7 @@ export const suratServices: SuratService[] = [
   },
   {
     slug: pendaftaranSlug,
-    iconName: "UserCheck2",
+    iconName: "UserCheck",
     title: "Rekomendasi Nikah (Wanita)",
     description: "Penerbitan surat rekomendasi nikah untuk calon pengantin wanita.",
     isExternal: true,
@@ -70,7 +70,7 @@ export const suratServices: SuratService[] = [
   },
   {
     slug: pendaftaranSlug,
-    iconName: "FileSignature",
+    iconName: "Signature",
     title: "Permohonan Taukil Wali",
     description: "Pengajuan permohonan penunjukan wali hakim atau taukil wali.",
     isExternal: true,
