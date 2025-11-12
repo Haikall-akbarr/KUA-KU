@@ -10,6 +10,7 @@ import { ContactInfo } from "@/components/kuaku/ContactInfo";
 import { MapPlaceholder } from "@/components/kuaku/MapPlaceholder";
 import { ContactForm } from "@/components/kuaku/ContactForm";
 import { HeroSection } from "@/components/kuaku/HeroSection";
+import { AvailabilityCalendar } from "@/components/kuaku/AvailabilityCalendar";
 import { Loader2 } from 'lucide-react';
 
 const ADMIN_ROLES = ['Staff KUA', 'Kepala KUA', 'Administrator', 'Penghulu'];
@@ -49,6 +50,7 @@ export default function HomePage() {
       <main>
         <HeroSection />
         <ServiceSection />
+        <AvailabilityCalendar />
         <ContactInfo />
         <MapPlaceholder />
         <ContactForm />

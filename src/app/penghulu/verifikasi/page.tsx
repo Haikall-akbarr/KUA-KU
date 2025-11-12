@@ -50,6 +50,7 @@ export default function VerifikasiPage() {
     const loadRegistrations = async () => {
       try {
         const data = await getAssignedRegistrations();
+        console.log('📊 Verifikasi page loaded', data.length, 'registrations');
         setRegistrations(data);
         if (data.length > 0) {
           cacheAssignedRegistrations(data);
@@ -59,6 +60,7 @@ export default function VerifikasiPage() {
         // Error is already handled in getAssignedRegistrations, just get cached data
         console.error('Error in loadRegistrations:', err);
         const cached = getCachedAssignedRegistrations();
+        console.log('📦 Using cached registrations:', cached.length);
         setRegistrations(cached);
         if (cached.length === 0) {
           setError('Tidak ada data registrasi yang tersimpan. Silakan login kembali.');
@@ -69,6 +71,17 @@ export default function VerifikasiPage() {
     };
 
     loadRegistrations();
+    
+    // Also set up a listener for changes to marriageRegistrations (e.g., when another tab updates it)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'marriageRegistrations') {
+        console.log('🔄 Marriage registrations updated in storage, reloading...');
+        loadRegistrations();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const handleApprove = (registration: AssignedRegistration) => {

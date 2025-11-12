@@ -58,22 +58,32 @@ export function PendingAssignmentsTable({ data }: PendingAssignmentsTableProps) 
       const penghulu = penghulus.find(p => p.id === penghuluId);
       if (!penghulu) throw new Error('Penghulu tidak ditemukan');
 
+      console.log('🔍 DEBUG: Assigning registration', {
+        registrationId: selectedRegistration.id,
+        penghuluId: penghulu.id,
+        penghuluName: penghulu.name,
+      });
+
       // Get all registrations
       const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
       const index = registrations.findIndex((r: any) => r.id === selectedRegistration.id);
       
       if (index !== -1) {
         // Update the registration with penghulu assignment and new status
-        registrations[index] = {
+        const updatedRegistration = {
           ...registrations[index],
           penghulu: penghulu.name,
           penghuluId: penghulu.id,
           status: 'Menunggu Verifikasi Penghulu', // Change status from 'Disetujui' to 'Menunggu Verifikasi Penghulu'
           assignedAt: new Date().toISOString()
         };
+        
+        registrations[index] = updatedRegistration;
 
         // Save back to localStorage
         localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
+        console.log('✅ Registration updated in localStorage:', updatedRegistration);
+        console.log('📊 DEBUG: Updated penghuluId in storage:', penghulu.id);
 
         // Add notification for the couple
         const userNotif = {
@@ -86,12 +96,31 @@ export function PendingAssignmentsTable({ data }: PendingAssignmentsTableProps) 
           createdAt: new Date().toISOString()
         };
 
-        const notifications = JSON.parse(localStorage.getItem(`notifications_${selectedRegistration.id}`) || '[]');
-        notifications.unshift(userNotif);
-        localStorage.setItem(`notifications_${selectedRegistration.id}`, JSON.stringify(notifications));
+        const userNotifications = JSON.parse(localStorage.getItem(`notifications_${selectedRegistration.id}`) || '[]');
+        userNotifications.unshift(userNotif);
+        localStorage.setItem(`notifications_${selectedRegistration.id}`, JSON.stringify(userNotifications));
+        console.log('✅ User notification added');
+
+        // Add notification for the penghulu
+        const penghuluNotif = {
+          id: `penghulu_notif_${Date.now()}`,
+          title: 'Penugasan Baru',
+          description: `Anda ditugaskan untuk memverifikasi acara nikah ${selectedRegistration.groomName} & ${selectedRegistration.brideName} pada ${selectedRegistration.weddingDate}`,
+          type: 'info',
+          read: false,
+          registrationId: selectedRegistration.id,
+          createdAt: new Date().toISOString()
+        };
+
+        const penghuluNotifications = JSON.parse(localStorage.getItem(`penghulu_notifications`) || '[]');
+        penghuluNotifications.unshift(penghuluNotif);
+        localStorage.setItem(`penghulu_notifications`, JSON.stringify(penghuluNotifications));
+        console.log('✅ Penghulu notification added');
+        console.log('📊 DEBUG: Notif stored for penghuluId:', penghulu.id);
 
         // Close dialog and refresh
         setIsAssignDialogOpen(false);
+        alert(`✅ Penghulu ${penghulu.name} berhasil ditugaskan!`);
         window.location.reload();
       }
     } catch (error) {

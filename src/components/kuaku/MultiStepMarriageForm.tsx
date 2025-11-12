@@ -27,6 +27,7 @@ import { Loader2, CalendarIcon, User, Users, FileText, CheckCircle, Info, MapPin
 import { educationLevels, occupations } from "@/lib/form-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { kalimantanData } from "@/lib/location-data";
+import { OutsideKUALocation } from "./OutsideKUALocation";
 
 
 const groomPersonFields = ['groomFullName', 'groomNik', 'groomCitizenship', 'groomPassportNumber', 'groomPlaceOfBirth', 'groomDateOfBirth', 'groomStatus', 'groomReligion', 'groomEducation', 'groomOccupation', 'groomOccupationDescription', 'groomPhoneNumber', 'groomEmail', 'groomAddress'];
@@ -257,6 +258,13 @@ const Step1 = () => {
                     <FieldErrorMessage name="weddingTime" />
                 </div>
             </div>
+
+            {/* Map Selector for Outside KUA */}
+            {weddingLocation === 'Di Luar KUA' && (
+                <div className="mt-8 pt-6 border-t">
+                    <OutsideKUALocation isVisible={true} />
+                </div>
+            )}
         </div>
     );
 };

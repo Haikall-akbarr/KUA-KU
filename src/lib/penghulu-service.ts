@@ -87,13 +87,25 @@ export const getAssignedRegistrations = async (): Promise<AssignedRegistration[]
     const penguluProfile = localStorage.getItem('penghulu_profile');
     const currentPenghulu = penguluProfile ? JSON.parse(penguluProfile) : null;
     
+    console.log('🔍 Loading registrations...');
+    console.log('Current penghulu profile:', currentPenghulu);
+    console.log('Total registrations in localStorage:', allRegs.length);
+    
     // Filter registrations assigned to this penghulu
     const assignedRegs = allRegs.filter((reg: any) => {
-      const penghuluMatch = currentPenghulu?.id 
-        ? reg.penghuluId === currentPenghulu.id 
-        : reg.penghuluId === user.id;
+      const penghuluMatch = reg.penghuluId && (
+        currentPenghulu?.id 
+          ? reg.penghuluId === currentPenghulu.id || reg.penghuluId === currentPenghulu.id.toString()
+          : reg.penghuluId === user.id || reg.penghuluId === user.id?.toString()
+      );
+      
+      if (penghuluMatch) {
+        console.log(`✅ Matched registration: ${reg.id}, status: ${reg.status}`);
+      }
       return penghuluMatch;
     });
+
+    console.log(`📊 Found ${assignedRegs.length} assigned registrations`);
 
     // Map to expected format
     const mappedRegs = assignedRegs.map((reg: any) => ({
@@ -115,12 +127,12 @@ export const getAssignedRegistrations = async (): Promise<AssignedRegistration[]
 
     // If localStorage has data, return it
     if (mappedRegs.length > 0) {
-      console.debug(`Loaded ${mappedRegs.length} registrations from localStorage`);
+      console.debug(`✅ Loaded ${mappedRegs.length} registrations from localStorage`);
       return mappedRegs;
     }
 
     // If no localStorage data, try API
-    console.debug('No registrations in localStorage, trying API...');
+    console.debug('📡 No registrations in localStorage, trying API...');
     const response = await fetch(
       `${API_BASE_URL}/simnikah/penghulu/assigned-registrations`,
       {
@@ -130,7 +142,7 @@ export const getAssignedRegistrations = async (): Promise<AssignedRegistration[]
     );
 
     if (!response.ok) {
-      console.warn(`API returned status ${response.status}, using empty array or cache`);
+      console.warn(`⚠️ API returned status ${response.status}, using empty array or cache`);
       return getCachedAssignedRegistrations();
     }
 
@@ -144,10 +156,10 @@ export const getAssignedRegistrations = async (): Promise<AssignedRegistration[]
     
     return apiRegs;
   } catch (error) {
-    console.error('Error fetching assigned registrations:', error);
+    console.error('❌ Error fetching assigned registrations:', error);
     // Return cached data as fallback
     const cached = getCachedAssignedRegistrations();
-    console.debug(`Returning ${cached.length} cached registrations`);
+    console.debug(`📦 Returning ${cached.length} cached registrations`);
     return cached;
   }
 };

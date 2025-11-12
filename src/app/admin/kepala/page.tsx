@@ -7,12 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon, UserPlus, Users, Calendar, Bell } from "lucide-react";
+import { InfoIcon, UserPlus, Users, Calendar, Bell, FileText } from "lucide-react";
 import { AddStaffDialog } from "@/components/admin/kepala/AddStaffDialog";
 import { AddPenghuluDialog } from "@/components/admin/kepala/AddPenghuluDialog";
 import { StaffTable } from "@/components/admin/kepala/StaffTable";
 import { PenghuluTable } from "@/components/admin/kepala/PenghuluTable";
 import { PendingAssignmentsTable } from "@/components/admin/kepala/PendingAssignmentsTable";
+import MarriageCertificateForm from "@/components/admin/kepala/MarriageCertificateForm";
 
 export default function KepalaKUADashboard() {
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
@@ -105,6 +106,10 @@ export default function KepalaKUADashboard() {
           <TabsTrigger value="staff">Staff KUA</TabsTrigger>
           <TabsTrigger value="penghulu">Penghulu</TabsTrigger>
           <TabsTrigger value="assignments">Penugasan Pending</TabsTrigger>
+          <TabsTrigger value="certificates" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Terbitkan Surat
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="staff" className="space-y-4">
@@ -134,6 +139,13 @@ export default function KepalaKUADashboard() {
             <h2 className="text-xl font-semibold">Penugasan Pending</h2>
           </div>
           <PendingAssignmentsTable data={pendingAssignments} />
+        </TabsContent>
+
+        <TabsContent value="certificates" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Terbitkan Surat Nikah</h2>
+          </div>
+          <MarriageCertificateForm />
         </TabsContent>
       </Tabs>
 

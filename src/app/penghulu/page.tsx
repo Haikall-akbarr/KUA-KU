@@ -63,10 +63,23 @@ export default function PenguluDashboard() {
         const penguluFromStorage = localStorage.getItem('penghulu_profile');
         const currentPenghulu = penguluFromStorage ? JSON.parse(penguluFromStorage) : null;
         
+        console.log('📊 Penghulu dashboard - Current user:', currentPenghulu || user);
+        console.log('📊 Total registrations:', allRegs.length);
+        
         // Filter registrations assigned to this penghulu
-        const assignedRegs = allRegs.filter((reg: any) => 
-          currentPenghulu?.id ? reg.penghuluId === currentPenghulu.id : reg.penghuluId === user.id
-        );
+        const assignedRegs = allRegs.filter((reg: any) => {
+          const penghuluMatch = reg.penghuluId && (
+            currentPenghulu?.id 
+              ? reg.penghuluId === currentPenghulu.id || reg.penghuluId === currentPenghulu.id.toString()
+              : reg.penghuluId === user.id || reg.penghuluId === user.id?.toString()
+          );
+          if (penghuluMatch) {
+            console.log(`✅ Dashboard: Matched ${reg.id}, status: ${reg.status}`);
+          }
+          return penghuluMatch;
+        });
+        
+        console.log(`📊 Dashboard found ${assignedRegs.length} assigned registrations`);
         
         // Map to expected format
         const mappedRegs = assignedRegs.map((reg: any) => ({
@@ -137,6 +150,17 @@ export default function PenguluDashboard() {
     };
 
     loadData();
+
+    // Listen for storage changes (e.g., when Kepala KUA assigns a new registration)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'marriageRegistrations') {
+        console.log('📡 Storage changed: marriageRegistrations updated, reloading...');
+        loadData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   if (loading) {
