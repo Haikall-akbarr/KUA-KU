@@ -1,0 +1,16 @@
+feat(form): add wali nikah form step and separate nama/bin fields
+
+- Add Step 4 (Data Wali Nikah) to marriage registration form
+- Separate nama and bin/binti fields for better UX:
+  * Calon Suami: split nama_dan_bin into groomNama and groomBin
+  * Calon Istri: split nama_dan_binti into brideNama and brideBinti
+  * Wali Nikah: split guardianFullName into guardianNama and guardianBin
+- Auto-combine fields on submit to match API format:
+  * "Nama bin Bin" for calon suami and wali nikah
+  * "Nama binti Binti" for calon istri
+- Update form validation for separated fields
+- Maintain backward compatibility with existing API structure
+
+This improves form usability by allowing users to input nama and bin/binti
+separately, while ensuring the API receives data in the expected format.
+
