@@ -23,8 +23,10 @@ function getServiceFromSlug(slug: string) {
   return services.find((service) => service.slug === slug);
 }
 
-export default function ServiceDetailPage({ params }: { params: { slug: string } }) {
-  const service = getServiceFromSlug(params.slug);
+export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> | { slug: string } }) {
+  // Handle params as either Promise (Next.js 15) or synchronous object
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const service = getServiceFromSlug(resolvedParams.slug);
 
   if (!service || !service.details) {
     notFound();  

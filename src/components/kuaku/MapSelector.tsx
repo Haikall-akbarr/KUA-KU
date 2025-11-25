@@ -23,7 +23,19 @@ import {
 import { cn } from '@/lib/utils';
 
 // Dynamic import to avoid SSR issues
-const MapComponent = dynamic(() => import('./MapComponent').then(mod => ({ default: mod.MapComponent })), {
+const MapComponent = dynamic(() => import('./MapComponent').then(mod => ({ default: mod.MapComponent })).catch(err => {
+  console.error('Error loading MapComponent:', err);
+  // Return a fallback component
+  return { default: () => (
+    <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error Loading Map</AlertTitle>
+        <AlertDescription>Failed to load map component. Please refresh the page.</AlertDescription>
+      </Alert>
+    </div>
+  )};
+}), {
   loading: () => (
     <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />

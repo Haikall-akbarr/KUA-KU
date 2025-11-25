@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { isStaff, getUnauthorizedMessage } from '@/lib/role-guards';
+import { verifyFormulir, verifyBerkas, handleApiError } from '@/lib/simnikah-api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,71 +34,53 @@ export function StaffVerificationPanel({
   currentStatus,
   verificationStatus = {}
 }: StaffVerificationPanelProps) {
+  const { userRole } = useAuth();
   const [loading, setLoading] = useState(false);
   const [catatan, setCatatan] = useState('');
   const [activeDialog, setActiveDialog] = useState<VerificationType | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production.up.railway.app';
+  // Role guard - hanya Staff
+  useEffect(() => {
+    if (!isStaff(userRole)) {
+      setErrorMessage(getUnauthorizedMessage('VERIFY_FORMULIR'));
+    }
+  }, [userRole]);
 
   const handleVerification = async (
     type: VerificationType,
     approved: boolean
   ) => {
+    // Role guard - hanya Staff yang bisa verify
+    if (!isStaff(userRole)) {
+      setErrorMessage(getUnauthorizedMessage('VERIFY_FORMULIR'));
+      return;
+    }
+
     setLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login kembali.');
+      let response;
+      
+      if (type === 'formulir_online') {
+        // Verify formulir
+        response = await verifyFormulir(registrationId, {
+          approved: approved,
+          catatan: catatan || (approved ? 'Formulir telah diverifikasi dan disetujui' : 'Formulir ditolak. Silakan perbaiki dan kirim ulang.')
+        });
+      } else {
+        // Verify berkas
+        response = await verifyBerkas(registrationId, {
+          approved: approved,
+          catatan: catatan || (approved ? 'Berkas fisik telah diterima dan diverifikasi' : 'Berkas fisik ditolak. Silakan perbaiki dan serahkan ulang.')
+        });
       }
 
-      const endpoint = type === 'formulir_online'
-        ? `/simnikah/staff/verify-formulir/${registrationId}`
-        : `/simnikah/staff/verify-berkas/${registrationId}`;
-
-      const response = await fetch(`${apiBaseUrl}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          approved,
-          catatan: catatan || 'Verifikasi berhasil diproses',
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Verifikasi gagal');
-      }
-
-      // Simpan verifikasi ke localStorage
-      const userId = localStorage.getItem('user_id') || registrationId;
-      const verificationData = JSON.parse(
-        localStorage.getItem(`verification_${registrationId}`) || '{}'
-      );
-
-      verificationData[type] = {
-        approved,
-        status: data.data?.status_baru || 'Sudah Diverifikasi',
-        verified_at: data.data?.verified_at,
-        verified_by: data.data?.verified_by,
-        catatan: catatan || data.data?.catatan,
-      };
-
-      localStorage.setItem(`verification_${registrationId}`, JSON.stringify(verificationData));
-
-      // Buat notifikasi untuk user
-      createNotification(registrationId, type, approved, data.data?.status_baru);
-
-      // Update daftar registrasi
-      updateRegistrationStatus(registrationId, data.data?.status_baru);
+      // Buat notifikasi untuk user (API sudah handle notifikasi, tapi kita bisa tambahkan local notification juga)
+      createNotification(registrationId, type, approved, response.data?.status_baru || response.data?.status_pendaftaran);
 
       setSuccessMessage(
         `${type === 'formulir_online' ? 'Formulir' : 'Berkas fisik'} ${
@@ -112,9 +97,8 @@ export function StaffVerificationPanel({
       }, 2000);
     } catch (error) {
       console.error('Verification error:', error);
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Terjadi kesalahan saat verifikasi'
-      );
+      const errorMessage = handleApiError(error);
+      setErrorMessage(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -160,24 +144,12 @@ export function StaffVerificationPanel({
     localStorage.setItem(`notifications_${registrationId}`, JSON.stringify(notifications));
   };
 
-  const updateRegistrationStatus = (registrationId: string, newStatus: string) => {
-    const registrations = JSON.parse(
-      localStorage.getItem('marriageRegistrations') || '[]'
-    );
-
-    const index = registrations.findIndex(
-      (reg: any) => reg.id === registrationId
-    );
-
-    if (index !== -1) {
-      registrations[index].status = newStatus;
-      localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
-    }
-  };
+  // Note: Status update is now handled by API, no need for local storage update
 
   const isFormulirVerified = verificationStatus?.formulir_online;
   const isBerkasVerified = verificationStatus?.berkas_fisik;
   const canVerifyBerkas = isFormulirVerified && !isBerkasVerified;
+  const canVerify = isStaff(userRole); // Hanya staff yang bisa verify
 
   return (
     <div className="space-y-6">
@@ -244,9 +216,13 @@ export function StaffVerificationPanel({
                 <Button
                   className="w-full"
                   variant={isFormulirVerified ? 'outline' : 'default'}
-                  disabled={isFormulirVerified}
+                  disabled={isFormulirVerified || !canVerify}
                 >
-                  {isFormulirVerified ? 'Sudah Diverifikasi' : 'Verifikasi Formulir'}
+                  {!canVerify 
+                    ? 'Hanya Staff yang Bisa Verifikasi'
+                    : isFormulirVerified 
+                    ? 'Sudah Diverifikasi' 
+                    : 'Verifikasi Formulir'}
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -278,7 +254,7 @@ export function StaffVerificationPanel({
                     <Button
                       className="flex-1 bg-green-600 hover:bg-green-700"
                       onClick={() => handleVerification('formulir_online', true)}
-                      disabled={loading}
+                      disabled={loading || !canVerify}
                     >
                       {loading ? (
                         <>
@@ -295,7 +271,7 @@ export function StaffVerificationPanel({
                     <Button
                       className="flex-1 bg-red-600 hover:bg-red-700"
                       onClick={() => handleVerification('formulir_online', false)}
-                      disabled={loading}
+                      disabled={loading || !canVerify}
                     >
                       {loading ? (
                         <>
@@ -367,13 +343,15 @@ export function StaffVerificationPanel({
                 <Button
                   className="w-full"
                   variant={isBerkasVerified ? 'outline' : 'default'}
-                  disabled={!canVerifyBerkas && isBerkasVerified}
+                  disabled={(!canVerifyBerkas && isBerkasVerified) || !canVerify}
                 >
-                  {isBerkasVerified
+                  {!canVerify
+                    ? 'Hanya Staff yang Bisa Verifikasi'
+                    : isBerkasVerified
                     ? 'Sudah Diverifikasi'
                     : !isFormulirVerified
-                      ? 'Tunggu Verifikasi Formulir'
-                      : 'Verifikasi Berkas Fisik'}
+                    ? 'Tunggu Verifikasi Formulir'
+                    : 'Verifikasi Berkas Fisik'}
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -416,7 +394,7 @@ export function StaffVerificationPanel({
                     <Button
                       className="flex-1 bg-green-600 hover:bg-green-700"
                       onClick={() => handleVerification('berkas_fisik', true)}
-                      disabled={loading}
+                      disabled={loading || !canVerify}
                     >
                       {loading ? (
                         <>
@@ -433,7 +411,7 @@ export function StaffVerificationPanel({
                     <Button
                       className="flex-1 bg-red-600 hover:bg-red-700"
                       onClick={() => handleVerification('berkas_fisik', false)}
-                      disabled={loading}
+                      disabled={loading || !canVerify}
                     >
                       {loading ? (
                         <>

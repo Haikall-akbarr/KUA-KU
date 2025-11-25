@@ -19,7 +19,19 @@ import {
 import { cn } from '@/lib/utils';
 
 // Dynamic import to avoid SSR issues
-const MapComponent = dynamic(() => import('./MapComponent').then(mod => ({ default: mod.MapComponent })), {
+const MapComponent = dynamic(() => import('./MapComponent').then(mod => ({ default: mod.MapComponent })).catch(err => {
+  console.error('Error loading MapComponent:', err);
+  // Return a fallback component
+  return { default: () => (
+    <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error Loading Map</AlertTitle>
+        <AlertDescription>Failed to load map component. Please refresh the page.</AlertDescription>
+      </Alert>
+    </div>
+  )};
+}), {
   loading: () => (
     <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -134,7 +146,7 @@ export const PenghuluLocationView: React.FC<PenghuluLocationViewProps> = ({
         </div>
 
         {/* Coordinates (if available) */}
-        {location.has_coordinates && location.latitude && location.longitude && (
+        {(location.has_coordinates || (location.is_outside_kua && location.latitude && location.longitude)) && location.latitude && location.longitude && (
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="font-medium text-muted-foreground">Latitude</p>
@@ -151,8 +163,8 @@ export const PenghuluLocationView: React.FC<PenghuluLocationViewProps> = ({
           </div>
         )}
 
-        {/* Map Display */}
-        {location.has_coordinates && location.latitude && location.longitude && (
+        {/* Map Display - Show for outside KUA if coordinates exist, even if has_coordinates is false */}
+        {((location.has_coordinates || (location.is_outside_kua && location.latitude && location.longitude)) && location.latitude && location.longitude) && (
           <div className="space-y-2">
             <p className="text-sm font-medium">Peta Lokasi</p>
             <MapComponent
@@ -164,7 +176,7 @@ export const PenghuluLocationView: React.FC<PenghuluLocationViewProps> = ({
         )}
 
         {/* Navigation Links */}
-        {location.has_coordinates && (
+        {(location.has_coordinates || (location.is_outside_kua && location.latitude && location.longitude)) && (
           <div className="space-y-3 p-4 bg-accent/50 rounded-lg">
             <p className="text-sm font-medium flex items-center gap-2">
               <Navigation className="h-4 w-4" />
@@ -224,7 +236,7 @@ export const PenghuluLocationView: React.FC<PenghuluLocationViewProps> = ({
             <AlertTitle>Pernikahan di Luar KUA</AlertTitle>
             <AlertDescription className="mt-2 space-y-1">
               <p>{location.note}</p>
-              {location.has_coordinates && (
+              {(location.has_coordinates || (location.latitude && location.longitude)) && (
                 <p className="text-xs">
                   ✅ Koordinat GPS sudah tersimpan untuk memudahkan navigasi.
                 </p>
@@ -234,7 +246,7 @@ export const PenghuluLocationView: React.FC<PenghuluLocationViewProps> = ({
         )}
 
         {/* No Coordinates Warning */}
-        {location.is_outside_kua && !location.has_coordinates && (
+        {location.is_outside_kua && !location.has_coordinates && !location.latitude && !location.longitude && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Koordinat Belum Tersedia</AlertTitle>

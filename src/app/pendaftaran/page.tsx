@@ -1,14 +1,14 @@
+'use client';
 
-import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppFooter } from "@/components/layout/AppFooter";
-import { RegistrationForm } from "@/components/kuaku/RegistrationForm";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
 
-export const metadata: Metadata = {
-  title: 'Pengambilan Nomor Pendaftaran - KUA Banjarmasin Utara',
-  description: 'Lengkapi data diri Anda untuk mendapatkan nomor pendaftaran layanan KUA Banjarmasin Utara.',
-};
+const RegistrationForm = dynamic(() => import("@/components/kuaku/RegistrationForm").then(mod => ({ default: mod.RegistrationForm })), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center p-8"><div className="text-muted-foreground">Memuat form...</div></div>
+});
 
 export default function PendaftaranPage() {
   return (

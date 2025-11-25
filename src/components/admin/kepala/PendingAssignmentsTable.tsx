@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { useAuth } from '@/context/AuthContext';
+import { isKepalaKUA, getUnauthorizedMessage } from '@/lib/role-guards';
 import {
   Table,
   TableBody,
@@ -17,119 +19,27 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Loader2, MoreHorizontal, UserCheck } from "lucide-react"
+import { MoreHorizontal, UserCheck } from "lucide-react"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from 'date-fns/locale'
+import { AssignPenghuluDialog } from '@/components/admin/AssignPenghuluDialog'
 
 interface PendingAssignmentsTableProps {
   data: any[]
 }
 
 export function PendingAssignmentsTable({ data }: PendingAssignmentsTableProps) {
-  const [selectedRegistration, setSelectedRegistration] = React.useState<any>(null);
+  const { userRole } = useAuth();
+  const [selectedRegistration, setSelectedRegistration] = React.useState<{
+    id: string;
+    registrationNumber?: string;
+    groomName?: string;
+    brideName?: string;
+  } | null>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = React.useState(false);
-  const [isAssigning, setIsAssigning] = React.useState(false);
-  const [penghulus, setPenghulus] = React.useState<any[]>([]);
-
-  React.useEffect(() => {
-    // Load available penghulus from localStorage
-    try {
-      const storedPenghulus = JSON.parse(localStorage.getItem('penghulus') || '[]');
-      setPenghulus(storedPenghulus);
-    } catch (error) {
-      console.error('Error loading penghulus:', error);
-    }
-  }, []);
-
-  const handleAssign = async (penghuluId: string) => {
-    if (!selectedRegistration) return;
-
-    setIsAssigning(true);
-    try {
-      // Get the selected penghulu
-      const penghulu = penghulus.find(p => p.id === penghuluId);
-      if (!penghulu) throw new Error('Penghulu tidak ditemukan');
-
-      console.log('🔍 DEBUG: Assigning registration', {
-        registrationId: selectedRegistration.id,
-        penghuluId: penghulu.id,
-        penghuluName: penghulu.name,
-      });
-
-      // Get all registrations
-      const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
-      const index = registrations.findIndex((r: any) => r.id === selectedRegistration.id);
-      
-      if (index !== -1) {
-        // Update the registration with penghulu assignment and new status
-        const updatedRegistration = {
-          ...registrations[index],
-          penghulu: penghulu.name,
-          penghuluId: penghulu.id,
-          status: 'Menunggu Verifikasi Penghulu', // Change status from 'Disetujui' to 'Menunggu Verifikasi Penghulu'
-          assignedAt: new Date().toISOString()
-        };
-        
-        registrations[index] = updatedRegistration;
-
-        // Save back to localStorage
-        localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
-        console.log('✅ Registration updated in localStorage:', updatedRegistration);
-        console.log('📊 DEBUG: Updated penghuluId in storage:', penghulu.id);
-
-        // Add notification for the couple
-        const userNotif = {
-          id: `notif_${Date.now()}`,
-          title: 'Penghulu Ditugaskan',
-          description: `Penghulu ${penghulu.name} telah ditugaskan untuk acara nikah Anda.`,
-          type: 'info',
-          read: false,
-          registrationId: selectedRegistration.id,
-          createdAt: new Date().toISOString()
-        };
-
-        const userNotifications = JSON.parse(localStorage.getItem(`notifications_${selectedRegistration.id}`) || '[]');
-        userNotifications.unshift(userNotif);
-        localStorage.setItem(`notifications_${selectedRegistration.id}`, JSON.stringify(userNotifications));
-        console.log('✅ User notification added');
-
-        // Add notification for the penghulu
-        const penghuluNotif = {
-          id: `penghulu_notif_${Date.now()}`,
-          title: 'Penugasan Baru',
-          description: `Anda ditugaskan untuk memverifikasi acara nikah ${selectedRegistration.groomName} & ${selectedRegistration.brideName} pada ${selectedRegistration.weddingDate}`,
-          type: 'info',
-          read: false,
-          registrationId: selectedRegistration.id,
-          createdAt: new Date().toISOString()
-        };
-
-        const penghuluNotifications = JSON.parse(localStorage.getItem(`penghulu_notifications`) || '[]');
-        penghuluNotifications.unshift(penghuluNotif);
-        localStorage.setItem(`penghulu_notifications`, JSON.stringify(penghuluNotifications));
-        console.log('✅ Penghulu notification added');
-        console.log('📊 DEBUG: Notif stored for penghuluId:', penghulu.id);
-
-        // Close dialog and refresh
-        setIsAssignDialogOpen(false);
-        alert(`✅ Penghulu ${penghulu.name} berhasil ditugaskan!`);
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Error assigning penghulu:', error);
-      alert('Gagal menugaskan penghulu. Silakan coba lagi.');
-    } finally {
-      setIsAssigning(false);
-    }
-  };
+  
+  // Role guard - hanya Kepala KUA yang bisa assign penghulu
+  const canAssign = isKepalaKUA(userRole);
 
   if (!data.length) {
     return (
@@ -154,11 +64,11 @@ export function PendingAssignmentsTable({ data }: PendingAssignmentsTableProps) 
         <TableBody>
           {data.map((registration) => (
             <TableRow key={registration.id}>
-              <TableCell>{registration.id}</TableCell>
+              <TableCell>{registration.nomorPendaftaran || registration.id}</TableCell>
               <TableCell>{registration.groomName}</TableCell>
               <TableCell>{registration.brideName}</TableCell>
               <TableCell>
-                {format(new Date(registration.weddingDate), "EEEE, dd MMMM yyyy", { locale: IndonesianLocale })}
+                {registration.weddingDate ? format(new Date(registration.weddingDate), "EEEE, dd MMMM yyyy", { locale: IndonesianLocale }) : '-'}
               </TableCell>
               <TableCell>
                 <DropdownMenu>
@@ -170,10 +80,22 @@ export function PendingAssignmentsTable({ data }: PendingAssignmentsTableProps) 
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => {
-                      setSelectedRegistration(registration);
-                      setIsAssignDialogOpen(true);
-                    }}>
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        if (!canAssign) {
+                          alert(getUnauthorizedMessage('ASSIGN_PENGHULU'));
+                          return;
+                        }
+                        setSelectedRegistration({
+                          id: registration.id,
+                          registrationNumber: registration.id,
+                          groomName: registration.groomName,
+                          brideName: registration.brideName,
+                        });
+                        setIsAssignDialogOpen(true);
+                      }}
+                      disabled={!canAssign}
+                    >
                       <UserCheck className="mr-2 h-4 w-4" />
                       Tugaskan Penghulu
                     </DropdownMenuItem>
@@ -185,51 +107,18 @@ export function PendingAssignmentsTable({ data }: PendingAssignmentsTableProps) 
         </TableBody>
       </Table>
 
-      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Tugaskan Penghulu</DialogTitle>
-            <DialogDescription>
-              Pilih penghulu untuk ditugaskan pada acara nikah ini.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            {penghulus.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground">
-                Tidak ada penghulu yang tersedia.
-              </p>
-            ) : (
-              <div className="grid gap-4">
-                {penghulus.map((penghulu) => (
-                  <Button
-                    key={penghulu.id}
-                    variant="outline"
-                    className="justify-start"
-                    disabled={isAssigning}
-                    onClick={() => handleAssign(penghulu.id)}
-                  >
-                    <UserCheck className="mr-2 h-4 w-4" />
-                    {penghulu.name}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsAssignDialogOpen(false)} disabled={isAssigning}>
-              Batal
-            </Button>
-            {isAssigning && (
-              <Button disabled>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Menugaskan...
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AssignPenghuluDialog
+        open={isAssignDialogOpen}
+        onOpenChange={setIsAssignDialogOpen}
+        registrationId={selectedRegistration?.id || ''}
+        registrationNumber={selectedRegistration?.registrationNumber}
+        groomName={selectedRegistration?.groomName}
+        brideName={selectedRegistration?.brideName}
+        onSuccess={() => {
+          // Reload page to show updated data
+          window.location.reload();
+        }}
+      />
     </>
   );
 }

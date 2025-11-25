@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { DialogTrigger } from "@/components/ui/dialog"
-
+import { useAuth } from "@/context/AuthContext"
 
 import type { User } from "@/lib/admin-data"
 
@@ -110,6 +110,7 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ data }: UsersTableProps) {
+  const { userRole } = useAuth();
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
@@ -139,12 +140,15 @@ export function UsersTable({ data }: UsersTableProps) {
             }
             className="max-w-sm"
             />
-            <DialogTrigger asChild>
-              <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Tambah Pengguna
-              </Button>
-            </DialogTrigger>
+            {/* Hanya kepala_kua yang bisa menambahkan pengguna */}
+            {userRole === 'kepala_kua' && (
+              <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Tambah Pengguna
+                </Button>
+              </DialogTrigger>
+            )}
       </div>
       <div className="rounded-md border">
         <Table>

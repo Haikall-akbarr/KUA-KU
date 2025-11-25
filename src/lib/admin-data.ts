@@ -67,6 +67,8 @@ export const users: User[] = [
 ];
 
 
+import type { RegistrationStatus } from './registration-status';
+
 export type MarriageRegistration = {
   id: string;
   groomName: string;
@@ -75,7 +77,7 @@ export type MarriageRegistration = {
   weddingDate: string;
   weddingTime?: string;
   weddingLocation?: string;
-  status: "Menunggu Verifikasi" | "Disetujui" | "Ditolak" | "Selesai";
+  status: RegistrationStatus;
   penghulu?: string | null;
 };
 

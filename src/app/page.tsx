@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, ADMIN_ROLES } from '@/context/AuthContext';
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { ServiceSection } from "@/components/kuaku/ServiceSection";
@@ -13,8 +13,6 @@ import { HeroSection } from "@/components/kuaku/HeroSection";
 import { AvailabilityCalendar } from "@/components/kuaku/AvailabilityCalendar";
 import { Loader2 } from 'lucide-react';
 
-const ADMIN_ROLES = ['Staff KUA', 'Kepala KUA', 'Administrator', 'Penghulu'];
-
 export default function HomePage() {
   const { user, userRole, loading } = useAuth();
   const router = useRouter();
@@ -24,18 +22,27 @@ export default function HomePage() {
       return; // Tunggu sampai loading selesai
     }
 
-    if (!user) {
-      // Jika tidak ada user, alihkan ke halaman login
-      router.push('/login');
-    } else if (userRole && ADMIN_ROLES.includes(userRole)) {
-      // Jika user memiliki peran admin, alihkan ke dashboard admin
-      router.push('/admin');
+    // Jika user adalah admin role, redirect ke dashboard admin
+    if (user && userRole && ADMIN_ROLES.includes(userRole)) {
+      // Redirect berdasarkan role spesifik
+      if (userRole === 'kepala_kua') {
+        router.push('/admin/kepala');
+      } else if (userRole === 'staff') {
+        router.push('/admin/staff');
+      } else if (userRole === 'penghulu') {
+        router.push('/penghulu');
+      } else {
+        router.push('/admin');
+      }
+      return;
     }
-    // Jika user adalah 'Calon Pengantin' atau peran non-admin lainnya, biarkan di halaman utama.
+
+    // Jika user_biasa atau role non-admin lainnya, biarkan di homepage
+    // Tidak perlu redirect ke login jika sudah login
   }, [user, userRole, loading, router]);
 
-  // Tampilkan layar pemuatan saat memeriksa status otentikasi atau saat mengalihkan
-  if (loading || !user || (userRole && ADMIN_ROLES.includes(userRole))) {
+  // Tampilkan loading hanya saat masih loading atau saat redirect admin
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-12 w-12" />
@@ -43,7 +50,16 @@ export default function HomePage() {
     );
   }
 
-  // Render konten halaman utama untuk pengguna non-admin
+  // Jika user adalah admin, tampilkan loading saat redirect
+  if (user && userRole && ADMIN_ROLES.includes(userRole)) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-12 w-12" />
+      </div>
+    );
+  }
+
+  // Render konten halaman utama untuk semua user (termasuk user_biasa yang sudah login)
   return (
     <>
       <AppHeader />

@@ -62,7 +62,7 @@ const FieldErrorMessage = ({ name }: { name: string }) => {
 
 
 const Step1 = () => {
-    const { control, watch, setValue } = useFormContext<FullFormData>();
+    const { control, watch, setValue, trigger } = useFormContext<FullFormData>();
     const [weddingDateOpen, setWeddingDateOpen] = useState(false);
 
     const selectedProvince = watch("province");
@@ -71,8 +71,12 @@ const Step1 = () => {
     const weddingLocation = watch("weddingLocation");
     const weddingDate = watch("weddingDate");
 
-    const regencies = selectedProvince ? kalimantanData.find(p => p.name === selectedProvince)?.regencies || [] : [];
-    const districts = selectedRegency ? regencies.find(r => r.name === selectedRegency)?.districts || [] : [];
+    const regencies = selectedProvince && Array.isArray(kalimantanData) 
+        ? (kalimantanData.find(p => p.name === selectedProvince)?.regencies || [])
+        : [];
+    const districts = selectedRegency && Array.isArray(regencies)
+        ? (regencies.find(r => r.name === selectedRegency)?.districts || [])
+        : [];
 
     useEffect(() => {
         if (selectedDistrict) {
@@ -107,9 +111,49 @@ const Step1 = () => {
     
     const availableTimes = getAvailableTimes();
 
+    // Calculate working days (exclude weekends)
+    const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
+        let workingDays = 0;
+        const current = new Date(startDate);
+        current.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(0, 0, 0, 0);
+        
+        while (current <= end) {
+            const dayOfWeek = getDay(current);
+            // Monday = 1, Friday = 5, Saturday = 6, Sunday = 0
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                workingDays++;
+            }
+            current.setDate(current.getDate() + 1);
+        }
+        return workingDays;
+    };
+
+    // Check if dispensasi is required (less than 10 working days)
+    const isDispensasiRequired = (): boolean => {
+        if (!weddingDate) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const wedding = new Date(weddingDate);
+        wedding.setHours(0, 0, 0, 0);
+        
+        if (wedding <= today) return false; // Past date
+        
+        const workingDays = calculateWorkingDays(today, wedding);
+        return workingDays < 10;
+    };
+
+    const dispensasiRequired = isDispensasiRequired();
+
     const handleDateSelect = (date: Date | undefined) => {
         if (!date) return;
         setValue("weddingDate", date, { shouldValidate: true });
+        
+        // Trigger validation for dispensasi field when date changes
+        setTimeout(() => {
+            trigger('dispensationNumber');
+        }, 100);
 
         const currentTime = watch('weddingTime');
         let newAvailableTimes: string[] = [];
@@ -150,7 +194,9 @@ const Step1 = () => {
                         <Select onValueChange={(value) => { field.onChange(value); setValue('regency', ''); setValue('district', ''); }} value={field.value} disabled>
                             <SelectTrigger id="province"><SelectValue placeholder="Pilih Provinsi" /></SelectTrigger>
                             <SelectContent>
-                                {kalimantanData.map(p => <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>)}
+                                {Array.isArray(kalimantanData) && kalimantanData.length > 0
+                                    ? kalimantanData.map(p => <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>)
+                                    : null}
                             </SelectContent>
                         </Select>
                     )} />
@@ -162,7 +208,9 @@ const Step1 = () => {
                         <Select onValueChange={(value) => { field.onChange(value); setValue('district', ''); }} value={field.value} disabled>
                             <SelectTrigger id="regency"><SelectValue placeholder="Pilih Kabupaten/Kota" /></SelectTrigger>
                             <SelectContent>
-                                {regencies.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
+                                {Array.isArray(regencies) && regencies.length > 0
+                                    ? regencies.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)
+                                    : null}
                             </SelectContent>
                         </Select>
                     )} />
@@ -174,7 +222,9 @@ const Step1 = () => {
                         <Select onValueChange={field.onChange} value={field.value} disabled>
                             <SelectTrigger id="district"><SelectValue placeholder="Pilih Kecamatan" /></SelectTrigger>
                             <SelectContent>
-                                {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                {Array.isArray(districts) && districts.length > 0
+                                    ? districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)
+                                    : null}
                             </SelectContent>
                         </Select>
                     )} />
@@ -204,8 +254,32 @@ const Step1 = () => {
                      <FieldErrorMessage name="weddingLocation" />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="dispensationNumber">No. Surat Dispensasi Kecamatan (jika ada)</Label>
-                    <Controller name="dispensationNumber" control={control} render={({ field }) => <Input {...field} value={field.value || ''} placeholder="No. Surat Dispensasi" />} />
+                    <Label htmlFor="dispensationNumber">
+                        No. Surat Dispensasi Kecamatan
+                        {dispensasiRequired && <span className="text-destructive"> *</span>}
+                        {!dispensasiRequired && ' (jika ada)'}
+                    </Label>
+                    {dispensasiRequired && (
+                        <p className="text-xs text-amber-600 mb-1">
+                            ⚠️ Wajib diisi karena tanggal nikah kurang dari 10 hari kerja
+                        </p>
+                    )}
+                    <Controller 
+                        name="dispensationNumber" 
+                        control={control} 
+                        rules={{
+                            required: dispensasiRequired ? 'Nomor surat dispensasi wajib diisi jika tanggal nikah kurang dari 10 hari kerja' : false
+                        }}
+                        render={({ field }) => (
+                            <Input 
+                                {...field} 
+                                value={field.value || ''} 
+                                placeholder="No. Surat Dispensasi" 
+                                className={dispensasiRequired && !field.value ? 'border-amber-500' : ''}
+                            />
+                        )} 
+                    />
+                    <FieldErrorMessage name="dispensationNumber" />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="weddingDate">Tanggal Akad <span className="text-destructive">*</span></Label>
@@ -224,11 +298,12 @@ const Step1 = () => {
                                     disabled={(date) => {
                                         const today = new Date();
                                         today.setHours(0,0,0,0);
-                                        if (date < addDays(today, 10)) return true;
+                                        // Allow all future dates, but validate working days
+                                        if (date < today) return true; // Only block past dates
                                         if (date > addMonths(today, 3)) return true;
                                         if (weddingLocation === 'Di KUA') {
                                             const day = getDay(date);
-                                            return day === 0 || day === 6;
+                                            return day === 0 || day === 6; // Block weekends for Di KUA
                                         }
                                         return false;
                                     }}

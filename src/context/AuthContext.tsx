@@ -43,63 +43,86 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true); // Mulai dengan loading
   const router = useRouter();
 
-  // Efek ini berjalan saat aplikasi dimuat:
-  // Memeriksa localStorage untuk menjaga user tetap login
-  useEffect(() => {
-    try {
-      // --- PERBAIKAN: Karakter '_' yang nyasar telah dihapus ---
-      const storedUser = localStorage.getItem('user');
-      const storedToken = localStorage.getItem('token');
-      
-      if (storedUser && storedToken) {
-        const parsedUser: ApiUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        setToken(storedToken);
-        setUserRole(parsedUser.role);
-      }
-    } catch (error) {
-      console.error("Gagal memuat auth dari localStorage", error);
-      // Hapus data korup jika ada
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-    } finally {
-      setLoading(false); // Selesai loading
-    }
-  }, []);
-
-  // Fungsi untuk dipanggil dari LoginForm
-  const login = (apiUser: ApiUser, apiToken: string) => {
-    setUser(apiUser);
-    setToken(apiToken);
-    setUserRole(apiUser.role);
-    
-    // Simpan ke localStorage
-    localStorage.setItem('user', JSON.stringify(apiUser));
-    localStorage.setItem('token', apiToken);
+  // Efek ini berjalan saat aplikasi dimuat:
+  // Memeriksa localStorage untuk menjaga user tetap login
+  useEffect(() => {
+    let isMounted = true;
     
-    // Pengarahan setelah login berdasarkan role (fallback jika komponen login tidak mengarahkan)
-    try {
-      switch (apiUser.role) {
-        case 'kepala_kua':
-          router.push('/admin/kepala');
-          break;
-        case 'staff':
-          router.push('/admin');
-          break;
-        case 'penghulu':
-          router.push('/penghulu');
-          break;
-        case 'administrator':
-          router.push('/admin');
-          break;
-        default:
-          router.push('/');
+    // Add timeout to ensure loading never gets stuck
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.warn('⚠️ AuthContext loading timeout - forcing loading to false');
+        setLoading(false);
       }
-    } catch (err) {
-      // Jika router belum siap atau terjadi kesalahan, biarkan pemanggil yang mengarahkan
-      console.warn('Redirect after login failed or deferred:', err);
+    }, 3000); // 3 second timeout
+
+    try {
+      // Check if we're in browser environment
+      if (typeof window === 'undefined') {
+        if (isMounted) {
+          setLoading(false);
+        }
+        return;
+      }
+
+      // --- PERBAIKAN: Karakter '_' yang nyasar telah dihapus ---
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('token');
+      
+      if (storedUser && storedToken) {
+        try {
+          const parsedUser: ApiUser = JSON.parse(storedUser);
+          if (isMounted) {
+            setUser(parsedUser);
+            setToken(storedToken);
+            setUserRole(parsedUser.role);
+          }
+        } catch (parseError) {
+          console.error("Gagal parse user dari localStorage", parseError);
+          // Hapus data korup jika ada
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+        }
+      }
+    } catch (error) {
+      console.error("Gagal memuat auth dari localStorage", error);
+      // Hapus data korup jika ada
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    } finally {
+      clearTimeout(timeoutId);
+      if (isMounted) {
+        setLoading(false); // Selesai loading
+      }
     }
-  };
+    
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  // Fungsi untuk dipanggil dari LoginForm
+  const login = (apiUser: ApiUser, apiToken: string) => {
+    // Validate user object before setting
+    if (!apiUser || !apiUser.role || !apiUser.user_id) {
+      console.error('❌ Invalid user object passed to login:', apiUser);
+      throw new Error('Invalid user object: missing required fields (role, user_id)');
+    }
+    
+    setUser(apiUser);
+    setToken(apiToken);
+    setUserRole(apiUser.role);
+    
+    // Simpan ke localStorage
+    localStorage.setItem('user', JSON.stringify(apiUser));
+    localStorage.setItem('token', apiToken);
+    
+    // Catatan: Redirect ditangani oleh LoginForm dengan setTimeout untuk memastikan
+    // state sudah ter-update dan menghindari konflik redirect
+  };
 
   // Fungsi untuk logout
   const logout = () => {

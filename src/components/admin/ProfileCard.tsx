@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
+import { getProfile, handleApiError } from "@/lib/simnikah-api";
 
 interface ProfileData {
     user_id: string;
@@ -30,22 +31,12 @@ export function ProfileCard() {
             }
 
             try {
-                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production.up.railway.app';
-                const response = await fetch(`${apiBase}/profile`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error('Gagal mengambil data profil');
-                }
-
-                const data = await response.json();
-                setProfile(data.user);
+                const result = await getProfile();
+                setProfile(result.user);
                 setError(null);
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+                const errorMessage = handleApiError(err);
+                setError(errorMessage);
             } finally {
                 setLoading(false);
             }

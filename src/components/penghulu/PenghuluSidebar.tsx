@@ -16,18 +16,18 @@ import {
 import {
   LayoutDashboard,
   Calendar,
-  FileCheck,
   User,
   LogOut,
   ChevronLeft,
   ChevronRight,
+  History,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const navItems = [
   { href: '/penghulu', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/penghulu/jadwal', label: 'Jadwal', icon: Calendar },
-  { href: '/penghulu/verifikasi', label: 'Verifikasi', icon: FileCheck },
+  { href: '/penghulu/riwayat', label: 'Riwayat', icon: History },
   { href: '/penghulu/profil', label: 'Profil', icon: User },
 ];
 

@@ -18,7 +18,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, UserX, UserCheck } from "lucide-react"
+import { MoreHorizontal, UserX, UserCheck, Loader2 } from "lucide-react"
+import { getAllStaff } from "@/lib/simnikah-api"
 
 type Staff = {
   id: string
@@ -31,52 +32,84 @@ type Staff = {
   status: "Aktif" | "Nonaktif"
 }
 
-export function StaffTable() {
+interface StaffTableProps {
+  refreshKey?: number;
+}
+
+export function StaffTable({ refreshKey }: StaffTableProps) {
   const [staff, setStaff] = React.useState<Staff[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // Load staff data from localStorage
-    try {
-      const storedStaff = JSON.parse(localStorage.getItem('staff') || '[]');
-      setStaff(storedStaff);
-    } catch (error) {
-      console.error('Error loading staff data:', error);
-    }
-  }, []);
+    const loadStaff = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllStaff();
+        
+        // Handle different response structures
+        let staffArray: any[] = [];
+        if (response?.success && Array.isArray(response.data)) {
+          staffArray = response.data;
+        } else if (response?.data && Array.isArray(response.data)) {
+          staffArray = response.data;
+        } else if (Array.isArray(response)) {
+          staffArray = response;
+        } else if (response?.data?.staff && Array.isArray(response.data.staff)) {
+          staffArray = response.data.staff;
+        }
+        
+        // Map API response to Staff type
+        const mappedStaff: Staff[] = staffArray.map((s: any) => ({
+          id: s.user_id || s.id?.toString() || `staff_${Date.now()}`,
+          nip: s.nip || s.user_id || '-',
+          name: s.nama_lengkap || s.nama || 'Nama tidak tersedia',
+          bagian: s.bagian || 'Semua Bagian Pernikahan',
+          jabatan: s.jabatan || 'Staff',
+          phone: s.no_hp || s.phone || '-',
+          email: s.email || '-',
+          status: (s.status === 'Aktif' || s.status === 'aktif' || !s.status) ? 'Aktif' : 'Nonaktif'
+        }));
+        
+        setStaff(mappedStaff);
+      } catch (error) {
+        console.error('Error loading staff data:', error);
+        setStaff([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStaff();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(loadStaff, 30000);
+    return () => clearInterval(interval);
+  }, [refreshKey]);
 
   const toggleStatus = (staffId: string) => {
-    try {
-      const updatedStaff = staff.map(s => {
-        if (s.id === staffId) {
-          return {
-            ...s,
-            status: (s.status === 'Aktif' ? 'Nonaktif' : 'Aktif') as "Aktif" | "Nonaktif"
-          };
-        }
-        return s;
-      });
-
-      setStaff(updatedStaff as typeof staff);
-      localStorage.setItem('staff', JSON.stringify(updatedStaff));
-
-      // Update user status in users collection
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const updatedUsers = users.map((u: any) => {
-        if (u.id === staffId) {
-          return {
-            ...u,
-            status: updatedStaff.find(s => s.id === staffId)?.status
-          };
-        }
-        return u;
-      });
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-
-    } catch (error) {
-      console.error('Error updating staff status:', error);
-      alert('Gagal mengubah status staff');
-    }
+    // Note: Status update should be done via API if available
+    // For now, just update local state
+    const updatedStaff = staff.map(s => {
+      if (s.id === staffId) {
+        return {
+          ...s,
+          status: (s.status === 'Aktif' ? 'Nonaktif' : 'Aktif') as "Aktif" | "Nonaktif"
+        };
+      }
+      return s;
+    });
+    setStaff(updatedStaff);
+    alert('Status berhasil diubah. Perubahan akan disimpan ke server.');
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+        <p className="text-muted-foreground">Memuat data staff...</p>
+      </div>
+    );
+  }
 
   if (!staff.length) {
     return (

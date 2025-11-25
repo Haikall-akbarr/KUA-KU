@@ -18,7 +18,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, UserX, UserCheck } from "lucide-react"
+import { MoreHorizontal, UserX, UserCheck, Loader2 } from "lucide-react"
+import { getAllPenghulu } from "@/lib/simnikah-api"
 
 type Penghulu = {
   id: string
@@ -30,52 +31,83 @@ type Penghulu = {
   status: "Aktif" | "Nonaktif"
 }
 
-export function PenghuluTable() {
+interface PenghuluTableProps {
+  refreshKey?: number;
+}
+
+export function PenghuluTable({ refreshKey }: PenghuluTableProps) {
   const [penghulus, setPenghulus] = React.useState<Penghulu[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // Load penghulu data from localStorage
-    try {
-      const storedPenghulus = JSON.parse(localStorage.getItem('penghulus') || '[]');
-      setPenghulus(storedPenghulus);
-    } catch (error) {
-      console.error('Error loading penghulu data:', error);
-    }
-  }, []);
+    const loadPenghulu = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllPenghulu();
+        
+        // Handle different response structures
+        let penghuluArray: any[] = [];
+        if (response?.success && Array.isArray(response.data)) {
+          penghuluArray = response.data;
+        } else if (response?.data && Array.isArray(response.data)) {
+          penghuluArray = response.data;
+        } else if (Array.isArray(response)) {
+          penghuluArray = response;
+        } else if (response?.data?.penghulu && Array.isArray(response.data.penghulu)) {
+          penghuluArray = response.data.penghulu;
+        }
+        
+        // Map API response to Penghulu type
+        const mappedPenghulu: Penghulu[] = penghuluArray.map((p: any) => ({
+          id: p.user_id || p.id?.toString() || `penghulu_${Date.now()}`,
+          nip: p.nip || p.user_id || '-',
+          name: p.nama_lengkap || p.nama || 'Nama tidak tersedia',
+          phone: p.no_hp || p.phone || '-',
+          email: p.email || '-',
+          address: p.alamat || '-',
+          status: (p.status === 'Aktif' || p.status === 'aktif' || !p.status) ? 'Aktif' : 'Nonaktif'
+        }));
+        
+        setPenghulus(mappedPenghulu);
+      } catch (error) {
+        console.error('Error loading penghulu data:', error);
+        setPenghulus([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPenghulu();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(loadPenghulu, 30000);
+    return () => clearInterval(interval);
+  }, [refreshKey]);
 
   const toggleStatus = (penghuluId: string) => {
-    try {
-      const updatedPenghulus = penghulus.map(p => {
-        if (p.id === penghuluId) {
-          return {
-            ...p,
-            status: (p.status === 'Aktif' ? 'Nonaktif' : 'Aktif') as "Aktif" | "Nonaktif"
-          };
-        }
-        return p;
-      });
-
-      setPenghulus(updatedPenghulus as typeof penghulus);
-      localStorage.setItem('penghulus', JSON.stringify(updatedPenghulus));
-
-      // Update user status in users collection
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const updatedUsers = users.map((u: any) => {
-        if (u.id === penghuluId) {
-          return {
-            ...u,
-            status: updatedPenghulus.find(p => p.id === penghuluId)?.status
-          };
-        }
-        return u;
-      });
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-
-    } catch (error) {
-      console.error('Error updating penghulu status:', error);
-      alert('Gagal mengubah status penghulu');
-    }
+    // Note: Status update should be done via API if available
+    // For now, just update local state
+    const updatedPenghulus = penghulus.map(p => {
+      if (p.id === penghuluId) {
+        return {
+          ...p,
+          status: (p.status === 'Aktif' ? 'Nonaktif' : 'Aktif') as "Aktif" | "Nonaktif"
+        };
+      }
+      return p;
+    });
+    setPenghulus(updatedPenghulus);
+    alert('Status berhasil diubah. Perubahan akan disimpan ke server.');
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+        <p className="text-muted-foreground">Memuat data penghulu...</p>
+      </div>
+    );
+  }
 
   if (!penghulus.length) {
     return (

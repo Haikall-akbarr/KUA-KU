@@ -3,6 +3,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { AppFooter } from '@/components/layout/AppFooter';
 import { SectionWrapper } from '@/components/shared/SectionWrapper';
@@ -11,9 +12,9 @@ import { searchableData, type SearchableItem } from '@/lib/search-data';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search as SearchIcon, ExternalLink } from 'lucide-react';
+import { Search as SearchIcon, ExternalLink, Loader2 } from 'lucide-react';
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryParam = searchParams.get('query') || '';
@@ -124,5 +125,17 @@ export default function SearchPage() {
       </main>
       <AppFooter />
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <SearchPageContent />
+    </Suspense>
   );
 }

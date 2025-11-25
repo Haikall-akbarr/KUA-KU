@@ -20,13 +20,16 @@ export default function GuidancePage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Bimbingan Perkawinan</h1>
           <p className="text-muted-foreground">
-            Buat dan kelola sesi bimbingan perkawinan (Bimwin).
+            Fitur ini tidak tersedia karena endpoint bimbingan tidak ada di dokumentasi API.
           </p>
         </div>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Buat Sesi Baru
-        </Button>
+      </div>
+      
+      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+        <p className="text-sm text-yellow-800">
+          ⚠️ Fitur bimbingan perkawinan tidak tersedia karena endpoint API tidak ada di dokumentasi.
+          Silakan gunakan fitur lain yang tersedia.
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

@@ -2,80 +2,73 @@
 'use client';
 
 import { RegistrationsTable } from '@/components/admin/RegistrationsTable';
-import { marriageRegistrations as initialData, type MarriageRegistration } from '@/lib/admin-data';
+import { type MarriageRegistration } from '@/lib/admin-data';
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { isStaffOrKepalaKUA, getUnauthorizedMessage } from '@/lib/role-guards';
+import { getAllRegistrations, handleApiError } from '@/lib/simnikah-api';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 export default function RegistrationsPage() {
+  const { userRole, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [registrations, setRegistrations] = useState<MarriageRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [staffNotifications, setStaffNotifications] = useState<any[]>([]);
 
-  // Load data on mount and after any localStorage changes
-  const loadRegistrations = () => {
+  // Role guard - hanya Staff atau Kepala KUA
+  useEffect(() => {
+    if (authLoading) return;
+    
+    if (!isStaffOrKepalaKUA(userRole)) {
+      console.warn('RegistrationsPage: Akses ditolak. Role:', userRole);
+      router.push('/admin');
+      return;
+    }
+  }, [userRole, authLoading, router]);
+
+  // Load data from API - Sederhana sesuai struktur backend
+  const loadRegistrations = async () => {
     try {
-      const storedData = localStorage.getItem('marriageRegistrations');
-      let localRegistrations: MarriageRegistration[] = [];
+      setLoading(true);
+      const response = await getAllRegistrations({
+        page: 1,
+        limit: 1000,
+      });
       
-      if (storedData) {
-        try {
-          localRegistrations = JSON.parse(storedData);
-          if (!Array.isArray(localRegistrations)) {
-            console.error('Stored registrations is not an array');
-            localRegistrations = [];
-          }
-        } catch (e) {
-          console.error('Error parsing stored registrations:', e);
-          localRegistrations = [];
-        }
+      // Struktur response: { success, data: [...] } (data sudah array dari getAllRegistrations)
+      const registrationsArray = Array.isArray(response.data) ? response.data : [];
+      
+      if (response.success && registrationsArray.length > 0) {
+        // Map langsung sesuai struktur backend
+        const mappedRegs: MarriageRegistration[] = registrationsArray.map((reg: any) => ({
+          id: reg.nomor_pendaftaran || reg.id,
+          groomName: reg.calon_suami?.nama_lengkap || 'Data tidak tersedia',
+          brideName: reg.calon_istri?.nama_lengkap || 'Data tidak tersedia',
+          registrationDate: reg.tanggal_pendaftaran || reg.created_at,
+          weddingDate: reg.tanggal_nikah || '',
+          weddingTime: reg.waktu_nikah || '',
+          weddingLocation: reg.tempat_nikah || '',
+          status: reg.status_pendaftaran || 'Menunggu Penugasan',
+          penghulu: reg.penghulu?.nama_lengkap || reg.penghulu?.nama || null,
+        }));
+        
+        // Sort by registration date (newest first)
+        mappedRegs.sort((a, b) => {
+          const dateA = new Date(a.registrationDate).getTime();
+          const dateB = new Date(b.registrationDate).getTime();
+          return dateB - dateA;
+        });
+        
+        setRegistrations(mappedRegs);
+      } else {
+        setRegistrations([]);
       }
-      
-      // Pastikan data yang ada formatnya benar dan lengkap
-      localRegistrations = localRegistrations.map(reg => {
-        if (!reg || typeof reg !== 'object') return null;
-
-        return {
-          id: reg.id || `reg_${Date.now()}`,
-          groomName: reg.groomName || '',
-          brideName: reg.brideName || '',
-          registrationDate: reg.registrationDate || new Date().toISOString(),
-          weddingDate: reg.weddingDate || '',
-          weddingTime: reg.weddingTime || '',
-          weddingLocation: reg.weddingLocation || '',
-          status: reg.status || "Menunggu Verifikasi",
-          penghulu: reg.penghulu || null
-        };
-      }).filter(reg => reg !== null) as MarriageRegistration[];
-      
-      // Combine initial data with local storage data, avoiding duplicates
-      const combinedDataMap = new Map<string, MarriageRegistration>();
-
-      // Add initial data first
-      initialData.forEach(item => {
-        combinedDataMap.set(item.id, item);
-      });
-
-      // Override with local data if it exists
-      localRegistrations.forEach(item => {
-        combinedDataMap.set(item.id, item);
-      });
-      
-      const combinedData = Array.from(combinedDataMap.values());
-
-      // Sort by registration date, newest first
-      combinedData.sort((a, b) => 
-        new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()
-      );
-
-      setRegistrations(combinedData);
-      
-      // Save the combined data back to localStorage
-      localStorage.setItem('marriageRegistrations', JSON.stringify(combinedData));
-      
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load registration data:", error);
-      setRegistrations(initialData); // Fallback to initial data
+      setRegistrations([]);
     } finally {
       setLoading(false);
     }
@@ -83,20 +76,10 @@ export default function RegistrationsPage() {
 
   // Load registrations on mount
   useEffect(() => {
-    loadRegistrations();
-  }, []);
-
-  // Set up storage event listener to reload data when localStorage changes
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'marriageRegistrations') {
-        loadRegistrations();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    if (isStaffOrKepalaKUA(userRole)) {
+      loadRegistrations();
+    }
+  }, [userRole]);
 
   // Load staff notifications
   useEffect(() => {
@@ -110,7 +93,22 @@ export default function RegistrationsPage() {
     }
   }, []);
 
-  if (loading) {
+  // Show unauthorized message if not Staff or Kepala KUA
+  if (!authLoading && !isStaffOrKepalaKUA(userRole)) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Akses Ditolak</AlertTitle>
+          <AlertDescription>
+            {getUnauthorizedMessage('GET_ALL_REGISTRATIONS')}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (loading || authLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

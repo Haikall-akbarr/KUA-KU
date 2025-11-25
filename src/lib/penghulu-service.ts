@@ -1,10 +1,12 @@
 /**
  * Penghulu Service Layer
  * Handles all API calls related to Penghulu dashboard functionality
- * API Base: https://simnikah-api-production.up.railway.app
+ * API Base: https://simnikah-api-production-5583.up.railway.app
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production.up.railway.app';
+import { getAssignedRegistrations as getAssignedRegistrationsAPI, verifyDocuments, handleApiError } from './simnikah-api';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
@@ -81,15 +83,98 @@ export interface VerificationResult {
  */
 export const getAssignedRegistrations = async (): Promise<AssignedRegistration[]> => {
   try {
-    // First try to get from localStorage (marriageRegistrations)
+    // Call API to get assigned registrations
+    const response = await getAssignedRegistrationsAPI().catch((err) => {
+      console.error('❌ Error calling getAssignedRegistrationsAPI:', err);
+      // Return empty structure to prevent crash
+      return { success: false, data: [] };
+    });
+    
+    console.log('🔍 API Response for assigned registrations:', response);
+    
+    // Check if response is valid (not HTML error page)
+    if (!response || (typeof response === 'string' && response.trim().startsWith('<'))) {
+      console.warn('⚠️ API returned HTML instead of JSON, using cached data');
+      const cached = getCachedAssignedRegistrations();
+      return cached.length > 0 ? cached : [];
+    }
+    
+    // Map API response to AssignedRegistration format
+    if (response && response.data && Array.isArray(response.data)) {
+      const mappedRegs: AssignedRegistration[] = response.data.map((reg: any) => ({
+        id: reg.nomor_pendaftaran || reg.id || `reg_${Date.now()}`,
+        nomor_pendaftaran: reg.nomor_pendaftaran || reg.id || '',
+        status_pendaftaran: reg.status_pendaftaran || reg.status || 'Menunggu Verifikasi Penghulu',
+        tanggal_nikah: reg.tanggal_nikah || reg.weddingDate || '',
+        waktu_nikah: reg.waktu_nikah || reg.weddingTime || '',
+        tempat_nikah: reg.tempat_nikah || reg.weddingLocation || '',
+        calon_suami: {
+          nama_lengkap: reg.calon_suami?.nama_lengkap || reg.groomName || '',
+          nik: reg.calon_suami?.nik || reg.groomNik || ''
+        },
+        calon_istri: {
+          nama_lengkap: reg.calon_istri?.nama_lengkap || reg.brideName || '',
+          nik: reg.calon_istri?.nik || reg.brideNik || ''
+        }
+      }));
+      
+      // Cache the results
+      cacheAssignedRegistrations(mappedRegs);
+      return mappedRegs;
+    }
+    
+    // If response.data is array directly (not wrapped)
+    if (Array.isArray(response.data)) {
+      const mappedRegs: AssignedRegistration[] = response.data.map((reg: any) => ({
+        id: reg.nomor_pendaftaran || reg.id || `reg_${Date.now()}`,
+        nomor_pendaftaran: reg.nomor_pendaftaran || reg.id || '',
+        status_pendaftaran: reg.status_pendaftaran || reg.status || 'Menunggu Verifikasi Penghulu',
+        tanggal_nikah: reg.tanggal_nikah || reg.weddingDate || '',
+        waktu_nikah: reg.waktu_nikah || reg.weddingTime || '',
+        tempat_nikah: reg.tempat_nikah || reg.weddingLocation || '',
+        calon_suami: {
+          nama_lengkap: reg.calon_suami?.nama_lengkap || reg.groomName || '',
+          nik: reg.calon_suami?.nik || reg.groomNik || ''
+        },
+        calon_istri: {
+          nama_lengkap: reg.calon_istri?.nama_lengkap || reg.brideName || '',
+          nik: reg.calon_istri?.nik || reg.brideNik || ''
+        }
+      }));
+      
+      cacheAssignedRegistrations(mappedRegs);
+      return mappedRegs;
+    }
+    
+    // Fallback to cached data if API returns empty or unexpected format
+    const cached = getCachedAssignedRegistrations();
+    if (cached.length > 0) {
+      console.log('📦 Using cached registrations:', cached.length);
+      return cached;
+    }
+    
+    return [];
+  } catch (error: any) {
+    console.error('❌ Error fetching assigned registrations:', error);
+    
+    // Check if error is due to HTML response
+    if (error.message && error.message.includes('Unexpected token')) {
+      console.warn('⚠️ API returned invalid JSON (possibly HTML error page), using cached data');
+    }
+    // Fallback to cached data
+    const cached = getCachedAssignedRegistrations();
+    if (cached.length > 0) {
+      console.log('📦 Using cached registrations due to error:', cached.length);
+      return cached;
+    }
+    
+    // If no cache, try localStorage as last resort
     const allRegs = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const penguluProfile = localStorage.getItem('penghulu_profile');
     const currentPenghulu = penguluProfile ? JSON.parse(penguluProfile) : null;
     
-    console.log('🔍 Loading registrations...');
-    console.log('Current penghulu profile:', currentPenghulu);
-    console.log('Total registrations in localStorage:', allRegs.length);
+    console.log('🔍 Loading from localStorage as fallback...');
     
     // Filter registrations assigned to this penghulu
     const assignedRegs = allRegs.filter((reg: any) => {
@@ -132,35 +217,35 @@ export const getAssignedRegistrations = async (): Promise<AssignedRegistration[]
     }
 
     // If no localStorage data, try API
-    console.debug('📡 No registrations in localStorage, trying API...');
-    const response = await fetch(
-      `${API_BASE_URL}/simnikah/penghulu/assigned-registrations`,
-      {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      }
-    );
+    try {
+      console.debug('📡 No registrations in localStorage, trying API...');
+      const response = await fetch(
+        `${API_BASE_URL}/simnikah/penghulu/assigned-registrations`,
+        {
+          method: 'GET',
+          headers: getAuthHeaders(),
+        }
+      );
 
-    if (!response.ok) {
-      console.warn(`⚠️ API returned status ${response.status}, using empty array or cache`);
+      if (!response.ok) {
+        console.warn(`⚠️ API returned status ${response.status}, using empty array or cache`);
+        return getCachedAssignedRegistrations();
+      }
+
+      const data = await response.json();
+      const apiRegs = data.data?.registrations || [];
+      
+      // Cache API results
+      if (apiRegs.length > 0) {
+        cacheAssignedRegistrations(apiRegs);
+      }
+      
+      return apiRegs;
+    } catch (fallbackError: any) {
+      // If there's an error in the fallback API call, return cached data
+      console.error('❌ Error in fallback API call:', fallbackError);
       return getCachedAssignedRegistrations();
     }
-
-    const data = await response.json();
-    const apiRegs = data.data?.registrations || [];
-    
-    // Cache API results
-    if (apiRegs.length > 0) {
-      cacheAssignedRegistrations(apiRegs);
-    }
-    
-    return apiRegs;
-  } catch (error) {
-    console.error('❌ Error fetching assigned registrations:', error);
-    // Return cached data as fallback
-    const cached = getCachedAssignedRegistrations();
-    console.debug(`📦 Returning ${cached.length} cached registrations`);
-    return cached;
   }
 };
 
@@ -168,56 +253,45 @@ export const getAssignedRegistrations = async (): Promise<AssignedRegistration[]
  * 4.4 Get Penghulu Schedule
  * GET /simnikah/penghulu-jadwal/:tanggal
  */
+/**
+ * 4.4 Get Penghulu Schedule (DEPRECATED)
+ * 
+ * NOTE: Endpoint /simnikah/penghulu-jadwal/:tanggal tidak ada di dokumentasi API.
+ * Gunakan getWeddingsByDate dari simnikah-api.ts sebagai gantinya.
+ * 
+ * @deprecated Use getWeddingsByDate from simnikah-api.ts instead
+ */
 export const getPenguluSchedule = async (tanggal: string): Promise<PenguluSchedule[]> => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/simnikah/penghulu-jadwal/${tanggal}`,
-      {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch schedule: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.data?.jadwal || [];
-  } catch (error) {
-    console.error('Error fetching schedule:', error);
-    throw error;
-  }
+  console.warn('⚠️ getPenguluSchedule is deprecated. Use getWeddingsByDate from simnikah-api.ts instead.');
+  return [];
 };
 
 /**
- * 4.5 Verify Documents
+ * 4.5 Verify Documents (Legacy wrapper - now uses API from simnikah-api.ts)
  * POST /simnikah/penghulu/verify-documents/:id
  */
-export const verifyDocuments = async (
+export const verifyDocumentsLocal = async (
   registrationId: string,
   status: 'approved' | 'rejected',
   catatan?: string
 ): Promise<VerificationResult> => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/simnikah/penghulu/verify-documents/${registrationId}`,
-      {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          status_verifikasi: status,
-          catatan: catatan || '',
-        }),
-      }
-    );
+    // Map status to API format
+    const apiStatus = status === 'approved' ? 'Menunggu Bimbingan' : 'Penolakan Dokumen';
+    
+    // Call API from simnikah-api.ts
+    const response = await verifyDocuments(registrationId, {
+      status: apiStatus,
+      catatan: catatan || ''
+    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to verify documents: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.data;
+    return {
+      id: registrationId,
+      nomor_pendaftaran: response.data?.nomor_pendaftaran || registrationId,
+      status_verifikasi: status,
+      catatan: catatan || '',
+      waktu_verifikasi: new Date().toISOString()
+    };
   } catch (error) {
     console.error('Error verifying documents:', error);
     throw error;
@@ -323,10 +397,24 @@ export const completeVerification = async (
   catatan?: string
 ): Promise<boolean> => {
   try {
-    // Call API
-    const result = await verifyDocuments(registrationId, status, catatan);
+    // Map status to API format
+    const apiStatus = status === 'approved' ? 'Menunggu Bimbingan' : 'Penolakan Dokumen';
+    
+    // Call API from simnikah-api.ts
+    const response = await verifyDocuments(registrationId, {
+      status: apiStatus,
+      catatan: catatan || ''
+    });
 
     // Save verification data
+    const result: VerificationResult = {
+      id: registrationId,
+      nomor_pendaftaran: response.data?.nomor_pendaftaran || nomor_pendaftaran,
+      status_verifikasi: status,
+      catatan: catatan || '',
+      waktu_verifikasi: new Date().toISOString()
+    };
+    
     saveVerificationData(registrationId, result);
 
     // Create notification
@@ -340,8 +428,7 @@ export const completeVerification = async (
       message
     );
 
-    // Update local registrations in both caches
-    // Update penghulu_assigned_registrations cache
+    // Update local cache (API already updates backend, this is just for UI)
     const existing = localStorage.getItem('penghulu_assigned_registrations');
     if (existing) {
       const registrations = JSON.parse(existing);
@@ -349,10 +436,7 @@ export const completeVerification = async (
         reg.id === registrationId
           ? {
               ...reg,
-              status_pendaftaran:
-                status === 'approved'
-                  ? 'Menunggu Bimbingan'
-                  : 'Penolakan Dokumen',
+              status_pendaftaran: apiStatus,
             }
           : reg
       );
@@ -362,26 +446,11 @@ export const completeVerification = async (
       );
     }
 
-    // Also update the main marriageRegistrations
-    const mainRegs = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
-    const updatedMainRegs = mainRegs.map((reg: any) =>
-      reg.id === registrationId
-        ? {
-            ...reg,
-            status:
-              status === 'approved'
-                ? 'Menunggu Bimbingan'
-                : 'Penolakan Dokumen',
-            penguluVerificationDate: new Date().toISOString(),
-          }
-        : reg
-    );
-    localStorage.setItem('marriageRegistrations', JSON.stringify(updatedMainRegs));
-
     return true;
   } catch (error) {
     console.error('Error completing verification:', error);
-    createPenguluNotification('error', `Gagal memverifikasi dokumen: ${String(error)}`);
+    const errorMessage = handleApiError(error);
+    createPenguluNotification('error', `Gagal memverifikasi dokumen: ${errorMessage}`);
     return false;
   }
 };

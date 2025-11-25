@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Star, Mail, Phone, MapPin, Edit2, Save, X, AlertCircle, Clock } from 'lucide-react';
+import { getPenghuluProfile, updatePenghuluProfile, handleApiError } from '@/lib/simnikah-api';
 
 interface PenguluProfile {
   id: number;
@@ -54,38 +55,25 @@ export default function ProfilPage() {
 
           if (token) {
             try {
-              const response = await fetch(
-                'https://simnikah-api-production.up.railway.app/simnikah/penghulu',
-                {
-                  method: 'GET',
-                  headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                  },
-                }
-              );
-
-              if (response.ok) {
-                const data = await response.json();
-                const penguluData = data.data[0] || {
-                  id: 1,
-                  nama_lengkap: user.nama || 'Ustadz Ahmad Ridho',
-                  nip: '198505052010121001',
-                  status: 'Aktif',
-                  jumlah_nikah: 15,
-                  rating: 4.8,
-                  email: user.email || 'ahmad.ridho@kua.go.id',
-                  no_hp: '081234567891',
-                  alamat: 'Jl. Ahmad Yani No. 25, Banjarmasin',
-                };
-                setProfile(penguluData);
-                setEditData({
-                  email: penguluData.email,
-                  no_hp: penguluData.no_hp,
-                  alamat: penguluData.alamat || '',
-                });
-                localStorage.setItem('penghulu_profile', JSON.stringify(penguluData));
-              }
+              const data = await getPenghuluProfile();
+              const penguluData = data.data?.[0] || {
+                id: 1,
+                nama_lengkap: user.nama || 'Ustadz Ahmad Ridho',
+                nip: '198505052010121001',
+                status: 'Aktif',
+                jumlah_nikah: 15,
+                rating: 4.8,
+                email: user.email || 'ahmad.ridho@kua.go.id',
+                no_hp: '081234567891',
+                alamat: 'Jl. Ahmad Yani No. 25, Banjarmasin',
+              };
+              setProfile(penguluData);
+              setEditData({
+                email: penguluData.email,
+                no_hp: penguluData.no_hp,
+                alamat: penguluData.alamat || '',
+              });
+              localStorage.setItem('penghulu_profile', JSON.stringify(penguluData));
             } catch (apiErr) {
               console.error('API error:', apiErr);
               // Use fallback
@@ -155,22 +143,17 @@ export default function ProfilPage() {
       setProfile(updatedProfile);
 
       // Try to sync with API
-      const token = localStorage.getItem('token');
-      if (token) {
+      if (profile?.id) {
         try {
-          await fetch(
-            `https://simnikah-api-production.up.railway.app/simnikah/penghulu/${profile?.id}`,
-            {
-              method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(editData),
-            }
-          );
+          await updatePenghuluProfile(profile.id, {
+            email: editData.email,
+            no_hp: editData.no_hp,
+            alamat: editData.alamat,
+          });
         } catch (apiErr) {
           console.warn('Failed to sync with API, but local save succeeded:', apiErr);
+          const errorMessage = handleApiError(apiErr);
+          setError(`Gagal menyinkronkan dengan server: ${errorMessage}`);
         }
       }
 

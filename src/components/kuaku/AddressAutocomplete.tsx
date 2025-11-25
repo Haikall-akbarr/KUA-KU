@@ -38,9 +38,11 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     setLoading(true);
     try {
       const response = await searchAddress(searchQuery);
-      if (response.success) {
-        setSuggestions(response.data.results);
+      if (response.success && response.data && response.data.results) {
+        setSuggestions(Array.isArray(response.data.results) ? response.data.results : []);
         setShowSuggestions(true);
+      } else {
+        setSuggestions([]);
       }
     } catch (error) {
       console.error('❌ Search error:', error);

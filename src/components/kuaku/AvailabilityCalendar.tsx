@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import api from "@/lib/api";
+import { getCalendarAvailability } from "@/lib/simnikah-api";
 import { Calendar, AlertCircle, Users, MapPin, CheckCircle, XCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
@@ -19,6 +20,7 @@ interface CalendarDay {
   kuning_count: number;
   hijau_count: number;
   warna: string;
+  sisa_kuota?: number; // Optional for backward compatibility
   sisa_kuota_kua: number;
   kapasitas_kua: number;
 }
@@ -59,20 +61,180 @@ export function AvailabilityCalendar() {
       setLoading(true);
       setError(null);
 
-      const bulan = String(currentMonth.getMonth() + 1).padStart(2, "0");
+      // API expects bulan as number (1-12), not string
+      const bulan = currentMonth.getMonth() + 1;
       const tahun = currentMonth.getFullYear();
 
-      console.log(`📅 Fetching calendar data for ${bulan}/${tahun}`);
+      console.log(`📅 Fetching calendar data for bulan=${bulan}, tahun=${tahun}`);
 
-      const response = await api.get("/simnikah/kalender-ketersediaan", {
-        params: {
-          bulan,
-          tahun,
-        },
-      });
-
-      console.log("✅ Calendar data fetched:", response.data);
-      setCalendarData(response.data.data);
+      // Use the new API function from simnikah-api.ts
+      const response = await getCalendarAvailability(bulan, tahun);
+      
+      console.log("✅ Calendar data fetched:", response);
+      
+      // Handle response structure from getCalendarAvailability
+      // Response format: { success: true, message: "...", data: { bulan, tahun, nama_bulan, kapasitas_harian, calendar: [...] } }
+      const responseData = response.data;
+      
+      // Check if response is empty or invalid
+      if (!responseData || typeof responseData !== 'object' || Object.keys(responseData).length === 0) {
+        console.warn("⚠️ Empty or invalid calendar response, creating default calendar");
+        // Create default calendar data for the current month
+        const currentYear = currentMonth.getFullYear();
+        const currentMonthNum = currentMonth.getMonth() + 1;
+        const daysInMonth = new Date(currentYear, currentMonthNum, 0).getDate();
+        
+        const defaultData: CalendarData = {
+          bulan: currentMonthNum,
+          tahun: currentYear,
+          nama_bulan: currentMonth.toLocaleString("id-ID", { month: "long" }),
+          kapasitas_harian: 9,
+          penghulu_info: {
+            total_penghulu: 0,
+            penghulu_aktif: 0,
+            penghulu_cadangan: 0,
+            slot_waktu_per_hari: 9,
+            nikah_per_slot: 1,
+            total_kapasitas_harian: 9,
+          },
+          kalender: Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1;
+            const dateKey = `${currentYear}-${String(currentMonthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            return {
+              tanggal: day,
+              tanggal_str: dateKey,
+              status: "Tersedia",
+              tersedia: true,
+              jumlah_nikah_total: 0,
+              jumlah_nikah_kua: 0,
+              jumlah_nikah_luar: 0,
+              kuning_count: 0,
+              hijau_count: 0,
+              warna: "gray",
+              sisa_kuota_kua: 9,
+              kapasitas_kua: 9,
+            };
+          }),
+        };
+        setCalendarData(defaultData);
+        return;
+      }
+      
+      // Map new API format to component format (v1.1.0)
+      // New API structure: { data: { bulan, tahun, nama_bulan, kapasitas_harian, calendar: [...] } }
+      if (responseData.calendar && Array.isArray(responseData.calendar) && responseData.calendar.length > 0) {
+        // New API format v1.1.0 - map calendar to kalender
+        const mappedData: CalendarData = {
+          bulan: responseData.bulan || currentMonth.getMonth() + 1,
+          tahun: responseData.tahun || currentMonth.getFullYear(),
+          nama_bulan: responseData.nama_bulan || currentMonth.toLocaleString("id-ID", { month: "long" }),
+          kapasitas_harian: responseData.kapasitas_harian || 9,
+          penghulu_info: {
+            total_penghulu: 0,
+            penghulu_aktif: 0,
+            penghulu_cadangan: 0,
+            slot_waktu_per_hari: 9,
+            nikah_per_slot: 1,
+            total_kapasitas_harian: responseData.kapasitas_harian || 9,
+          },
+          kalender: responseData.calendar.map((day: any) => {
+            return {
+              tanggal: day.tanggal || parseInt(day.tanggal_str?.split('-')[2] || '0'),
+              tanggal_str: day.tanggal_str || '',
+              status: day.status || "Tersedia",
+              tersedia: day.tersedia !== false,
+              jumlah_nikah_total: day.jumlah_nikah || 0,
+              jumlah_nikah_kua: 0, // Calculate from time_slots if needed
+              jumlah_nikah_luar: 0, // Calculate from time_slots if needed
+              kuning_count: day.jumlah_draft || 0,
+              hijau_count: day.jumlah_disetujui || 0,
+              warna: !day.tersedia ? "gray" : day.status === "Sebagian Tersedia" ? "kuning" : "hijau",
+              sisa_kuota: day.sisa_kuota || 0,
+              sisa_kuota_kua: day.sisa_kuota || 0,
+              kapasitas_kua: day.kapasitas || responseData.kapasitas_harian || 9,
+            };
+          }),
+        };
+        setCalendarData(mappedData);
+      } else if (responseData.hari && Array.isArray(responseData.hari) && responseData.hari.length > 0) {
+        // Old API format (v1.0) - map hari to kalender
+        const mappedData: CalendarData = {
+          bulan: responseData.bulan || currentMonth.getMonth() + 1,
+          tahun: responseData.tahun || currentMonth.getFullYear(),
+          nama_bulan: currentMonth.toLocaleString("id-ID", { month: "long" }),
+          kapasitas_harian: responseData.kapasitas_per_hari || 9,
+          penghulu_info: {
+            total_penghulu: 0,
+            penghulu_aktif: 0,
+            penghulu_cadangan: 0,
+            slot_waktu_per_hari: 9,
+            nikah_per_slot: 1,
+            total_kapasitas_harian: responseData.kapasitas_per_hari || 9,
+          },
+          kalender: responseData.hari.map((day: any) => {
+            const date = new Date(day.tanggal);
+            return {
+              tanggal: date.getDate(),
+              tanggal_str: day.tanggal,
+              status: day.status || "Tersedia",
+              tersedia: day.status !== "Penuh",
+              jumlah_nikah_total: day.total_nikah || 0,
+              jumlah_nikah_kua: 0,
+              jumlah_nikah_luar: 0,
+              kuning_count: 0,
+              hijau_count: 0,
+              warna: day.status === "Penuh" ? "gray" : day.status === "Sebagian Tersedia" ? "kuning" : "hijau",
+              sisa_kuota: day.sisa_kuota || 0,
+              sisa_kuota_kua: day.sisa_kuota || 0,
+              kapasitas_kua: responseData.kapasitas_per_hari || 9,
+            };
+          }),
+        };
+        setCalendarData(mappedData);
+      } else if (responseData.kalender && Array.isArray(responseData.kalender) && responseData.kalender.length > 0) {
+        // Very old API format - use as is
+        setCalendarData(responseData);
+      } else {
+        // If no valid data, create default calendar
+        console.warn("⚠️ No valid calendar data in response, creating default calendar");
+        const currentYear = currentMonth.getFullYear();
+        const currentMonthNum = currentMonth.getMonth() + 1;
+        const daysInMonth = new Date(currentYear, currentMonthNum, 0).getDate();
+        
+        const defaultData: CalendarData = {
+          bulan: currentMonthNum,
+          tahun: currentYear,
+          nama_bulan: currentMonth.toLocaleString("id-ID", { month: "long" }),
+          kapasitas_harian: 9,
+          penghulu_info: {
+            total_penghulu: 0,
+            penghulu_aktif: 0,
+            penghulu_cadangan: 0,
+            slot_waktu_per_hari: 9,
+            nikah_per_slot: 1,
+            total_kapasitas_harian: 9,
+          },
+          kalender: Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1;
+            const dateKey = `${currentYear}-${String(currentMonthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            return {
+              tanggal: day,
+              tanggal_str: dateKey,
+              status: "Tersedia",
+              tersedia: true,
+              jumlah_nikah_total: 0,
+              jumlah_nikah_kua: 0,
+              jumlah_nikah_luar: 0,
+              kuning_count: 0,
+              hijau_count: 0,
+              warna: "gray",
+              sisa_kuota_kua: 9,
+              kapasitas_kua: 9,
+            };
+          }),
+        };
+        setCalendarData(defaultData);
+      }
     } catch (err: any) {
       console.error("❌ Error fetching calendar:", err);
       setError(err.response?.data?.message || "Gagal memuat kalender ketersediaan");
@@ -160,8 +322,25 @@ export function AvailabilityCalendar() {
     );
   }
 
-  if (!calendarData) {
-    return null;
+  if (!calendarData || !calendarData.kalender) {
+    return (
+      <SectionWrapper 
+        id="availability-calendar" 
+        title="Kalender Ketersediaan" 
+        subtitle="Transparansi Data Pendaftaran"
+      >
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Data kalender tidak tersedia. Silakan coba lagi nanti.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </SectionWrapper>
+    );
   }
 
   const getDaysInMonth = (date: Date) => {
@@ -194,10 +373,51 @@ export function AvailabilityCalendar() {
 
   const daysInMonth = getDaysInMonth(currentMonth);
   const firstDayOfMonth = getFirstDayOfMonth(currentMonth);
-  const calendarDays: (CalendarDay | null)[] = [
-    ...Array(firstDayOfMonth).fill(null),
-    ...calendarData.kalender,
-  ];
+  
+  // Ensure kalender is an array and map to calendar days
+  const kalenderArray = Array.isArray(calendarData.kalender) ? calendarData.kalender : [];
+  
+  // Create a map of dates to calendar days for easy lookup
+  const calendarMap = new Map<string, CalendarDay>();
+  kalenderArray.forEach((day: CalendarDay) => {
+    const dateKey = day.tanggal_str || `${calendarData.tahun}-${String(calendarData.bulan).padStart(2, '0')}-${String(day.tanggal).padStart(2, '0')}`;
+    calendarMap.set(dateKey, day);
+  });
+  
+  // Build calendar days array
+  const calendarDays: (CalendarDay | null)[] = [];
+  
+  // Add empty cells for days before month starts
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    calendarDays.push(null);
+  }
+  
+  // Add days of the month
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateKey = `${calendarData.tahun}-${String(calendarData.bulan).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const calendarDay = calendarMap.get(dateKey);
+    
+    if (calendarDay) {
+      calendarDays.push(calendarDay);
+    } else {
+      // Create default day if not in API response
+      const date = new Date(calendarData.tahun, calendarData.bulan - 1, day);
+      calendarDays.push({
+        tanggal: day,
+        tanggal_str: dateKey,
+        status: "Tersedia",
+        tersedia: true,
+        jumlah_nikah_total: 0,
+        jumlah_nikah_kua: 0,
+        jumlah_nikah_luar: 0,
+        kuning_count: 0,
+        hijau_count: 0,
+        warna: "gray",
+        sisa_kuota_kua: calendarData.kapasitas_harian,
+        kapasitas_kua: calendarData.kapasitas_harian,
+      });
+    }
+  }
 
   return (
     <SectionWrapper 

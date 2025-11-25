@@ -13,7 +13,7 @@ import {
   ColumnFiltersState,
   getFilteredRowModel,
 } from "@tanstack/react-table"
-import { MoreHorizontal, PlusCircle, CheckCircle, XCircle, Clock, Check, HelpCircle } from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
 
 import {
   Table,
@@ -32,25 +32,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
 
 import type { MarriageRegistration } from "@/lib/admin-data"
-
-type BadgeVariant = "secondary" | "default" | "destructive" | "outline";
-
-const getStatusInfo = (status: MarriageRegistration["status"]): { variant: BadgeVariant; icon: any; label: string } => {
-    switch (status) {
-        case 'Menunggu Verifikasi': return { variant: 'secondary', icon: Clock, label: 'Menunggu Verifikasi' };
-        case 'Disetujui': return { variant: 'default', icon: CheckCircle, label: 'Disetujui' };
-        case 'Ditolak': return { variant: 'destructive', icon: XCircle, label: 'Ditolak' };
-        case 'Selesai': return { variant: 'outline', icon: Check, label: 'Selesai' };
-        default: return { variant: 'outline', icon: HelpCircle, label: 'Unknown' };
-    }
-}
+import { StatusDropdown } from "./StatusDropdown"
+import { AssignPenghuluDialog } from "./AssignPenghuluDialog"
 
 export const columns: ColumnDef<MarriageRegistration>[] = [
   {
@@ -96,16 +82,64 @@ export const columns: ColumnDef<MarriageRegistration>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
+        const registration = row.original;
         const status = row.getValue("status") as MarriageRegistration["status"];
-        const { variant, icon: Icon, label } = getStatusInfo(status);
-        return <Badge variant={variant} className="flex items-center w-fit"><Icon className="mr-2 h-3 w-3" />{label}</Badge>
+        
+        // Get user role
+        let userRole: string | null = null;
+        if (typeof window !== 'undefined') {
+          try {
+            const user = localStorage.getItem('user');
+            if (user) {
+              const userData = JSON.parse(user);
+              userRole = userData.role || null;
+            }
+          } catch (error) {
+            console.error('Error getting user role:', error);
+          }
+        }
+        
+        return (
+          <StatusDropdown
+            registrationId={registration.id}
+            currentStatus={status}
+            userRole={userRole}
+            onStatusChange={(newStatus) => {
+              // Update local data
+              const updatedData = table.options.data.map((reg: MarriageRegistration) => 
+                reg.id === registration.id ? { ...reg, status: newStatus } : reg
+              );
+              // Trigger table update (you might need to add state management for this)
+              // For now, we'll reload the page
+              setTimeout(() => window.location.reload(), 500);
+            }}
+          />
+        );
     }
   },
   {
     id: "actions",
     cell: ({ row }) => {
       const registration = row.original
+      
+      // Get user role for conditional rendering
+      // Using useAuth hook would require making this a component, so we use localStorage directly
+      let userRole: string | null = null;
+      if (typeof window !== 'undefined') {
+        try {
+          const user = localStorage.getItem('user');
+          if (user) {
+            const userData = JSON.parse(user);
+            userRole = userData.role || null;
+          }
+        } catch (error) {
+          console.error('Error getting user role:', error);
+        }
+      }
+      
+      const canAssignPenghulu = userRole === 'kepala_kua';
+      const canIssueLetter = userRole === 'kepala_kua';
  
       return (
         <DropdownMenu>
@@ -117,97 +151,32 @@ export const columns: ColumnDef<MarriageRegistration>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-            <DropdownMenuItem>Lihat Detail Pendaftaran</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={() => {
-                        try {
-                            const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
-                            const index = registrations.findIndex((item: MarriageRegistration) => item.id === registration.id);
-                            if (index !== -1) {
-                                // Update status
-                                registrations[index] = {
-                                    ...registrations[index],
-                                    status: 'Disetujui'
-                                };
-                                
-                                // Save to localStorage
-                                localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
-                                
-                                // Add notification for the user
-                                if (registration.id) {
-                                    const userNotif = {
-                                        id: `notif_${Date.now()}`,
-                                        title: 'Pendaftaran Disetujui',
-                                        description: 'Pendaftaran nikah Anda telah disetujui oleh KUA.',
-                                        type: 'success',
-                                        read: false,
-                                        registrationId: registration.id,
-                                        createdAt: new Date().toISOString()
-                                    };
-                                    
-                                    const notifications = JSON.parse(localStorage.getItem(`notifications_${registration.id}`) || '[]');
-                                    notifications.unshift(userNotif);
-                                    localStorage.setItem(`notifications_${registration.id}`, JSON.stringify(notifications));
-                                }
-                                
-                                window.location.reload();
-                            }
-                        } catch (error) {
-                            console.error('Error updating status:', error);
-                            alert('Gagal mengubah status pendaftaran');
-                        }
-                    }}>
-                        <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-                        <span>Setujui</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                        try {
-                            const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
-                            const index = registrations.findIndex((item: MarriageRegistration) => item.id === registration.id);
-                            if (index !== -1) {
-                                // Update status
-                                registrations[index] = {
-                                    ...registrations[index],
-                                    status: 'Ditolak'
-                                };
-                                
-                                // Save to localStorage
-                                localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
-                                
-                                // Add notification for the user
-                                if (registration.id) {
-                                    const userNotif = {
-                                        id: `notif_${Date.now()}`,
-                                        title: 'Pendaftaran Ditolak',
-                                        description: 'Pendaftaran nikah Anda telah ditolak oleh KUA. Silakan hubungi KUA untuk informasi lebih lanjut.',
-                                        type: 'error',
-                                        read: false,
-                                        registrationId: registration.id,
-                                        createdAt: new Date().toISOString()
-                                    };
-                                    
-                                    const notifications = JSON.parse(localStorage.getItem(`notifications_${registration.id}`) || '[]');
-                                    notifications.unshift(userNotif);
-                                    localStorage.setItem(`notifications_${registration.id}`, JSON.stringify(notifications));
-                                }
-                                
-                                window.location.reload();
-                            }
-                        } catch (error) {
-                            console.error('Error updating status:', error);
-                            alert('Gagal mengubah status pendaftaran');
-                        }
-                    }}>
-                        <XCircle className="mr-2 h-4 w-4 text-red-600" />
-                        <span>Tolak</span>
-                    </DropdownMenuItem>
-                </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuItem>Assign Penghulu</DropdownMenuItem>
-            <DropdownMenuItem>Terbitkan Surat</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {
+              // TODO: Implement detail view
+              alert('Fitur detail pendaftaran akan segera tersedia');
+            }}>
+              Lihat Detail Pendaftaran
+            </DropdownMenuItem>
+            {canAssignPenghulu && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => {
+                  // This will be handled by the parent component via onAssignPenghulu callback
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('open-assign-penghulu', {
+                      detail: {
+                        registrationId: registration.id,
+                        registrationNumber: registration.id,
+                        groomName: registration.groomName,
+                        brideName: registration.brideName,
+                      }
+                    }));
+                  }
+                }}>
+                  Assign Penghulu
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -222,6 +191,31 @@ interface RegistrationsTableProps {
 export function RegistrationsTable({ data }: RegistrationsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [assignDialogOpen, setAssignDialogOpen] = React.useState(false)
+  const [selectedRegistration, setSelectedRegistration] = React.useState<{
+    id: string;
+    registrationNumber?: string;
+    groomName?: string;
+    brideName?: string;
+  } | null>(null)
+
+  // Listen for assign penghulu event
+  React.useEffect(() => {
+    const handleAssignEvent = (event: CustomEvent) => {
+      setSelectedRegistration({
+        id: event.detail.registrationId,
+        registrationNumber: event.detail.registrationNumber,
+        groomName: event.detail.groomName,
+        brideName: event.detail.brideName,
+      });
+      setAssignDialogOpen(true);
+    };
+
+    window.addEventListener('open-assign-penghulu', handleAssignEvent as EventListener);
+    return () => {
+      window.removeEventListener('open-assign-penghulu', handleAssignEvent as EventListener);
+    };
+  }, []);
 
   const table = useReactTable({
     data,
@@ -244,7 +238,20 @@ export function RegistrationsTable({ data }: RegistrationsTableProps) {
   })
 
   return (
-    <div>
+    <>
+      <AssignPenghuluDialog
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        registrationId={selectedRegistration?.id || ''}
+        registrationNumber={selectedRegistration?.registrationNumber}
+        groomName={selectedRegistration?.groomName}
+        brideName={selectedRegistration?.brideName}
+        onSuccess={() => {
+          // Reload page to show updated data
+          window.location.reload();
+        }}
+      />
+      <div>
         <div className="flex items-center justify-between py-4">
             <Input
             placeholder="Cari berdasarkan nama..."
@@ -318,5 +325,6 @@ export function RegistrationsTable({ data }: RegistrationsTableProps) {
         </Button>
       </div>
     </div>
+    </>
   )
 }

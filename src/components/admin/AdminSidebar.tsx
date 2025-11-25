@@ -25,18 +25,29 @@ import {
   ChevronLeft,
   ChevronRight,
   UserCircle,
+  FileCheck,
 } from 'lucide-react';
 import React from 'react';
 
-const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/profile', label: 'Profil Saya', icon: UserCircle },
-  { href: '/admin/users', label: 'Pengguna', icon: Users },
-  { href: '/admin/registrations', label: 'Pendaftaran Nikah', icon: FileText },
-  { href: '/admin/schedules', label: 'Jadwal', icon: Calendar },
-  { href: '/admin/guidance', label: 'Bimbingan', icon: BookUser },
-  { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
-];
+// Menu items dengan role-based access (sesuai dokumentasi API)
+const getAllNavItems = (userRole: string | null) => {
+  const baseItems = [
+    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, roles: ['staff', 'kepala_kua'] },
+    { href: '/admin/profile', label: 'Profil Saya', icon: UserCircle, roles: ['staff', 'kepala_kua'] },
+    { href: '/admin/registrations', label: 'Pendaftaran Nikah', icon: FileText, roles: ['staff', 'kepala_kua'] },
+    { href: '/admin/kepala/pengumuman', label: 'Pengumuman Nikah', icon: FileCheck, roles: ['staff', 'kepala_kua'] },
+  ];
+  
+  // Menu khusus kepala_kua (sesuai dokumentasi API - hanya kepala_kua yang bisa manage staff/penghulu)
+  const kepalaKUAItems = [
+    { href: '/admin/users', label: 'Pengguna', icon: Users, roles: ['kepala_kua'] },
+    { href: '/admin/kepala', label: 'Manajemen', icon: Settings, roles: ['kepala_kua'] },
+  ];
+  
+  // Filter menu berdasarkan role
+  const allItems = [...baseItems, ...kepalaKUAItems];
+  return allItems.filter(item => !item.roles || item.roles.includes(userRole || ''));
+};
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -77,7 +88,7 @@ export function AdminSidebar() {
               </Button>
           </div>
           <nav className={cn("flex flex-col gap-1 px-2", isCollapsed ? "py-4 items-center" : "py-4")}>
-            {navItems.map((item) => {
+            {getAllNavItems(userRole).map((item) => {
               const isActive = pathname.startsWith(item.href) && (item.href !== '/admin' || pathname === '/admin');
               return isCollapsed ? (
                 <Tooltip key={item.href} delayDuration={0}>
