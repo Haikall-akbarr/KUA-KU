@@ -1,0 +1,6 @@
+# Ensure JSON files are treated as text with LF line endings
+*.json text eol=lf
+
+# Ensure package.json is UTF-8
+package.json text eol=lf encoding=utf-8
+
