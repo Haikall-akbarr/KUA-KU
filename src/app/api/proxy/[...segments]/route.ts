@@ -2,6 +2,30 @@ import { NextResponse } from 'next/server';
 
 const TARGET = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
 
+// Log target URL in development (not in production for security)
+if (process.env.NODE_ENV !== 'production') {
+  console.log('[proxy] Target API URL:', TARGET);
+} else {
+  // In production, just log if TARGET is using default (which means env var is missing)
+  if (!process.env.NEXT_PUBLIC_API_URL) {
+    console.warn('[proxy] ⚠️ NEXT_PUBLIC_API_URL not set, using default:', TARGET);
+  }
+}
+
+export async function OPTIONS(request: Request) {
+  // Handle CORS preflight requests
+  const origin = request.headers.get('origin');
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+  };
+  if (origin) {
+    headers['Access-Control-Allow-Origin'] = origin;
+    headers['Access-Control-Allow-Credentials'] = 'true';
+  }
+  return new NextResponse(null, { status: 204, headers });
+}
+
 export async function GET(request: Request, context: any) {
   // CRITICAL: Check if this is a static asset request BEFORE processing
   const url = new URL(request.url);
@@ -107,11 +131,28 @@ async function proxy(request: Request, segments: string[]) {
   });
 
   const headers: Record<string, string> = {};
-  // Forward common headers (Content-Type, Authorization)
+  // Forward common headers (Content-Type, Authorization, etc.)
   request.headers.forEach((value, key) => {
-    if (key.toLowerCase() === 'host') return;
+    const lowerKey = key.toLowerCase();
+    // Skip headers that shouldn't be forwarded
+    if (lowerKey === 'host' || lowerKey === 'connection' || lowerKey === 'keep-alive') return;
     headers[key] = value;
   });
+  
+  // Ensure Content-Type is set for POST/PUT requests
+  if (request.method !== 'GET' && request.method !== 'HEAD' && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
+  // Add Origin header if missing (some APIs require this)
+  if (!headers['Origin'] && request.headers.get('origin')) {
+    headers['Origin'] = request.headers.get('origin') || '';
+  }
+  
+  // Add Referer header if missing
+  if (!headers['Referer'] && request.headers.get('referer')) {
+    headers['Referer'] = request.headers.get('referer') || '';
+  }
 
   const init: RequestInit = {
     method: request.method,
@@ -162,6 +203,25 @@ async function proxy(request: Request, segments: string[]) {
     }
     
     console.log('[proxy] upstream status', res.status, res.statusText);
+    console.log('[proxy] request URL:', url.toString());
+    console.log('[proxy] request headers:', JSON.stringify(headers, null, 2));
+    
+    // Handle 403 Forbidden - usually means API is blocking the request
+    if (res.status === 403) {
+      console.error('[proxy] Upstream server returned 403 Forbidden');
+      console.error('[proxy] This usually means the API is blocking requests from this origin');
+      const errorBody = await res.text().catch(() => '');
+      console.error('[proxy] Error response body:', errorBody.substring(0, 500));
+      return NextResponse.json(
+        { 
+          error: 'Forbidden',
+          message: 'Akses ditolak oleh server API. Pastikan environment variable NEXT_PUBLIC_API_URL sudah di-set dengan benar di Vercel.',
+          status: 403,
+          detail: errorBody || 'No error details available'
+        },
+        { status: 403 }
+      );
+    }
     
     // Handle 502 Bad Gateway from upstream
     if (res.status === 502) {
@@ -265,6 +325,15 @@ async function proxy(request: Request, segments: string[]) {
     // Ensure Content-Type is set correctly
     if (!responseHeaders['content-type'] && contentType) {
       responseHeaders['content-type'] = contentType;
+    }
+    
+    // Add CORS headers to allow requests from Vercel domain
+    const origin = request.headers.get('origin');
+    if (origin) {
+      responseHeaders['Access-Control-Allow-Origin'] = origin;
+      responseHeaders['Access-Control-Allow-Credentials'] = 'true';
+      responseHeaders['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+      responseHeaders['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With';
     }
 
     const response = new NextResponse(respBody, {
