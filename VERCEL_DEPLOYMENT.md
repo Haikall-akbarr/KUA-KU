@@ -41,7 +41,7 @@ Tambahkan environment variables berikut di Vercel Dashboard:
 | Variable Name | Value | Description |
 |--------------|-------|-------------|
 | `NEXT_PUBLIC_API_URL` | `https://simnikah-api-production-5583.up.railway.app` | URL API Backend |
-| `NEXT_PUBLIC_API_PROXY` | `/api/proxy` | Proxy path untuk API |
+| `NEXT_PUBLIC_API_PROXY` | `/api/proxdy` | Proxy path untuk API |
 
 **Cara menambahkan:**
 1. Di halaman project settings, klik **"Environment Variables"**
