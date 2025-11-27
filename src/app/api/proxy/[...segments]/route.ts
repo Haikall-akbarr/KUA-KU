@@ -1,10 +1,26 @@
 import { NextResponse } from 'next/server';
 
-const TARGET = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
+// Helper function to ensure URL has protocol
+function ensureProtocol(url: string): string {
+  if (!url) return 'https://simnikah-api-production-5583.up.railway.app';
+  
+  // If URL already has protocol, return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Add https:// if no protocol
+  return `https://${url}`;
+}
+
+// Get and normalize TARGET URL
+const rawTarget = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
+const TARGET = ensureProtocol(rawTarget);
 
 // Log target URL in development (not in production for security)
 if (process.env.NODE_ENV !== 'production') {
   console.log('[proxy] Target API URL:', TARGET);
+  console.log('[proxy] Raw NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL || 'not set');
 } else {
   // In production, just log if TARGET is using default (which means env var is missing)
   if (!process.env.NEXT_PUBLIC_API_URL) {
@@ -123,7 +139,37 @@ async function proxy(request: Request, segments: string[]) {
     console.warn('[proxy] ⚠️ Non-API path requested:', urlPath);
   }
   
-  const url = new URL(`${TARGET}/${urlPath}`);
+  // Build target URL - ensure TARGET ends without slash and urlPath doesn't start with slash
+  const cleanTarget = TARGET.endsWith('/') ? TARGET.slice(0, -1) : TARGET;
+  const cleanPath = urlPath.startsWith('/') ? urlPath.slice(1) : urlPath;
+  const targetUrl = `${cleanTarget}/${cleanPath}`;
+  
+  // Validate URL before creating URL object
+  let url: URL;
+  try {
+    url = new URL(targetUrl);
+  } catch (urlError: any) {
+    console.error('[proxy] ❌ Invalid URL construction:', {
+      TARGET,
+      cleanTarget,
+      urlPath,
+      cleanPath,
+      targetUrl,
+      error: urlError.message,
+    });
+    return NextResponse.json(
+      {
+        error: 'Invalid URL',
+        message: `Failed to construct target URL: ${urlError.message}`,
+        detail: {
+          target: TARGET,
+          path: urlPath,
+          constructed: targetUrl,
+        },
+      },
+      { status: 500 }
+    );
+  }
 
   // Preserve original query params
   incomingUrlObj.searchParams.forEach((value, key) => {
@@ -161,12 +207,36 @@ async function proxy(request: Request, segments: string[]) {
   };
 
   if (request.method !== 'GET' && request.method !== 'HEAD') {
-    const body = await request.arrayBuffer();
-    init.body = body;
+    try {
+      const body = await request.arrayBuffer();
+      if (body.byteLength > 0) {
+        init.body = body;
+        console.log('[proxy] Request body size:', body.byteLength, 'bytes');
+      } else {
+        console.warn('[proxy] Request body is empty for', request.method, 'request');
+      }
+    } catch (bodyError: any) {
+      console.error('[proxy] Error reading request body:', bodyError.message);
+      // Continue without body if reading fails
+    }
   }
 
   try {
-    console.log('[proxy] forwarding', request.method, url.toString());
+    // Enhanced logging for debugging
+    const origin = request.headers.get('origin');
+    const referer = request.headers.get('referer');
+    const userAgent = request.headers.get('user-agent');
+    
+    console.log('[proxy] ========================================');
+    console.log('[proxy] Forwarding request:');
+    console.log('[proxy]   Method:', request.method);
+    console.log('[proxy]   Target URL:', url.toString());
+    console.log('[proxy]   Origin:', origin || 'none');
+    console.log('[proxy]   Referer:', referer || 'none');
+    console.log('[proxy]   User-Agent:', userAgent?.substring(0, 50) || 'none');
+    console.log('[proxy]   Headers:', JSON.stringify(headers, null, 2));
+    console.log('[proxy]   Body size:', request.method !== 'GET' && request.method !== 'HEAD' ? 'present' : 'none');
+    console.log('[proxy] ========================================');
     
     // Add timeout for fetch request
     const controller = new AbortController();
@@ -202,24 +272,87 @@ async function proxy(request: Request, segments: string[]) {
       );
     }
     
-    console.log('[proxy] upstream status', res.status, res.statusText);
-    console.log('[proxy] request URL:', url.toString());
-    console.log('[proxy] request headers:', JSON.stringify(headers, null, 2));
+    // Log response details
+    console.log('[proxy] ========================================');
+    console.log('[proxy] Response received:');
+    console.log('[proxy]   Status:', res.status, res.statusText);
+    console.log('[proxy]   Target URL:', url.toString());
+    console.log('[proxy]   Response headers:', Object.fromEntries(res.headers.entries()));
+    console.log('[proxy] ========================================');
     
     // Handle 403 Forbidden - usually means API is blocking the request
     if (res.status === 403) {
-      console.error('[proxy] Upstream server returned 403 Forbidden');
-      console.error('[proxy] This usually means the API is blocking requests from this origin');
+      console.error('[proxy] ========================================');
+      console.error('[proxy] ❌ 403 FORBIDDEN ERROR');
+      console.error('[proxy] Target URL:', url.toString());
+      console.error('[proxy] Request Origin:', origin || 'none');
+      console.error('[proxy] Request Referer:', referer || 'none');
+      console.error('[proxy] Request Method:', request.method);
+      console.error('[proxy] Request Headers:', JSON.stringify(headers, null, 2));
+      console.error('[proxy] Response Headers:', Object.fromEntries(res.headers.entries()));
+      
       const errorBody = await res.text().catch(() => '');
-      console.error('[proxy] Error response body:', errorBody.substring(0, 500));
+      console.error('[proxy] Error Response Body:', errorBody.substring(0, 1000));
+      console.error('[proxy] ========================================');
+      
+      // Check if error body contains CORS-related messages
+      const isCorsError = errorBody.toLowerCase().includes('cors') || 
+                         errorBody.toLowerCase().includes('origin') ||
+                         res.headers.get('access-control-allow-origin') === null;
+      
       return NextResponse.json(
         { 
           error: 'Forbidden',
-          message: 'Akses ditolak oleh server API. Pastikan environment variable NEXT_PUBLIC_API_URL sudah di-set dengan benar di Vercel.',
+          message: isCorsError 
+            ? 'Akses ditolak oleh server API karena CORS policy. Backend API perlu dikonfigurasi untuk mengizinkan request dari domain Vercel. Lihat BACKEND_CORS_SETUP.md untuk panduan setup CORS di backend.'
+            : 'Akses ditolak oleh server API. Pastikan environment variable NEXT_PUBLIC_API_URL sudah di-set dengan benar di Vercel.',
           status: 403,
-          detail: errorBody || 'No error details available'
+          detail: errorBody || 'No error details available',
+          isCorsError,
+          troubleshooting: {
+            step1: 'Pastikan NEXT_PUBLIC_API_URL sudah di-set di Vercel Environment Variables',
+            step2: 'Pastikan backend API mengizinkan request dari domain Vercel (CORS)',
+            step3: 'Cek BACKEND_CORS_SETUP.md untuk panduan setup CORS',
+            step4: 'Cek backend logs untuk melihat request yang diterima'
+          }
         },
         { status: 403 }
+      );
+    }
+    
+    // Handle 500 Internal Server Error
+    if (res.status === 500) {
+      console.error('[proxy] ========================================');
+      console.error('[proxy] ❌ 500 INTERNAL SERVER ERROR');
+      console.error('[proxy] Target URL:', url.toString());
+      console.error('[proxy] Request Method:', request.method);
+      console.error('[proxy] Request Headers:', JSON.stringify(headers, null, 2));
+      console.error('[proxy] Response Headers:', Object.fromEntries(res.headers.entries()));
+      
+      const errorBody = await res.text().catch(() => '');
+      console.error('[proxy] Error Response Body:', errorBody.substring(0, 2000));
+      console.error('[proxy] ========================================');
+      
+      // Try to parse error body as JSON
+      let errorData: any = {};
+      try {
+        if (errorBody) {
+          errorData = JSON.parse(errorBody);
+        }
+      } catch (e) {
+        // If not JSON, keep as string
+        errorData = { raw: errorBody.substring(0, 500) };
+      }
+      
+      return NextResponse.json(
+        { 
+          error: 'Internal Server Error',
+          message: errorData.message || errorData.error || 'Terjadi kesalahan pada server API. Silakan coba lagi nanti atau hubungi administrator.',
+          status: 500,
+          detail: errorData.detail || errorData.raw || errorBody.substring(0, 500),
+          backendError: errorData
+        },
+        { status: 500 }
       );
     }
     
@@ -328,9 +461,10 @@ async function proxy(request: Request, segments: string[]) {
     }
     
     // Add CORS headers to allow requests from Vercel domain
-    const origin = request.headers.get('origin');
-    if (origin) {
-      responseHeaders['Access-Control-Allow-Origin'] = origin;
+    // Reuse origin from earlier in the function
+    const requestOrigin = request.headers.get('origin');
+    if (requestOrigin) {
+      responseHeaders['Access-Control-Allow-Origin'] = requestOrigin;
       responseHeaders['Access-Control-Allow-Credentials'] = 'true';
       responseHeaders['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
       responseHeaders['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With';

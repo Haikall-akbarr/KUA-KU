@@ -40,8 +40,13 @@ Tambahkan environment variables berikut di Vercel Dashboard:
 
 | Variable Name | Value | Description |
 |--------------|-------|-------------|
-| `NEXT_PUBLIC_API_URL` | `https://simnikah-api-production-5583.up.railway.app` | URL API Backend |
+| `NEXT_PUBLIC_API_URL` | `https://simnikah-api-production-5583.up.railway.app` | URL API Backend (harus dengan `https://`) |
 | `NEXT_PUBLIC_API_PROXY` | `/api/proxy` | Proxy path untuk API |
+
+**⚠️ Penting:** 
+- `NEXT_PUBLIC_API_URL` harus dimulai dengan `https://` atau `http://`
+- Jika tidak ada protokol, akan otomatis ditambahkan `https://`
+- Jangan tambahkan trailing slash (`/`) di akhir URL
 
 **Cara menambahkan:**
 1. Di halaman project settings, klik **"Environment Variables"**
@@ -102,11 +107,116 @@ Jika API tidak bisa diakses:
 2. Pastikan API backend sudah accessible dari internet
 3. Cek CORS settings di backend API
 
+### 403 Forbidden Error saat Login
+
+Jika mendapat error 403 saat login di Vercel:
+
+**Penyebab:**
+- Backend API memblokir request karena CORS policy
+- Backend API tidak mengizinkan request dari domain Vercel
+
+**Solusi:**
+1. **Setup CORS di Backend API:**
+   - Buka file `BACKEND_CORS_SETUP.md` untuk panduan lengkap
+   - Tambahkan domain Vercel ke allowed origins:
+     - Production: `https://your-app.vercel.app`
+     - Preview: `https://*.vercel.app` (wildcard untuk semua preview)
+   - Deploy perubahan ke backend
+
+2. **Cek Environment Variables:**
+   - Pastikan `NEXT_PUBLIC_API_URL` sudah di-set di Vercel
+   - Pastikan value-nya benar (tanpa trailing slash)
+
+3. **Test dari Browser Console:**
+   ```javascript
+   // Test langsung ke backend API
+   fetch('https://simnikah-api-production-5583.up.railway.app/login', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({ username: 'test', password: 'test' })
+   })
+   .then(res => console.log('Status:', res.status))
+   .catch(err => console.error('Error:', err));
+   ```
+
+4. **Cek Vercel Logs:**
+   - Buka Vercel Dashboard → Project → Logs
+   - Cari log dengan prefix `[proxy]` untuk melihat detail request
+   - Cek apakah request dikirim dengan benar ke backend
+
+5. **Cek Backend Logs:**
+   - Cek logs backend untuk melihat apakah request diterima
+   - Cek apakah ada error CORS di backend logs
+
+### 500 Internal Server Error
+
+Jika mendapat error 500 saat login atau request lainnya:
+
+**Penyebab:**
+- Backend API mengalami error internal saat memproses request
+- Database connection error
+- Validation error di backend
+- Missing required fields atau data format tidak sesuai
+
+**Solusi:**
+1. **Cek Vercel Logs:**
+   - Buka Vercel Dashboard → Project → Logs
+   - Cari log dengan prefix `[proxy] ❌ 500 INTERNAL SERVER ERROR`
+   - Lihat `Error Response Body` untuk detail error dari backend
+
+2. **Cek Backend Logs:**
+   - Cek logs backend untuk melihat stack trace error
+   - Cek apakah ada database connection error
+   - Cek apakah ada validation error
+
+3. **Cek Request Body:**
+   - Pastikan request body sesuai dengan format yang diharapkan backend
+   - Cek apakah semua required fields sudah dikirim
+   - Cek format data (string, number, date, dll)
+
+4. **Test dengan Postman/curl:**
+   ```bash
+   # Test langsung ke backend API
+   curl -X POST https://simnikah-api-production-5583.up.railway.app/login \
+     -H "Content-Type: application/json" \
+     -d '{"username":"test","password":"test"}' \
+     -v
+   ```
+
+5. **Common Issues:**
+   - **Database connection**: Pastikan database backend accessible
+   - **Missing environment variables**: Pastikan semua env vars backend sudah di-set
+   - **Data format**: Pastikan format data sesuai dengan yang diharapkan backend
+   - **Validation error**: Cek apakah semua required fields sudah dikirim dengan format yang benar
+
 ### Proxy Error
 
 Jika proxy error:
 1. Pastikan `NEXT_PUBLIC_API_PROXY` di-set ke `/api/proxy`
 2. Cek file `src/app/api/proxy/[...segments]/route.ts` sudah ada
+
+### Invalid URL Error
+
+Jika mendapat error `TypeError: Invalid URL`:
+
+**Penyebab:**
+- `NEXT_PUBLIC_API_URL` tidak memiliki protokol (`https://` atau `http://`)
+- Format URL tidak valid
+
+**Solusi:**
+1. **Cek Environment Variable:**
+   - Pastikan `NEXT_PUBLIC_API_URL` dimulai dengan `https://` atau `http://`
+   - Contoh yang benar: `https://simnikah-api-production-5583.up.railway.app`
+   - Contoh yang salah: `simnikah-api-production-5583.up.railway.app` (tanpa protokol)
+
+2. **Update di Vercel:**
+   - Buka Vercel Dashboard → Project → Settings → Environment Variables
+   - Edit `NEXT_PUBLIC_API_URL` dan pastikan ada `https://` di depan
+   - Redeploy project
+
+3. **Catatan:**
+   - Kode sudah otomatis menambahkan `https://` jika tidak ada protokol
+   - Tapi lebih baik set dengan benar di environment variable
 
 ## Post-Deployment Checklist
 

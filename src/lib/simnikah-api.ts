@@ -573,6 +573,20 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
       errorMessage = errorInfo.errorMessage;
     } else if (errorInfo.status === 401) {
       errorMessage = 'Username atau password salah';
+    } else if (errorInfo.status === 403) {
+      // Handle 403 Forbidden - usually CORS or API blocking
+      const errorData = errorInfo.data;
+      if (errorData?.isCorsError || errorData?.message?.toLowerCase().includes('cors')) {
+        errorMessage = 'Akses ditolak oleh server API karena CORS policy. Backend API perlu dikonfigurasi untuk mengizinkan request dari domain Vercel. Silakan hubungi administrator backend untuk setup CORS.';
+      } else if (errorData?.message) {
+        errorMessage = errorData.message;
+      } else {
+        errorMessage = 'Akses ditolak oleh server API. Pastikan environment variable NEXT_PUBLIC_API_URL sudah di-set dengan benar di Vercel, dan backend API mengizinkan request dari domain Vercel.';
+      }
+      console.error('❌ Login Error 403 - CORS or API blocking:', {
+        errorData,
+        troubleshooting: errorData?.troubleshooting,
+      });
     } else if (errorInfo.status === 404) {
       errorMessage = 'Endpoint login tidak ditemukan';
     } else if (errorInfo.status === 502) {
@@ -582,7 +596,21 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
     } else if (errorInfo.status === 504) {
       errorMessage = 'Server tidak merespons dalam waktu yang ditentukan. Silakan coba lagi.';
     } else if (errorInfo.status === 500) {
-      errorMessage = 'Terjadi kesalahan pada server';
+      // Handle 500 Internal Server Error - show backend error message if available
+      const errorData = errorInfo.data;
+      if (errorData?.message) {
+        errorMessage = errorData.message;
+      } else if (errorData?.error) {
+        errorMessage = errorData.error;
+      } else if (errorData?.detail) {
+        errorMessage = `Terjadi kesalahan pada server: ${errorData.detail}`;
+      } else {
+        errorMessage = 'Terjadi kesalahan pada server API. Silakan coba lagi nanti atau hubungi administrator.';
+      }
+      console.error('❌ Login Error 500 - Server Error:', {
+        errorData,
+        backendError: errorData?.backendError,
+      });
     } else if (errorInfo.dataType === 'HTML') {
       errorMessage = 'Server mengembalikan halaman error. Silakan coba lagi nanti.';
     }
