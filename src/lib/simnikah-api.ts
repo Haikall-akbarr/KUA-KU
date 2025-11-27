@@ -214,9 +214,25 @@ export interface RegistrationStatusResponse {
       nomor_pendaftaran: string;
       status_pendaftaran: string;
       tanggal_nikah: string;
+      waktu_nikah?: string;
       tempat_nikah: string;
-      alamat_akad: string;
+      alamat_akad?: string;
       created_at: string;
+      calon_suami?: {
+        nama_lengkap?: string;
+        nama_dan_bin?: string;
+        nama?: string;
+      };
+      calon_istri?: {
+        nama_lengkap?: string;
+        nama_dan_binti?: string;
+        nama?: string;
+      };
+      penghulu?: {
+        nama?: string;
+        nama_lengkap?: string;
+        id?: number;
+      };
     };
   };
 }
@@ -841,6 +857,20 @@ export async function createMarriageRegistration(
 export async function checkRegistrationStatus(): Promise<RegistrationStatusResponse> {
   try {
     const response = await api.get<RegistrationStatusResponse>('/simnikah/pendaftaran/status');
+    console.log('📥 Registration Status Response:', JSON.stringify(response.data, null, 2));
+    
+    // Log registration data structure for debugging
+    if (response.data?.data?.registration) {
+      console.log('📋 Registration Data Structure:', {
+        hasCalonSuami: !!response.data.data.registration.calon_suami,
+        calonSuamiKeys: response.data.data.registration.calon_suami ? Object.keys(response.data.data.registration.calon_suami) : [],
+        hasCalonIstri: !!response.data.data.registration.calon_istri,
+        calonIstriKeys: response.data.data.registration.calon_istri ? Object.keys(response.data.data.registration.calon_istri) : [],
+        hasPenghulu: !!response.data.data.registration.penghulu,
+        penghuluKeys: response.data.data.registration.penghulu ? Object.keys(response.data.data.registration.penghulu) : [],
+      });
+    }
+    
     return response.data;
   } catch (error: any) {
     console.error('❌ Check Status Error:', error.response?.data || error.message);

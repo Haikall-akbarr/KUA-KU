@@ -133,6 +133,37 @@ export function AssignPenghuluDialog({
 
       console.log('✅ Assign response:', response);
 
+      // Simpan data penghulu ke localStorage
+      if (registrationNumber) {
+        try {
+          const stored = localStorage.getItem(`registration_${registrationNumber}`);
+          if (stored) {
+            const registrationData = JSON.parse(stored);
+            registrationData.penghulu = {
+              nama: selectedPenghulu.nama_lengkap || selectedPenghulu.nama,
+              nama_lengkap: selectedPenghulu.nama_lengkap || selectedPenghulu.nama,
+              id: penghuluIdNum,
+            };
+            localStorage.setItem(`registration_${registrationNumber}`, JSON.stringify(registrationData));
+            console.log('✅ Penghulu data saved to localStorage:', registrationData.penghulu);
+          } else {
+            // Jika belum ada data, buat entry baru
+            const registrationData = {
+              nomor_pendaftaran: registrationNumber,
+              penghulu: {
+                nama: selectedPenghulu.nama_lengkap || selectedPenghulu.nama,
+                nama_lengkap: selectedPenghulu.nama_lengkap || selectedPenghulu.nama,
+                id: penghuluIdNum,
+              },
+            };
+            localStorage.setItem(`registration_${registrationNumber}`, JSON.stringify(registrationData));
+            console.log('✅ Created new registration entry with penghulu:', registrationData);
+          }
+        } catch (e) {
+          console.warn('Failed to save penghulu to localStorage:', e);
+        }
+      }
+
       setSuccess(`✅ Penghulu ${selectedPenghulu.nama_lengkap || selectedPenghulu.nama} berhasil ditugaskan!`);
       
       // Reset form

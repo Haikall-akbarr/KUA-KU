@@ -90,10 +90,47 @@ export default function RegistrationStatusPage() {
       const response = await checkRegistrationStatus();
       
       if (response.success && response.data?.registration) {
-        setRegistrationData(response.data.registration);
+        const regData = response.data.registration;
+        
+        // Cek localStorage untuk data tambahan (calon suami, calon istri, penghulu)
+        let localStorageData: any = null;
+        if (regData.nomor_pendaftaran) {
+          try {
+            const stored = localStorage.getItem(`registration_${regData.nomor_pendaftaran}`);
+            if (stored) {
+              localStorageData = JSON.parse(stored);
+              console.log('📦 Loaded from localStorage:', localStorageData);
+            }
+          } catch (e) {
+            console.warn('Failed to parse localStorage data:', e);
+          }
+        }
+        
+        // Merge data dari API dengan data dari localStorage
+        const mergedData = {
+          ...regData,
+          // Gunakan data dari localStorage jika API tidak mengembalikan data
+          calon_suami: regData.calon_suami || localStorageData?.calon_suami || null,
+          calon_istri: regData.calon_istri || localStorageData?.calon_istri || null,
+          // Update penghulu dari localStorage jika API tidak mengembalikan
+          penghulu: regData.penghulu || localStorageData?.penghulu || null,
+          // Update data lain dari localStorage jika lebih lengkap
+          waktu_nikah: regData.waktu_nikah || localStorageData?.waktu_nikah || regData.waktu_nikah,
+          alamat_akad: regData.alamat_akad || localStorageData?.alamat_akad || regData.alamat_akad,
+        };
+        
+        // Log untuk debugging
+        console.log('📋 Registration Data (merged):', {
+          calonSuami: mergedData.calon_suami,
+          calonIstri: mergedData.calon_istri,
+          penghulu: mergedData.penghulu,
+          fromLocalStorage: !!localStorageData,
+        });
+        
+        setRegistrationData(mergedData);
         // TODO: Check if user already submitted feedback for this registration
         // For now, we'll assume they haven't if status is "Selesai"
-        if (response.data.registration.status_pendaftaran === 'Selesai') {
+        if (mergedData.status_pendaftaran === 'Selesai') {
           setHasFeedback(false); // You can add API call to check if feedback exists
         }
       } else {
@@ -209,12 +246,22 @@ export default function RegistrationStatusPage() {
           <dl className="divide-y divide-border/50">
             <DetailItem 
               label="Calon Suami" 
-              value={registrationData.calon_suami?.nama_lengkap || '-'}
+              value={
+                registrationData.calon_suami?.nama_lengkap || 
+                registrationData.calon_suami?.nama_dan_bin || 
+                registrationData.calon_suami?.nama || 
+                '-'
+              }
               icon={<User className="h-4 w-4" />}
             />
             <DetailItem 
               label="Calon Istri" 
-              value={registrationData.calon_istri?.nama_lengkap || '-'}
+              value={
+                registrationData.calon_istri?.nama_lengkap || 
+                registrationData.calon_istri?.nama_dan_binti || 
+                registrationData.calon_istri?.nama || 
+                '-'
+              }
               icon={<User className="h-4 w-4" />}
             />
             <DetailItem 
@@ -239,13 +286,15 @@ export default function RegistrationStatusPage() {
                 icon={<MapPin className="h-4 w-4" />}
               />
             )}
-            {registrationData.penghulu && (
-              <DetailItem 
-                label="Penghulu" 
-                value={registrationData.penghulu.nama || '-'}
-                icon={<User className="h-4 w-4" />}
-              />
-            )}
+            <DetailItem 
+              label="Penghulu" 
+              value={
+                registrationData.penghulu?.nama_lengkap || 
+                registrationData.penghulu?.nama || 
+                (typeof registrationData.penghulu === 'string' ? registrationData.penghulu : '-')
+              }
+              icon={<User className="h-4 w-4" />}
+            />
           </dl>
         </CardContent>
       </Card>

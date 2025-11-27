@@ -365,6 +365,30 @@ export function SimpleMarriageRegistrationForm() {
         variant: 'default',
       });
 
+      // Simpan data ke localStorage untuk digunakan di halaman status
+      if (response.data?.nomor_pendaftaran) {
+        const registrationData = {
+          nomor_pendaftaran: response.data.nomor_pendaftaran,
+          calon_suami: {
+            nama_lengkap: response.data.calon_suami?.nama_dan_bin || `${data.calon_laki_laki.nama} bin ${data.calon_laki_laki.bin}`,
+            nama_dan_bin: response.data.calon_suami?.nama_dan_bin || `${data.calon_laki_laki.nama} bin ${data.calon_laki_laki.bin}`,
+          },
+          calon_istri: {
+            nama_lengkap: response.data.calon_istri?.nama_dan_binti || `${data.calon_perempuan.nama} binti ${data.calon_perempuan.binti}`,
+            nama_dan_binti: response.data.calon_istri?.nama_dan_binti || `${data.calon_perempuan.nama} binti ${data.calon_perempuan.binti}`,
+          },
+          tanggal_nikah: response.data.tanggal_nikah || data.lokasi_nikah.tanggal_nikah,
+          waktu_nikah: response.data.waktu_nikah || data.lokasi_nikah.waktu_nikah,
+          tempat_nikah: response.data.tempat_nikah || data.lokasi_nikah.tempat_nikah,
+          alamat_akad: response.data.alamat_akad || data.lokasi_nikah.alamat_nikah || '',
+          status_pendaftaran: response.data.status_pendaftaran || 'Draft',
+        };
+        
+        // Simpan dengan key berdasarkan nomor_pendaftaran
+        localStorage.setItem(`registration_${response.data.nomor_pendaftaran}`, JSON.stringify(registrationData));
+        console.log('✅ Registration data saved to localStorage:', registrationData);
+      }
+
       // Redirect to success page with data sesuai struktur API response
       const params = new URLSearchParams();
       if (response.data?.nomor_pendaftaran) params.set('nomor_pendaftaran', response.data.nomor_pendaftaran);
