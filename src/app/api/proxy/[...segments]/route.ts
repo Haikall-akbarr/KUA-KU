@@ -15,7 +15,7 @@ function ensureProtocol(url: string): string {
 
 // Get and normalize TARGET URL
 const rawTarget = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
-const TARGET = ensureProtocol(rawTarget);
+const TARGET = ensureProtocol(rawTarget || 'https://simnikah-api-production-5583.up.railway.app');
 
 // Log target URL in development (not in production for security)
 if (process.env.NODE_ENV !== 'production') {
@@ -177,27 +177,44 @@ async function proxy(request: Request, segments: string[]) {
   });
 
   const headers: Record<string, string> = {};
+  
   // Forward common headers (Content-Type, Authorization, etc.)
   request.headers.forEach((value, key) => {
     const lowerKey = key.toLowerCase();
-    // Skip headers that shouldn't be forwarded
-    if (lowerKey === 'host' || lowerKey === 'connection' || lowerKey === 'keep-alive') return;
+    // Skip headers that shouldn't be forwarded to backend
+    if (
+      lowerKey === 'host' || 
+      lowerKey === 'connection' || 
+      lowerKey === 'keep-alive' ||
+      lowerKey === 'upgrade' ||
+      lowerKey === 'transfer-encoding' ||
+      lowerKey === 'content-length' // Will be set automatically by fetch
+    ) return;
     headers[key] = value;
   });
   
   // Ensure Content-Type is set for POST/PUT requests
-  if (request.method !== 'GET' && request.method !== 'HEAD' && !headers['Content-Type']) {
+  if (request.method !== 'GET' && request.method !== 'HEAD' && !headers['Content-Type'] && !headers['content-type']) {
     headers['Content-Type'] = 'application/json';
   }
   
-  // Add Origin header if missing (some APIs require this)
-  if (!headers['Origin'] && request.headers.get('origin')) {
-    headers['Origin'] = request.headers.get('origin') || '';
+  // Don't forward Origin/Referer to backend - these are browser-specific
+  // Backend should accept requests from any origin when coming from server-side proxy
+  // Remove Origin and Referer to avoid CORS issues
+  delete headers['Origin'];
+  delete headers['Referer'];
+  delete headers['origin'];
+  delete headers['referer'];
+  
+  // Add User-Agent to identify this as a server-side proxy request
+  if (!headers['User-Agent'] && !headers['user-agent']) {
+    headers['User-Agent'] = 'KUA-KU-Proxy/1.0';
   }
   
-  // Add Referer header if missing
-  if (!headers['Referer'] && request.headers.get('referer')) {
-    headers['Referer'] = request.headers.get('referer') || '';
+  // Add X-Forwarded-For if we have the original request info
+  const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
+  if (clientIP && !headers['X-Forwarded-For']) {
+    headers['X-Forwarded-For'] = clientIP;
   }
 
   const init: RequestInit = {

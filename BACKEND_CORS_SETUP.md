@@ -368,5 +368,121 @@ Setelah setup CORS di backend:
    - Backend logs untuk melihat error yang diterima
    - Network tab di browser untuk melihat response headers
 
+## 🔍 Troubleshooting Error 403 yang Persisten
+
+Jika setelah setup CORS masih mendapat error 403:
+
+### 1. Cek Apakah Backend Menerima Request
+
+**Test langsung dari server:**
+```bash
+# Test dari Vercel server (via SSH atau server logs)
+curl -X POST https://simnikah-api-production-5583.up.railway.app/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","password":"test"}' \
+  -v
+```
+
+### 2. Cek IP Whitelist
+
+Beberapa backend memblokir request berdasarkan IP. Pastikan:
+- Vercel IP ranges tidak di-block
+- Atau tambahkan Vercel IP ke whitelist
+
+**Vercel IP Ranges:**
+- Vercel menggunakan dynamic IPs
+- Tidak ada static IP list
+- Solusi: Jangan gunakan IP whitelist, gunakan CORS atau API key
+
+### 3. Cek Rate Limiting
+
+Backend mungkin memblokir karena rate limiting:
+- Cek apakah ada rate limit per IP
+- Cek apakah request terlalu sering
+- Tunggu beberapa menit dan coba lagi
+
+### 4. Cek Authentication/Authorization
+
+Backend mungkin memblokir karena:
+- Missing API key atau token
+- Invalid authentication headers
+- Missing required headers
+
+**Solusi:**
+- Pastikan semua required headers dikirim
+- Cek apakah backend memerlukan API key
+- Cek apakah backend memerlukan authentication untuk login endpoint
+
+### 5. Cek Request Format
+
+Backend mungkin memblokir karena format request tidak sesuai:
+- Content-Type tidak sesuai
+- Request body format tidak sesuai
+- Missing required fields
+
+**Solusi:**
+- Cek Vercel logs untuk melihat request yang dikirim
+- Bandingkan dengan request yang berhasil (dari Postman/curl)
+- Pastikan format request sesuai dengan dokumentasi API
+
+### 6. Cek Backend Logs
+
+Cek backend logs untuk melihat:
+- Apakah request diterima oleh backend
+- Error message dari backend
+- Stack trace jika ada
+
+**Contoh log yang dicari:**
+```
+[ERROR] 403 Forbidden: IP not whitelisted
+[ERROR] 403 Forbidden: Missing API key
+[ERROR] 403 Forbidden: Invalid origin
+```
+
+### 7. Test dengan Postman/curl
+
+Test langsung ke backend untuk memastikan backend berfungsi:
+```bash
+curl -X POST https://simnikah-api-production-5583.up.railway.app/login \
+  -H "Content-Type: application/json" \
+  -H "Origin: https://your-app.vercel.app" \
+  -d '{"username":"test","password":"test"}' \
+  -v
+```
+
+Jika ini berhasil tapi dari Vercel tidak, masalahnya ada di proxy atau cara request dikirim.
+
+### 8. Cek Vercel Logs
+
+Cek Vercel logs untuk melihat:
+- Request yang dikirim ke backend
+- Response dari backend
+- Error details
+
+**Cara cek:**
+1. Buka Vercel Dashboard → Project → Logs
+2. Cari log dengan prefix `[proxy]`
+3. Lihat detail request dan response
+
+### 9. Bypass Proxy (Temporary Test)
+
+Untuk test apakah masalahnya di proxy atau backend, coba bypass proxy sementara:
+
+**Ubah di `src/lib/api.ts`:**
+```typescript
+// Temporary: bypass proxy untuk test
+let baseURL = DEFAULT_API_URL; // Langsung ke backend, tidak pakai proxy
+```
+
+**Catatan:** Ini hanya untuk test. Setelah test, kembalikan ke proxy karena akan ada CORS issue di browser.
+
+### 10. Contact Backend Developer
+
+Jika semua langkah di atas sudah dicoba tapi masih error 403:
+- Hubungi backend developer
+- Berikan detail error dari Vercel logs
+- Berikan detail request yang dikirim
+- Minta backend developer untuk cek logs dan whitelist Vercel domain/IP
+
 
 
