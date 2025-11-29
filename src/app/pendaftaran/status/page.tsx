@@ -100,6 +100,13 @@ export default function RegistrationStatusPage() {
             if (stored) {
               localStorageData = JSON.parse(stored);
               console.log('📦 Loaded from localStorage:', localStorageData);
+              console.log('📦 Calon Suami from localStorage:', localStorageData.calon_suami);
+              console.log('📦 Calon Istri from localStorage:', localStorageData.calon_istri);
+            } else {
+              console.warn('⚠️ No data found in localStorage for:', `registration_${regData.nomor_pendaftaran}`);
+              // Cek semua keys di localStorage untuk debugging
+              const allKeys = Object.keys(localStorage).filter(key => key.startsWith('registration_'));
+              console.log('📋 All registration keys in localStorage:', allKeys);
             }
           } catch (e) {
             console.warn('Failed to parse localStorage data:', e);
@@ -107,16 +114,23 @@ export default function RegistrationStatusPage() {
         }
         
         // Merge data dari API dengan data dari localStorage
+        // Prioritas: localStorage > API (karena localStorage lebih lengkap)
         const mergedData = {
           ...regData,
-          // Gunakan data dari localStorage jika API tidak mengembalikan data
-          calon_suami: regData.calon_suami || localStorageData?.calon_suami || null,
-          calon_istri: regData.calon_istri || localStorageData?.calon_istri || null,
+          // Gunakan data dari localStorage jika ada, jika tidak baru pakai dari API
+          calon_suami: (localStorageData?.calon_suami && (
+            localStorageData.calon_suami.nama_lengkap || 
+            localStorageData.calon_suami.nama_dan_bin
+          )) ? localStorageData.calon_suami : (regData.calon_suami || null),
+          calon_istri: (localStorageData?.calon_istri && (
+            localStorageData.calon_istri.nama_lengkap || 
+            localStorageData.calon_istri.nama_dan_binti
+          )) ? localStorageData.calon_istri : (regData.calon_istri || null),
           // Update penghulu dari localStorage jika API tidak mengembalikan
-          penghulu: regData.penghulu || localStorageData?.penghulu || null,
+          penghulu: localStorageData?.penghulu || regData.penghulu || null,
           // Update data lain dari localStorage jika lebih lengkap
-          waktu_nikah: regData.waktu_nikah || localStorageData?.waktu_nikah || regData.waktu_nikah,
-          alamat_akad: regData.alamat_akad || localStorageData?.alamat_akad || regData.alamat_akad,
+          waktu_nikah: localStorageData?.waktu_nikah || regData.waktu_nikah || null,
+          alamat_akad: localStorageData?.alamat_akad || regData.alamat_akad || null,
         };
         
         // Log untuk debugging
@@ -247,20 +261,28 @@ export default function RegistrationStatusPage() {
             <DetailItem 
               label="Calon Suami" 
               value={
-                registrationData.calon_suami?.nama_lengkap || 
-                registrationData.calon_suami?.nama_dan_bin || 
-                registrationData.calon_suami?.nama || 
-                '-'
+                (registrationData.calon_suami && typeof registrationData.calon_suami === 'object')
+                  ? (registrationData.calon_suami.nama_lengkap || 
+                     registrationData.calon_suami.nama_dan_bin || 
+                     registrationData.calon_suami.nama || 
+                     '-')
+                  : (typeof registrationData.calon_suami === 'string' 
+                      ? registrationData.calon_suami 
+                      : '-')
               }
               icon={<User className="h-4 w-4" />}
             />
             <DetailItem 
               label="Calon Istri" 
               value={
-                registrationData.calon_istri?.nama_lengkap || 
-                registrationData.calon_istri?.nama_dan_binti || 
-                registrationData.calon_istri?.nama || 
-                '-'
+                (registrationData.calon_istri && typeof registrationData.calon_istri === 'object')
+                  ? (registrationData.calon_istri.nama_lengkap || 
+                     registrationData.calon_istri.nama_dan_binti || 
+                     registrationData.calon_istri.nama || 
+                     '-')
+                  : (typeof registrationData.calon_istri === 'string' 
+                      ? registrationData.calon_istri 
+                      : '-')
               }
               icon={<User className="h-4 w-4" />}
             />

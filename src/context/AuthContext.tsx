@@ -16,10 +16,11 @@ export const ADMIN_ROLES = [
 
 // Definisikan tipe untuk User (berdasarkan respons API Anda)
 interface ApiUser {
-  user_id: string;
-  nama: string;
-  email: string;
-  role: string;
+  user_id: string;
+  nama: string;
+  email: string;
+  role: string;
+  username?: string; // Optional, might not be in all user objects
 }
 
 // Definisikan tipe untuk Context

@@ -182,8 +182,50 @@ api.interceptors.response.use(
         const contentType = error.response.headers['content-type'] || '';
         const responseData = error.response.data;
         
+        // Handle 401 Unauthorized - Token expired
+        if (status === 401) {
+          console.warn('⚠️ 401 Unauthorized - Token expired or invalid');
+          
+          // Set error message
+          error.response.data = {
+            error: 'Unauthorized',
+            message: 'Token tidak valid atau sudah kadaluarsa',
+            status: 401
+          };
+          error.message = 'Token tidak valid atau sudah kadaluarsa';
+          
+          // Handle token expiration: redirect to relogin page
+          // Only redirect if we're in browser and not already on relogin/login page
+          if (typeof window !== 'undefined') {
+            const currentPath = window.location.pathname;
+            const isOnAuthPage = currentPath.includes('/relogin') || currentPath.includes('/login');
+            
+            if (!isOnAuthPage) {
+              // Check if user data exists in localStorage
+              const storedUser = localStorage.getItem('user');
+              
+              if (storedUser) {
+                // User data exists, redirect to relogin (keep user, remove token)
+                console.log('🔄 Token expired - redirecting to relogin page');
+                // Remove token but keep user data
+                localStorage.removeItem('token');
+                // Use setTimeout to avoid redirect loop and allow error to propagate
+                setTimeout(() => {
+                  window.location.href = '/relogin';
+                }, 100);
+              } else {
+                // No user data, redirect to login
+                console.log('🔄 No user data - redirecting to login page');
+                localStorage.removeItem('token');
+                setTimeout(() => {
+                  window.location.href = '/login';
+                }, 100);
+              }
+            }
+          }
+        }
         // Handle 502 Bad Gateway specifically
-        if (status === 502) {
+        else if (status === 502) {
           console.error('⚠️ 502 Bad Gateway - Server API tidak dapat dijangkau');
           error.response.data = {
             error: 'Bad Gateway',

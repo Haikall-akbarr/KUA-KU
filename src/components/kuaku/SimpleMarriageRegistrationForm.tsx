@@ -366,16 +366,30 @@ export function SimpleMarriageRegistrationForm() {
       });
 
       // Simpan data ke localStorage untuk digunakan di halaman status
-      if (response.data?.nomor_pendaftaran) {
+      // Pastikan selalu simpan data dari form, bahkan jika API tidak mengembalikan
+      const nomorPendaftaran = response.data?.nomor_pendaftaran;
+      if (nomorPendaftaran) {
+        // Buat nama lengkap dari form data
+        const namaSuamiLengkap = `${data.calon_laki_laki.nama} bin ${data.calon_laki_laki.bin}`;
+        const namaIstriLengkap = `${data.calon_perempuan.nama} binti ${data.calon_perempuan.binti}`;
+        
         const registrationData = {
-          nomor_pendaftaran: response.data.nomor_pendaftaran,
+          nomor_pendaftaran: nomorPendaftaran,
           calon_suami: {
-            nama_lengkap: response.data.calon_suami?.nama_dan_bin || `${data.calon_laki_laki.nama} bin ${data.calon_laki_laki.bin}`,
-            nama_dan_bin: response.data.calon_suami?.nama_dan_bin || `${data.calon_laki_laki.nama} bin ${data.calon_laki_laki.bin}`,
+            nama_lengkap: response.data.calon_suami?.nama_dan_bin || 
+                         response.data.calon_suami?.nama_lengkap || 
+                         namaSuamiLengkap,
+            nama_dan_bin: response.data.calon_suami?.nama_dan_bin || namaSuamiLengkap,
+            nama: data.calon_laki_laki.nama, // Simpan juga nama saja untuk fallback
+            bin: data.calon_laki_laki.bin, // Simpan juga bin untuk fallback
           },
           calon_istri: {
-            nama_lengkap: response.data.calon_istri?.nama_dan_binti || `${data.calon_perempuan.nama} binti ${data.calon_perempuan.binti}`,
-            nama_dan_binti: response.data.calon_istri?.nama_dan_binti || `${data.calon_perempuan.nama} binti ${data.calon_perempuan.binti}`,
+            nama_lengkap: response.data.calon_istri?.nama_dan_binti || 
+                         response.data.calon_istri?.nama_lengkap || 
+                         namaIstriLengkap,
+            nama_dan_binti: response.data.calon_istri?.nama_dan_binti || namaIstriLengkap,
+            nama: data.calon_perempuan.nama, // Simpan juga nama saja untuk fallback
+            binti: data.calon_perempuan.binti, // Simpan juga binti untuk fallback
           },
           tanggal_nikah: response.data.tanggal_nikah || data.lokasi_nikah.tanggal_nikah,
           waktu_nikah: response.data.waktu_nikah || data.lokasi_nikah.waktu_nikah,
@@ -385,8 +399,17 @@ export function SimpleMarriageRegistrationForm() {
         };
         
         // Simpan dengan key berdasarkan nomor_pendaftaran
-        localStorage.setItem(`registration_${response.data.nomor_pendaftaran}`, JSON.stringify(registrationData));
-        console.log('✅ Registration data saved to localStorage:', registrationData);
+        const storageKey = `registration_${nomorPendaftaran}`;
+        localStorage.setItem(storageKey, JSON.stringify(registrationData));
+        console.log('✅ Registration data saved to localStorage:', {
+          key: storageKey,
+          data: registrationData,
+          calonSuami: registrationData.calon_suami,
+          calonIstri: registrationData.calon_istri,
+        });
+      } else {
+        console.warn('⚠️ No nomor_pendaftaran in response, cannot save to localStorage');
+        console.log('Response data:', response.data);
       }
 
       // Redirect to success page with data sesuai struktur API response
