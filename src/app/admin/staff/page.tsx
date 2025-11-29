@@ -18,7 +18,6 @@ import {
   LogOut 
 } from 'lucide-react';
 import { getAllRegistrations, approveRegistration, handleApiError, getStaffDashboard } from '@/lib/simnikah-api';
-import { TokenExpiredTestButton } from '@/components/dev/TokenExpiredTestButton';
 
 interface Registration {
   id: string; // ID numerik untuk API calls
@@ -207,9 +206,6 @@ export default function StaffDashboard() {
           Logout
         </Button>
       </div>
-
-      {/* Development Test Tools */}
-      <TokenExpiredTestButton />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
