@@ -204,22 +204,28 @@ api.interceptors.response.use(
               // Check if user data exists in localStorage
               const storedUser = localStorage.getItem('user');
               
+              // Prevent multiple redirects
+              const redirectKey = 'redirecting_to_relogin';
+              if (sessionStorage.getItem(redirectKey)) {
+                console.log('⚠️ Redirect already in progress, skipping...');
+                return Promise.reject(error);
+              }
+              
               if (storedUser) {
                 // User data exists, redirect to relogin (keep user, remove token)
                 console.log('🔄 Token expired - redirecting to relogin page');
+                // Set flag to prevent multiple redirects
+                sessionStorage.setItem(redirectKey, 'true');
                 // Remove token but keep user data
                 localStorage.removeItem('token');
-                // Use setTimeout to avoid redirect loop and allow error to propagate
-                setTimeout(() => {
-                  window.location.href = '/relogin';
-                }, 100);
+                // Use window.location.href for immediate redirect (works better than router)
+                window.location.href = '/relogin';
               } else {
                 // No user data, redirect to login
                 console.log('🔄 No user data - redirecting to login page');
+                sessionStorage.setItem(redirectKey, 'true');
                 localStorage.removeItem('token');
-                setTimeout(() => {
-                  window.location.href = '/login';
-                }, 100);
+                window.location.href = '/login';
               }
             }
           }

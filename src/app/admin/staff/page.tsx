@@ -44,7 +44,12 @@ export default function StaffDashboard() {
       if (response && response.success) {
         setDashboardData(response.data);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Don't catch 401 errors here - let interceptor handle redirect
+      if (error?.response?.status === 401) {
+        console.log('🔄 401 detected in loadDashboardData - letting interceptor handle redirect');
+        throw error; // Re-throw to let interceptor handle
+      }
       console.error('Error loading staff dashboard:', error);
       setDashboardData(null);
     }
@@ -82,7 +87,12 @@ export default function StaffDashboard() {
       } else {
         setRegistrations([]);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Don't catch 401 errors here - let interceptor handle redirect
+      if (error?.response?.status === 401) {
+        console.log('🔄 401 detected in loadRegistrations - letting interceptor handle redirect');
+        throw error; // Re-throw to let interceptor handle
+      }
       console.error('Error loading registrations:', error);
       setRegistrations([]);
     } finally {
