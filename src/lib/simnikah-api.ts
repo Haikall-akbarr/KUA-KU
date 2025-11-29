@@ -442,16 +442,16 @@ export async function registerUser(data: RegisterRequest): Promise<RegisterRespo
  */
 export async function login(data: LoginRequest): Promise<LoginResponse> {
   try {
-    console.log('📤 Login Request:', { username: data.username });
+    // console.log('📤 Login Request:', { username: data.username });
     const response = await api.post('/login', data);
-    console.log('📥 Login Raw Response:', response);
-    console.log('📥 Login Response Data:', response.data);
+    // console.log('📥 Login Raw Response:', response);
+    // console.log('📥 Login Response Data:', response.data);
     
     // Handle different response structures
     let loginData: LoginResponse;
     
     // Log full response for debugging
-    console.log('📥 Full Response Structure:', JSON.stringify(response.data, null, 2));
+    // console.log('📥 Full Response Structure:', JSON.stringify(response.data, null, 2));
     
     // Try multiple extraction strategies (order matters - try most common first)
     // Strategy 1: Direct format { token, user, message }
@@ -528,11 +528,11 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
       throw new Error('Invalid user data: missing role or user_id');
     }
     
-    console.log('✅ Login Success:', {
-      user_id: loginData.user.user_id,
-      role: loginData.user.role,
-      nama: loginData.user.nama,
-    });
+    // console.log('✅ Login Success:', {
+    //   user_id: loginData.user.user_id,
+    //   role: loginData.user.role,
+    //   nama: loginData.user.nama,
+    // });
     
     // Store token in localStorage
     if (typeof window !== 'undefined' && loginData.token) {
@@ -662,7 +662,7 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
  */
 export async function getProfile(): Promise<ProfileResponse> {
   try {
-    console.log('📤 Get Profile Request');
+    // console.log('📤 Get Profile Request');
     const response = await api.get<ProfileResponse>('/profile');
     
     // Check if response is valid
@@ -689,7 +689,7 @@ export async function getProfile(): Promise<ProfileResponse> {
       throw new Error('Invalid profile response: user field is missing');
     }
     
-    console.log('✅ Get Profile Response:', responseData);
+    // console.log('✅ Get Profile Response:', responseData);
     return responseData;
   } catch (error: any) {
     // Enhanced error logging with better handling of empty response data
@@ -760,9 +760,9 @@ export async function createSimpleMarriageRegistration(
   data: SimpleMarriageRegistrationRequest
 ): Promise<any> {
   try {
-    console.log('📤 Create Simple Registration Request:', data);
+    // console.log('📤 Create Simple Registration Request:', data);
     const response = await api.post('/simnikah/pendaftaran', data);
-    console.log('✅ Create Simple Registration Response:', response.data);
+    // console.log('✅ Create Simple Registration Response:', response.data);
     return response.data;
   } catch (error: any) {
     console.error('❌ Create Simple Registration Error:', error.response?.data || error.message);
@@ -820,15 +820,15 @@ export async function createRegistrationForUser(
   data: SimpleMarriageRegistrationRequest
 ): Promise<StaffCreateRegistrationResponse> {
   try {
-    console.log('📤 Staff Create Registration Request:', JSON.stringify(data, null, 2));
+    // console.log('📤 Staff Create Registration Request:', JSON.stringify(data, null, 2));
     const response = await api.post<StaffCreateRegistrationResponse>('/simnikah/staff/pendaftaran', data);
-    console.log('✅ Staff Create Registration Response:', JSON.stringify(response.data, null, 2));
+    // console.log('✅ Staff Create Registration Response:', JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error: any) {
     console.error('❌ Staff Create Registration Error:', error);
-    console.error('❌ Error Response Status:', error.response?.status);
-    console.error('❌ Error Response Data:', JSON.stringify(error.response?.data, null, 2));
-    console.error('❌ Error Response Headers:', error.response?.headers);
+      // console.error('❌ Error Response Status:', error.response?.status);
+      // console.error('❌ Error Response Data:', JSON.stringify(error.response?.data, null, 2));
+      // console.error('❌ Error Response Headers:', error.response?.headers);
     console.error('❌ Full Error Object:', JSON.stringify(error, null, 2));
     throw error;
   }
@@ -857,7 +857,7 @@ export async function createMarriageRegistration(
 export async function checkRegistrationStatus(): Promise<RegistrationStatusResponse> {
   try {
     const response = await api.get<RegistrationStatusResponse>('/simnikah/pendaftaran/status');
-    console.log('📥 Registration Status Response:', JSON.stringify(response.data, null, 2));
+    // console.log('📥 Registration Status Response:', JSON.stringify(response.data, null, 2));
     
     // Log registration data structure for debugging
     if (response.data?.data?.registration) {
@@ -975,20 +975,20 @@ export async function updateStatusPendaftaran(
       ...(data.catatan && { catatan: data.catatan })
     };
 
-    console.log('📤 Update Status Request:', {
-      id,
-      status: data.status,
-      catatan: data.catatan,
-      requestBody,
-      endpoint: `/simnikah/pendaftaran/${id}/update-status`
-    });
+    // console.log('📤 Update Status Request:', {
+    //   id,
+    //   status: data.status,
+    //   catatan: data.catatan,
+    //   requestBody,
+    //   endpoint: `/simnikah/pendaftaran/${id}/update-status`
+    // });
 
     const response = await api.put<UpdateStatusResponse>(
       `/simnikah/pendaftaran/${id}/update-status`,
       requestBody
     );
     
-    console.log('✅ Update Status Response:', response.data);
+    // console.log('✅ Update Status Response:', response.data);
     return response.data;
   } catch (error: any) {
     // Log error detail
@@ -1080,9 +1080,9 @@ export async function getAllRegistrations(
  */
 export async function createStaff(data: CreateStaffRequest): Promise<any> {
   try {
-    console.log('📤 Create Staff Request:', data);
+    // console.log('📤 Create Staff Request:', data);
     const response = await api.post('/simnikah/kepala-kua/staff', data);
-    console.log('✅ Create Staff Response:', response.data);
+    // console.log('✅ Create Staff Response:', response.data);
     return response.data;
   } catch (error: any) {
     console.error('❌ Create Staff Error:', error.response?.data || error.message);
@@ -1129,13 +1129,13 @@ export async function verifyFormulir(
   data: VerifyFormulirRequest
 ): Promise<any> {
   try {
-    console.log('📤 Verify Formulir Request:', {
-      id,
-      data,
-      endpoint: `/simnikah/staff/verify-formulir/${id}`
-    });
+    // console.log('📤 Verify Formulir Request:', {
+    //   id,
+    //   data,
+    //   endpoint: `/simnikah/staff/verify-formulir/${id}`
+    // });
     const response = await api.post(`/simnikah/staff/verify-formulir/${id}`, data);
-    console.log('✅ Verify Formulir Response:', response.data);
+    // console.log('✅ Verify Formulir Response:', response.data);
     return response.data;
   } catch (error: any) {
     // Log error detail
@@ -1239,9 +1239,9 @@ export async function verifyBerkas(
  */
 export async function getAllStaff(): Promise<any> {
   try {
-    console.log('📤 Get All Staff Request');
+    // console.log('📤 Get All Staff Request');
     const response = await api.get('/simnikah/staff');
-    console.log('✅ Get All Staff Response:', response.data);
+    // console.log('✅ Get All Staff Response:', response.data);
     return response.data;
   } catch (error: any) {
     // Log error detail
@@ -1310,13 +1310,13 @@ export async function verifyDocuments(
   data: VerifyDocumentsRequest
 ): Promise<any> {
   try {
-    console.log('📤 Verify Documents Request:', {
-      id,
-      data,
-      endpoint: `/simnikah/penghulu/verify-documents/${id}`
-    });
+    // console.log('📤 Verify Documents Request:', {
+    //   id,
+    //   data,
+    //   endpoint: `/simnikah/penghulu/verify-documents/${id}`
+    // });
     const response = await api.post(`/simnikah/penghulu/verify-documents/${id}`, data);
-    console.log('✅ Verify Documents Response:', response.data);
+    // console.log('✅ Verify Documents Response:', response.data);
     return response.data;
   } catch (error: any) {
     // Log error detail
@@ -1458,9 +1458,9 @@ export async function getPenghuluProfile(): Promise<any> {
  */
 export async function getAllPenghulu(): Promise<any> {
   try {
-    console.log('📤 Get All Penghulu Request');
+    // console.log('📤 Get All Penghulu Request');
     const response = await api.get('/simnikah/penghulu');
-    console.log('✅ Get All Penghulu Response:', response.data);
+    // console.log('✅ Get All Penghulu Response:', response.data);
     return response.data;
   } catch (error: any) {
     // Log error detail
@@ -2559,7 +2559,7 @@ export async function getPengumumanList(
       }
     }
     
-    console.log('📤 Get Pengumuman List Request:', cleanParams);
+    // console.log('📤 Get Pengumuman List Request:', cleanParams);
     console.log('📅 Date params validation:', {
       tanggal_awal: cleanParams.tanggal_awal,
       tanggal_akhir: cleanParams.tanggal_akhir,
@@ -2570,7 +2570,7 @@ export async function getPengumumanList(
       '/simnikah/staff/pengumuman-nikah/list',
       { params: cleanParams }
     );
-    console.log('✅ Get Pengumuman List Response:', response.data);
+    // console.log('✅ Get Pengumuman List Response:', response.data);
     console.log('📊 Response data:', {
       total: response.data.data?.total,
       periode: response.data.data?.periode,
@@ -2601,7 +2601,7 @@ export async function generatePengumumanNikah(
   customKopSurat?: CustomKopSurat
 ): Promise<string> {
   try {
-    console.log('📤 Generate Pengumuman Request:', { params, customKopSurat });
+    // console.log('📤 Generate Pengumuman Request:', { params, customKopSurat });
     
     const config: any = {
       method: customKopSurat ? 'post' : 'get',
@@ -2657,7 +2657,7 @@ export async function getPengumumanListKepalaKUA(
       }
     }
     
-    console.log('📤 Get Pengumuman List (Kepala KUA) Request:', cleanParams);
+    // console.log('📤 Get Pengumuman List (Kepala KUA) Request:', cleanParams);
     console.log('📅 Date params validation:', {
       tanggal_awal: cleanParams.tanggal_awal,
       tanggal_akhir: cleanParams.tanggal_akhir,
@@ -2668,7 +2668,7 @@ export async function getPengumumanListKepalaKUA(
       '/simnikah/kepala-kua/pengumuman-nikah/list',
       { params: cleanParams }
     );
-    console.log('✅ Get Pengumuman List (Kepala KUA) Response:', response.data);
+    // console.log('✅ Get Pengumuman List (Kepala KUA) Response:', response.data);
     console.log('📊 Response data:', {
       total: response.data.data?.total,
       periode: response.data.data?.periode,
@@ -2699,7 +2699,7 @@ export async function generatePengumumanNikahKepalaKUA(
   customKopSurat?: CustomKopSurat
 ): Promise<string> {
   try {
-    console.log('📤 Generate Pengumuman (Kepala KUA) Request:', { params, customKopSurat });
+    // console.log('📤 Generate Pengumuman (Kepala KUA) Request:', { params, customKopSurat });
     
     const config: any = {
       method: customKopSurat ? 'post' : 'get',

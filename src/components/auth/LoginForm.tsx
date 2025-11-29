@@ -53,7 +53,7 @@ export function LoginForm() {
         password: data.password,
       });
 
-      console.log('✅ Login Response:', result);
+      // console.log('✅ Login Response:', result);
 
       // Validate response structure
       if (!result || !result.user || !result.token) {

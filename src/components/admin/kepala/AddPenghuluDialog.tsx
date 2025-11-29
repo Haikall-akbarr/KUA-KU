@@ -54,7 +54,7 @@ export function AddPenghuluDialog({ open, onOpenChange, onSuccess }: AddPenghulu
     setSuccessMessage('');
 
     try {
-      console.log('📤 Creating penghulu via API:', {
+      // console.log('📤 Creating penghulu via API:', {
         username: formData.username,
         email: formData.email,
         nama: formData.nama,
@@ -72,7 +72,7 @@ export function AddPenghuluDialog({ open, onOpenChange, onSuccess }: AddPenghulu
         alamat: formData.alamat || undefined
       });
 
-      console.log('✅ API Response:', data);
+      // console.log('✅ API Response:', data);
 
       // Reset form
       setFormData({

@@ -54,7 +54,7 @@ export function AddStaffDialog({ open, onOpenChange, onSuccess }: AddStaffDialog
     setSuccessMessage('');
 
     try {
-      console.log('📤 Creating staff via API:', {
+      // console.log('📤 Creating staff via API:', {
         username: formData.username,
         email: formData.email,
         nama: formData.nama,
@@ -74,7 +74,7 @@ export function AddStaffDialog({ open, onOpenChange, onSuccess }: AddStaffDialog
         alamat: formData.alamat || undefined
       });
 
-      console.log('✅ API Response:', data);
+      // console.log('✅ API Response:', data);
 
       // Reset form
       setFormData({

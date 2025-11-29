@@ -118,7 +118,7 @@ export function PengumumanNikahGenerator({ role = 'staff' }: PengumumanNikahGene
         tanggal_akhir: formattedTanggalAkhir,
       };
 
-      console.log('📤 Loading pengumuman list with params:', params);
+      // console.log('📤 Loading pengumuman list with params:', params);
       console.log('📅 Tanggal yang dipilih:', {
         tanggalAwal: formattedTanggalAwal,
         tanggalAkhir: formattedTanggalAkhir,

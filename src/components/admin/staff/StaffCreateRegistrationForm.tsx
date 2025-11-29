@@ -288,8 +288,8 @@ export function StaffCreateRegistrationForm({ onSuccess }: StaffCreateRegistrati
         },
       };
       
-      console.log('📤 Sending API data:', JSON.stringify(apiData, null, 2));
-      console.log('📤 Wali Nikah data:', apiData.wali_nikah);
+      // console.log('📤 Sending API data:', JSON.stringify(apiData, null, 2));
+      // console.log('📤 Wali Nikah data:', apiData.wali_nikah);
       
       const response = await createRegistrationForUser(apiData);
       

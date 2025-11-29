@@ -59,7 +59,7 @@ export function ReloginForm() {
         password: data.password,
       });
 
-      console.log('✅ Relogin Response:', result);
+      // console.log('✅ Relogin Response:', result);
 
       // Validate response structure
       if (!result || !result.user || !result.token) {

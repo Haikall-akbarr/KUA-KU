@@ -118,7 +118,7 @@ export function AssignPenghuluDialog({
                            selectedPenghulu.penghulu_id || 
                            parseInt(selectedPenghuluId);
 
-      console.log('📤 Assigning penghulu:', {
+      // console.log('📤 Assigning penghulu:', {
         registrationId,
         penghuluId: penghuluIdNum,
         penghuluName: selectedPenghulu.nama_lengkap || selectedPenghulu.nama,
@@ -131,7 +131,7 @@ export function AssignPenghuluDialog({
         catatan: catatan || `Penghulu ${selectedPenghulu.nama_lengkap || selectedPenghulu.nama} ditugaskan untuk memverifikasi dokumen pendaftaran nikah`,
       });
 
-      console.log('✅ Assign response:', response);
+      // console.log('✅ Assign response:', response);
 
       // Simpan data penghulu ke localStorage
       if (registrationNumber) {
