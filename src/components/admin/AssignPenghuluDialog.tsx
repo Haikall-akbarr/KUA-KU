@@ -119,10 +119,10 @@ export function AssignPenghuluDialog({
                            parseInt(selectedPenghuluId);
 
       // console.log('📤 Assigning penghulu:', {
-        registrationId,
-        penghuluId: penghuluIdNum,
-        penghuluName: selectedPenghulu.nama_lengkap || selectedPenghulu.nama,
-      });
+      //   registrationId,
+      //   penghuluId: penghuluIdNum,
+      //   penghuluName: selectedPenghulu.nama_lengkap || selectedPenghulu.nama,
+      // });
 
       const response = await assignPenghulu(registrationId, {
         penghulu_id: typeof penghuluIdNum === 'string' 

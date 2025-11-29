@@ -55,11 +55,11 @@ export function AddStaffDialog({ open, onOpenChange, onSuccess }: AddStaffDialog
 
     try {
       // console.log('📤 Creating staff via API:', {
-        username: formData.username,
-        email: formData.email,
-        nama: formData.nama,
-        nip: formData.nip
-      });
+      //   username: formData.username,
+      //   email: formData.email,
+      //   nama: formData.nama,
+      //   nip: formData.nip
+      // });
 
       // Call createStaff API
       const data = await createStaff({

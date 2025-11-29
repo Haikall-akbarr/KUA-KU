@@ -55,11 +55,11 @@ export function AddPenghuluDialog({ open, onOpenChange, onSuccess }: AddPenghulu
 
     try {
       // console.log('📤 Creating penghulu via API:', {
-        username: formData.username,
-        email: formData.email,
-        nama: formData.nama,
-        nip: formData.nip
-      });
+      //   username: formData.username,
+      //   email: formData.email,
+      //   nama: formData.nama,
+      //   nip: formData.nip
+      // });
 
       // Call createPenghulu API
       const data = await createPenghulu({
