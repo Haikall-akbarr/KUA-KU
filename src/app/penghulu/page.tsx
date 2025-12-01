@@ -635,5 +635,6 @@ export default function PenguluDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
     );
 }
