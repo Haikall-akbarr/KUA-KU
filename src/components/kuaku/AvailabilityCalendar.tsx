@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import api from "@/lib/api";
-import { getCalendarAvailability } from "@/lib/simnikah-api";
+import { getCalendarAvailability, getAllPenghulu } from "@/lib/simnikah-api";
 import { Calendar, AlertCircle, Users, MapPin, CheckCircle, XCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { SectionWrapper } from "@/components/shared/SectionWrapper";
@@ -67,14 +67,41 @@ export function AvailabilityCalendar() {
 
       console.log(`📅 Fetching calendar data for bulan=${bulan}, tahun=${tahun}`);
 
-      // Use the new API function from simnikah-api.ts
-      const response = await getCalendarAvailability(bulan, tahun);
+      // Fetch calendar data and penghulu data in parallel
+      const [calendarResponse, penghuluResponse] = await Promise.all([
+        getCalendarAvailability(bulan, tahun),
+        getAllPenghulu().catch(() => ({ success: false, data: [] }))
+      ]);
       
-      console.log("✅ Calendar data fetched:", response);
+      console.log("✅ Calendar data fetched:", calendarResponse);
+      console.log("✅ Penghulu data fetched:", penghuluResponse);
+      
+      const response = calendarResponse;
       
       // Handle response structure from getCalendarAvailability
       // Response format: { success: true, message: "...", data: { bulan, tahun, nama_bulan, kapasitas_harian, calendar: [...] } }
       const responseData = response.data;
+      
+      // Calculate penghulu statistics (moved before response check)
+      let totalPenghulu = 0;
+      let penghuluAktif = 0;
+      let penghuluCadangan = 0;
+      
+      if (penghuluResponse.success && Array.isArray(penghuluResponse.data)) {
+        totalPenghulu = penghuluResponse.data.length;
+        penghuluAktif = penghuluResponse.data.filter((p: any) => 
+          p.status === 'Aktif' || p.status === 'aktif' || p.status === 'ACTIVE'
+        ).length;
+        penghuluCadangan = penghuluResponse.data.filter((p: any) => 
+          p.status === 'Cadangan' || p.status === 'cadangan' || p.status === 'RESERVE'
+        ).length;
+        
+        console.log('📿 Penghulu Stats:', {
+          total: totalPenghulu,
+          aktif: penghuluAktif,
+          cadangan: penghuluCadangan
+        });
+      }
       
       // Check if response is empty or invalid
       if (!responseData || typeof responseData !== 'object' || Object.keys(responseData).length === 0) {
@@ -90,9 +117,9 @@ export function AvailabilityCalendar() {
           nama_bulan: currentMonth.toLocaleString("id-ID", { month: "long" }),
           kapasitas_harian: 9,
           penghulu_info: {
-            total_penghulu: 0,
-            penghulu_aktif: 0,
-            penghulu_cadangan: 0,
+            total_penghulu: totalPenghulu,
+            penghulu_aktif: penghuluAktif,
+            penghulu_cadangan: penghuluCadangan,
             slot_waktu_per_hari: 9,
             nikah_per_slot: 1,
             total_kapasitas_harian: 9,
@@ -130,10 +157,10 @@ export function AvailabilityCalendar() {
           nama_bulan: responseData.nama_bulan || currentMonth.toLocaleString("id-ID", { month: "long" }),
           kapasitas_harian: responseData.kapasitas_harian || 9,
           penghulu_info: {
-            total_penghulu: 0,
-            penghulu_aktif: 0,
-            penghulu_cadangan: 0,
-            slot_waktu_per_hari: 9,
+            total_penghulu: totalPenghulu,
+            penghulu_aktif: penghuluAktif,
+            penghulu_cadangan: penghuluCadangan,
+            slot_waktu_per_hari: responseData.kapasitas_harian || 9,
             nikah_per_slot: 1,
             total_kapasitas_harian: responseData.kapasitas_harian || 9,
           },
@@ -164,9 +191,9 @@ export function AvailabilityCalendar() {
           nama_bulan: currentMonth.toLocaleString("id-ID", { month: "long" }),
           kapasitas_harian: responseData.kapasitas_per_hari || 9,
           penghulu_info: {
-            total_penghulu: 0,
-            penghulu_aktif: 0,
-            penghulu_cadangan: 0,
+            total_penghulu: totalPenghulu,
+            penghulu_aktif: penghuluAktif,
+            penghulu_cadangan: penghuluCadangan,
             slot_waktu_per_hari: 9,
             nikah_per_slot: 1,
             total_kapasitas_harian: responseData.kapasitas_per_hari || 9,

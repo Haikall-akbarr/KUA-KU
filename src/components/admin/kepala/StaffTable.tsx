@@ -18,8 +18,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, UserX, UserCheck, Loader2 } from "lucide-react"
+import { MoreHorizontal, UserX, UserCheck, Loader2, Edit } from "lucide-react"
 import { getAllStaff } from "@/lib/simnikah-api"
+import { UpdateStaffDialog } from "./UpdateStaffDialog"
 
 type Staff = {
   id: string
@@ -39,6 +40,8 @@ interface StaffTableProps {
 export function StaffTable({ refreshKey }: StaffTableProps) {
   const [staff, setStaff] = React.useState<Staff[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [selectedStaff, setSelectedStaff] = React.useState<Staff | null>(null);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     const loadStaff = async () => {
@@ -160,6 +163,13 @@ export function StaffTable({ refreshKey }: StaffTableProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => {
+                    setSelectedStaff(s);
+                    setIsUpdateDialogOpen(true);
+                  }}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    <span>Edit</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => toggleStatus(s.id)}>
                     {s.status === 'Aktif' ? (
                       <>
@@ -180,5 +190,24 @@ export function StaffTable({ refreshKey }: StaffTableProps) {
         ))}
       </TableBody>
     </Table>
+    <>
+      <UpdateStaffDialog
+        open={isUpdateDialogOpen}
+        onOpenChange={setIsUpdateDialogOpen}
+        staff={selectedStaff ? {
+          id: selectedStaff.id,
+          nama_lengkap: selectedStaff.name,
+          jabatan: selectedStaff.jabatan,
+          bagian: selectedStaff.bagian,
+          status: selectedStaff.status,
+          no_hp: selectedStaff.phone,
+          alamat: '',
+        } : null}
+        onSuccess={() => {
+          // Reload staff data
+          window.location.reload();
+        }}
+      />
+    </>
   );
 }

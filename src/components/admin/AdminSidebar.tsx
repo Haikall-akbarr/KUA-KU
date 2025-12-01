@@ -26,6 +26,8 @@ import {
   ChevronRight,
   UserCircle,
   FileCheck,
+  Bell,
+  MessageSquare,
 } from 'lucide-react';
 import React from 'react';
 
@@ -36,12 +38,14 @@ const getAllNavItems = (userRole: string | null) => {
     { href: '/admin/profile', label: 'Profil Saya', icon: UserCircle, roles: ['staff', 'kepala_kua'] },
     { href: '/admin/registrations', label: 'Pendaftaran Nikah', icon: FileText, roles: ['staff', 'kepala_kua'] },
     { href: '/admin/kepala/pengumuman', label: 'Pengumuman Nikah', icon: FileCheck, roles: ['staff', 'kepala_kua'] },
+    { href: '/admin/notifications', label: 'Notifikasi', icon: Bell, roles: ['staff', 'kepala_kua'] },
   ];
   
   // Menu khusus kepala_kua (sesuai dokumentasi API - hanya kepala_kua yang bisa manage staff/penghulu)
   const kepalaKUAItems = [
     { href: '/admin/users', label: 'Pengguna', icon: Users, roles: ['kepala_kua'] },
     { href: '/admin/kepala', label: 'Manajemen', icon: Settings, roles: ['kepala_kua'] },
+    { href: '/admin/kepala/feedback', label: 'Feedback', icon: MessageSquare, roles: ['kepala_kua'] },
   ];
   
   // Filter menu berdasarkan role

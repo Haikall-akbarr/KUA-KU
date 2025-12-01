@@ -381,9 +381,21 @@ export interface NotificationListParams {
   tipe?: 'Info' | 'Success' | 'Warning' | 'Error';
 }
 
+// Notification Response sesuai dokumentasi API
 export interface NotificationListResponse {
-  message: string;
-  notifications: Array<{
+  success: boolean;
+  data: Array<{
+    id: number;
+    judul: string;
+    pesan: string;
+    tipe: 'Info' | 'Success' | 'Warning' | 'Error';
+    status_baca: 'Belum Dibaca' | 'Sudah Dibaca';
+    created_at: string;
+    link?: string;
+  }>;
+  // Optional fields untuk backward compatibility
+  message?: string;
+  notifications?: Array<{
     id: number;
     user_id: string;
     judul: string;
@@ -394,13 +406,13 @@ export interface NotificationListResponse {
     created_at: string;
     updated_at: string;
   }>;
-  pagination: {
+  pagination?: {
     page: number;
     limit: number;
     total: number;
     total_page: number;
   };
-  unread_count: number;
+  unread_count?: number;
 }
 
 export interface MarkNotificationReadRequest {
@@ -1149,6 +1161,7 @@ export async function approveRegistration(
  * 3.4 Get All Staff (Kepala KUA Only)
  * GET /simnikah/staff
  * 
+ * Sesuai dokumentasi API endpoint #11
  * Response structure sesuai dokumentasi:
  * {
  *   "success": true,
@@ -1197,6 +1210,35 @@ export async function getAllStaff(): Promise<any> {
     (enhancedError as any).response = error.response;
     (enhancedError as any).status = error.response?.status;
     throw enhancedError;
+  }
+}
+
+/**
+ * 3.5 Update Staff
+ * PUT /simnikah/staff/:id
+ * 
+ * Sesuai dokumentasi API endpoint #12
+ * Role Required: kepala_kua
+ */
+export interface UpdateStaffRequest {
+  nama_lengkap?: string;
+  jabatan?: string;
+  bagian?: string;
+  status?: string;
+  no_hp?: string;
+  alamat?: string;
+}
+
+export async function updateStaff(
+  id: string | number,
+  data: UpdateStaffRequest
+): Promise<any> {
+  try {
+    const response = await api.put(`/simnikah/staff/${id}`, data);
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Update Staff Error:', error.response?.data || error.message);
+    throw error;
   }
 }
 
@@ -1252,6 +1294,9 @@ export async function completeMarriage(
 /**
  * 4.4 Get Assigned Registrations (Penghulu Only)
  * GET /simnikah/penghulu/assigned-registrations
+ * 
+ * Sesuai dokumentasi API endpoint #22
+ * Role Required: penghulu, kepala_kua
  */
 export async function getAssignedRegistrations(): Promise<any> {
   try {
@@ -1369,16 +1414,55 @@ export async function getAllPenghulu(): Promise<any> {
 /**
  * 4.7 Update Penghulu Profile
  * PUT /simnikah/penghulu/:id
+ * 
+ * Sesuai dokumentasi API endpoint #20
+ * Role Required: kepala_kua
  */
 export async function updatePenghuluProfile(
   id: string | number,
-  data: { email?: string; no_hp?: string; alamat?: string }
+  data: { email?: string; no_hp?: string; alamat?: string; nama_lengkap?: string; nip?: string; status?: string }
 ): Promise<any> {
   try {
     const response = await api.put(`/simnikah/penghulu/${id}`, data);
     return response.data;
   } catch (error: any) {
     console.error('❌ Update Penghulu Profile Error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
+ * 4.8 Get Today Schedule (Penghulu)
+ * GET /simnikah/penghulu/today-schedule
+ * 
+ * Sesuai dokumentasi API endpoint #23
+ * Role Required: penghulu, kepala_kua
+ */
+export interface TodayScheduleResponse {
+  success: boolean;
+  data: {
+    tanggal: string; // YYYY-MM-DD
+    schedule: Array<{
+      id: number;
+      waktu_nikah: string; // HH:MM
+      calon_suami: {
+        nama_lengkap: string;
+      };
+      calon_istri: {
+        nama_lengkap: string;
+      };
+      tempat_nikah: string;
+    }>;
+    total: number;
+  };
+}
+
+export async function getTodaySchedule(): Promise<TodayScheduleResponse> {
+  try {
+    const response = await api.get<TodayScheduleResponse>('/simnikah/penghulu/today-schedule');
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Get Today Schedule Error:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -1489,6 +1573,9 @@ export {
 /**
  * 8.1 Get User Notifications
  * GET /simnikah/notifikasi/user/:user_id
+ * 
+ * Sesuai dokumentasi API:
+ * Response: { success: true, data: [...] }
  */
 export async function getUserNotifications(
   userId: string,
@@ -1499,6 +1586,30 @@ export async function getUserNotifications(
       `/simnikah/notifikasi/user/${userId}`,
       { params }
     );
+    
+    // Handle response format sesuai dokumentasi
+    // Jika response sudah dalam format { success: true, data: [...] }, return langsung
+    if (response.data.success && Array.isArray(response.data.data)) {
+      return response.data;
+    }
+    
+    // Backward compatibility: jika response dalam format lama
+    if (response.data.notifications && Array.isArray(response.data.notifications)) {
+      return {
+        success: true,
+        data: response.data.notifications.map((notif: any) => ({
+          id: notif.id,
+          judul: notif.judul,
+          pesan: notif.pesan,
+          tipe: notif.tipe,
+          status_baca: notif.status_baca,
+          created_at: notif.created_at,
+          link: notif.link,
+        })),
+        ...response.data,
+      };
+    }
+    
     return response.data;
   } catch (error: any) {
     console.error('❌ Get Notifications Error:', error.response?.data || error.message);
@@ -1538,6 +1649,114 @@ export async function markAllNotificationsRead(userId: string): Promise<any> {
 }
 
 /**
+ * 8.5 Get Notification by ID
+ * GET /simnikah/notifikasi/:id
+ * 
+ * Sesuai dokumentasi API endpoint #42
+ */
+export async function getNotificationById(id: string | number): Promise<any> {
+  try {
+    const response = await api.get(`/simnikah/notifikasi/${id}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Get Notification by ID Error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
+ * 8.6 Delete Notification
+ * DELETE /simnikah/notifikasi/:id
+ * 
+ * Sesuai dokumentasi API endpoint #45
+ */
+export async function deleteNotification(id: string | number): Promise<any> {
+  try {
+    const response = await api.delete(`/simnikah/notifikasi/${id}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Delete Notification Error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
+ * 8.7 Get Notification Statistics
+ * GET /simnikah/notifikasi/user/:user_id/stats
+ * 
+ * Sesuai dokumentasi API endpoint #46
+ */
+export interface NotificationStatsResponse {
+  success: boolean;
+  data: {
+    total: number;
+    belum_dibaca: number;
+    sudah_dibaca: number;
+    by_tipe: {
+      Info: number;
+      Success: number;
+      Warning: number;
+      Error: number;
+    };
+  };
+}
+
+export async function getNotificationStats(userId: string): Promise<NotificationStatsResponse> {
+  try {
+    const response = await api.get<NotificationStatsResponse>(`/simnikah/notifikasi/user/${userId}/stats`);
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Get Notification Stats Error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
+ * 8.8 Send Notification to Role
+ * POST /simnikah/notifikasi/send-to-role
+ * 
+ * Sesuai dokumentasi API endpoint #47
+ * Role Required: staff, kepala_kua
+ */
+export interface SendNotificationToRoleRequest {
+  role: 'user_biasa' | 'staff' | 'penghulu' | 'kepala_kua';
+  judul: string;
+  pesan: string;
+  tipe?: 'Info' | 'Success' | 'Warning' | 'Error';
+  tautan?: string;
+}
+
+export async function sendNotificationToRole(
+  data: SendNotificationToRoleRequest
+): Promise<any> {
+  try {
+    const response = await api.post('/simnikah/notifikasi/send-to-role', data);
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Send Notification to Role Error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
+ * 8.9 Run Reminder Notification
+ * POST /simnikah/notifikasi/run-reminder
+ * 
+ * Sesuai dokumentasi API endpoint #48
+ * Role Required: staff, kepala_kua
+ * Description: Menjalankan reminder notifikasi secara manual (untuk testing)
+ */
+export async function runReminderNotification(): Promise<any> {
+  try {
+    const response = await api.post('/simnikah/notifikasi/run-reminder', {});
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Run Reminder Notification Error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
  * 8.4 Create Notification
  * POST /simnikah/notifikasi
  * 
@@ -1549,7 +1768,8 @@ export interface CreateNotificationRequest {
   judul: string;
   pesan: string;
   tipe?: 'Info' | 'Success' | 'Warning' | 'Error';
-  link?: string;
+  tautan?: string; // Sesuai dokumentasi: menggunakan 'tautan' bukan 'link'
+  link?: string; // Backward compatibility
 }
 
 export interface CreateNotificationResponse {
@@ -1571,7 +1791,17 @@ export async function createNotification(
   data: CreateNotificationRequest
 ): Promise<CreateNotificationResponse> {
   try {
-    const response = await api.post<CreateNotificationResponse>('/simnikah/notifikasi', data);
+    // Sesuai dokumentasi: menggunakan 'tautan' bukan 'link'
+    const requestBody = {
+      ...data,
+      tautan: data.tautan || data.link, // Prioritaskan 'tautan', fallback ke 'link' untuk backward compatibility
+    };
+    // Hapus 'link' jika ada untuk menghindari duplikasi
+    if ((requestBody as any).link) {
+      delete (requestBody as any).link;
+    }
+    
+    const response = await api.post<CreateNotificationResponse>('/simnikah/notifikasi', requestBody);
     return response.data;
   } catch (error: any) {
     console.error('❌ Create Notification Error:', error.response?.data || error.message);
@@ -2403,47 +2633,64 @@ export interface PengumumanParams {
 
 /**
  * 24. Get Approved Registrations Per Week (Staff)
- * GET /simnikah/staff/pengumuman-nikah/list
+ * POST /simnikah/staff/pengumuman-nikah/list
  * 
+ * Sesuai dokumentasi API - menggunakan POST dengan body (optional untuk custom kop surat)
  * Role Required: staff, kepala_kua
  */
+export interface PengumumanListRequestBody {
+  tanggal_awal?: string; // YYYY-MM-DD
+  tanggal_akhir?: string; // YYYY-MM-DD
+  kop_surat?: {
+    nama_kua?: string;
+    alamat?: string;
+    // ... data kop surat lainnya
+  };
+}
+
 export async function getPengumumanList(
-  params?: PengumumanParams
+  params?: PengumumanListRequestBody
 ): Promise<PengumumanListResponse> {
   try {
-    // Filter out undefined values
-    const cleanParams: any = {};
+    // Filter out undefined values dan validasi format tanggal
+    const requestBody: PengumumanListRequestBody = {};
+    
     if (params?.tanggal_awal) {
-      // Pastikan format YYYY-MM-DD
       const dateStr = params.tanggal_awal;
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        cleanParams.tanggal_awal = dateStr;
+        requestBody.tanggal_awal = dateStr;
       } else {
         console.warn('⚠️ Invalid tanggal_awal format:', dateStr);
       }
     }
+    
     if (params?.tanggal_akhir) {
-      // Pastikan format YYYY-MM-DD
       const dateStr = params.tanggal_akhir;
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        cleanParams.tanggal_akhir = dateStr;
+        requestBody.tanggal_akhir = dateStr;
       } else {
         console.warn('⚠️ Invalid tanggal_akhir format:', dateStr);
       }
     }
     
-    // console.log('📤 Get Pengumuman List Request:', cleanParams);
-    console.log('📅 Date params validation:', {
-      tanggal_awal: cleanParams.tanggal_awal,
-      tanggal_akhir: cleanParams.tanggal_akhir,
-      original_params: params,
+    if (params?.kop_surat) {
+      requestBody.kop_surat = params.kop_surat;
+    }
+    
+    // Jika tidak ada params, kirim body kosong (sesuai dokumentasi: POST dengan body)
+    
+    console.log('📅 POST Pengumuman List Request:', {
+      tanggal_awal: requestBody.tanggal_awal,
+      tanggal_akhir: requestBody.tanggal_akhir,
+      has_kop_surat: !!requestBody.kop_surat,
     });
     
-    const response = await api.get<PengumumanListResponse>(
+    // Sesuai dokumentasi: POST request dengan body
+    const response = await api.post<PengumumanListResponse>(
       '/simnikah/staff/pengumuman-nikah/list',
-      { params: cleanParams }
+      requestBody
     );
-    // console.log('✅ Get Pengumuman List Response:', response.data);
+    
     console.log('📊 Response data:', {
       total: response.data.data?.total,
       periode: response.data.data?.periode,
@@ -2470,25 +2717,28 @@ export async function getPengumumanList(
  * Returns: HTML string
  */
 export async function generatePengumumanNikah(
-  params?: PengumumanParams,
+  params?: PengumumanListRequestBody,
   customKopSurat?: CustomKopSurat
 ): Promise<string> {
   try {
-    // console.log('📤 Generate Pengumuman Request:', { params, customKopSurat });
-    
-    const config: any = {
-      method: customKopSurat ? 'post' : 'get',
-      url: '/simnikah/staff/pengumuman-nikah/generate',
-      params,
-      responseType: 'text', // Important: untuk mendapatkan HTML sebagai string
+    // Build request body sesuai dokumentasi
+    const requestBody: PengumumanListRequestBody = {
+      tanggal_awal: params?.tanggal_awal,
+      tanggal_akhir: params?.tanggal_akhir,
+      kop_surat: customKopSurat || params?.kop_surat,
     };
     
-    if (customKopSurat) {
-      config.data = customKopSurat;
-      config.headers = {
+    // Generate endpoint mungkin masih menggunakan GET dengan params atau POST dengan body
+    // Untuk konsistensi dengan list endpoint, gunakan POST dengan body
+    const config: any = {
+      method: 'post',
+      url: '/simnikah/staff/pengumuman-nikah/generate',
+      data: requestBody,
+      responseType: 'text', // Important: untuk mendapatkan HTML sebagai string
+      headers: {
         'Content-Type': 'application/json',
-      };
-    }
+      },
+    };
     
     const response = await api.request<string>(config);
     console.log('✅ Generate Pengumuman Response: HTML received');
@@ -2501,47 +2751,52 @@ export async function generatePengumumanNikah(
 
 /**
  * 26. Get Approved Registrations Per Week (Kepala KUA)
- * GET /simnikah/kepala-kua/pengumuman-nikah/list
+ * POST /simnikah/kepala-kua/pengumuman-nikah/list
  * 
+ * Sesuai dokumentasi API - menggunakan POST dengan body (optional untuk custom kop surat)
  * Role Required: kepala_kua
  */
 export async function getPengumumanListKepalaKUA(
-  params?: PengumumanParams
+  params?: PengumumanListRequestBody
 ): Promise<PengumumanListResponse> {
   try {
-    // Filter out undefined values
-    const cleanParams: any = {};
+    // Filter out undefined values dan validasi format tanggal
+    const requestBody: PengumumanListRequestBody = {};
+    
     if (params?.tanggal_awal) {
-      // Pastikan format YYYY-MM-DD
       const dateStr = params.tanggal_awal;
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        cleanParams.tanggal_awal = dateStr;
+        requestBody.tanggal_awal = dateStr;
       } else {
         console.warn('⚠️ Invalid tanggal_awal format:', dateStr);
       }
     }
+    
     if (params?.tanggal_akhir) {
-      // Pastikan format YYYY-MM-DD
       const dateStr = params.tanggal_akhir;
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        cleanParams.tanggal_akhir = dateStr;
+        requestBody.tanggal_akhir = dateStr;
       } else {
         console.warn('⚠️ Invalid tanggal_akhir format:', dateStr);
       }
     }
     
-    // console.log('📤 Get Pengumuman List (Kepala KUA) Request:', cleanParams);
-    console.log('📅 Date params validation:', {
-      tanggal_awal: cleanParams.tanggal_awal,
-      tanggal_akhir: cleanParams.tanggal_akhir,
-      original_params: params,
+    if (params?.kop_surat) {
+      requestBody.kop_surat = params.kop_surat;
+    }
+    
+    console.log('📅 POST Pengumuman List (Kepala KUA) Request:', {
+      tanggal_awal: requestBody.tanggal_awal,
+      tanggal_akhir: requestBody.tanggal_akhir,
+      has_kop_surat: !!requestBody.kop_surat,
     });
     
-    const response = await api.get<PengumumanListResponse>(
+    // Sesuai dokumentasi: POST request dengan body
+    const response = await api.post<PengumumanListResponse>(
       '/simnikah/kepala-kua/pengumuman-nikah/list',
-      { params: cleanParams }
+      requestBody
     );
-    // console.log('✅ Get Pengumuman List (Kepala KUA) Response:', response.data);
+    
     console.log('📊 Response data:', {
       total: response.data.data?.total,
       periode: response.data.data?.periode,
@@ -2568,25 +2823,28 @@ export async function getPengumumanListKepalaKUA(
  * Returns: HTML string
  */
 export async function generatePengumumanNikahKepalaKUA(
-  params?: PengumumanParams,
+  params?: PengumumanListRequestBody,
   customKopSurat?: CustomKopSurat
 ): Promise<string> {
   try {
-    // console.log('📤 Generate Pengumuman (Kepala KUA) Request:', { params, customKopSurat });
-    
-    const config: any = {
-      method: customKopSurat ? 'post' : 'get',
-      url: '/simnikah/kepala-kua/pengumuman-nikah/generate',
-      params,
-      responseType: 'text',
+    // Build request body sesuai dokumentasi
+    const requestBody: PengumumanListRequestBody = {
+      tanggal_awal: params?.tanggal_awal,
+      tanggal_akhir: params?.tanggal_akhir,
+      kop_surat: customKopSurat || params?.kop_surat,
     };
     
-    if (customKopSurat) {
-      config.data = customKopSurat;
-      config.headers = {
+    // Generate endpoint mungkin masih menggunakan GET dengan params atau POST dengan body
+    // Untuk konsistensi dengan list endpoint, gunakan POST dengan body
+    const config: any = {
+      method: 'post',
+      url: '/simnikah/kepala-kua/pengumuman-nikah/generate',
+      data: requestBody,
+      responseType: 'text',
+      headers: {
         'Content-Type': 'application/json',
-      };
-    }
+      },
+    };
     
     const response = await api.request<string>(config);
     console.log('✅ Generate Pengumuman (Kepala KUA) Response: HTML received');

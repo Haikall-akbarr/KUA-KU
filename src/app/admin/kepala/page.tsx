@@ -33,6 +33,7 @@ export default function KepalaKUADashboard() {
   const [staffRefreshKey, setStaffRefreshKey] = useState(0);
   const [penghuluRefreshKey, setPenghuluRefreshKey] = useState(0);
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'day' | 'week' | 'month' | 'year'>('month');
+  const [allRegistrationsData, setAllRegistrationsData] = useState<any[]>([]);
   const router = useRouter();
 
   // Role guard - hanya Kepala KUA yang bisa akses
@@ -53,76 +54,201 @@ export default function KepalaKUADashboard() {
       
       try {
         // Load dashboard data with selected period
-        const dashboardResponse = await getKepalaKUADashboard({ period: analyticsPeriod });
-        if (dashboardResponse.success) {
-          setDashboardData(dashboardResponse.data);
+        try {
+          const dashboardResponse = await getKepalaKUADashboard({ period: analyticsPeriod });
+          if (dashboardResponse?.success && dashboardResponse?.data) {
+            setDashboardData(dashboardResponse.data);
+            console.log('📊 Dashboard Data:', dashboardResponse.data);
+          } else {
+            console.warn('⚠️ Dashboard response tidak valid:', dashboardResponse);
+          }
+        } catch (error) {
+          console.error('❌ Error loading dashboard data:', error);
+          // Set default empty data structure
+          setDashboardData({
+            statistics: {
+              total_periode: 0,
+              hari_ini: 0,
+              bulan_ini: 0,
+              tahun_ini: 0,
+              selesai: 0,
+              pending: 0
+            },
+            trends: [],
+            status_distribution: [],
+            penghulu_performance: [],
+            peak_hours: []
+          });
         }
 
         // Load staff count
         try {
           const staffResponse = await getAllStaff();
-          if (staffResponse.success && Array.isArray(staffResponse.data)) {
+          if (staffResponse?.success && Array.isArray(staffResponse.data)) {
             setStaffCount(staffResponse.data.length);
+            console.log('👥 Staff Count:', staffResponse.data.length);
+          } else {
+            console.warn('⚠️ Staff response tidak valid:', staffResponse);
+            setStaffCount(0);
           }
         } catch (error) {
-          console.error('Error loading staff:', error);
+          console.error('❌ Error loading staff:', error);
+          setStaffCount(0);
         }
 
         // Load penghulu count
         try {
           const penghuluResponse = await getAllPenghulu();
-          if (penghuluResponse.success && Array.isArray(penghuluResponse.data)) {
+          if (penghuluResponse?.success && Array.isArray(penghuluResponse.data)) {
             setPenghuluCount(penghuluResponse.data.length);
+            console.log('📿 Penghulu Count:', penghuluResponse.data.length);
+          } else {
+            console.warn('⚠️ Penghulu response tidak valid:', penghuluResponse);
+            setPenghuluCount(0);
           }
         } catch (error) {
-          console.error('Error loading penghulu:', error);
+          console.error('❌ Error loading penghulu:', error);
+          setPenghuluCount(0);
         }
 
         // Load pending assignments that need penghulu assignment
         const { getAllRegistrations } = await import('@/lib/simnikah-api');
         
-        // Fetch registrations dengan status Disetujui dan Menunggu Penugasan
-        const [disetujuiResponse, menungguResponse] = await Promise.all([
-          getAllRegistrations({
-            status: 'Disetujui',
+        try {
+          // Fetch semua registrations tanpa filter status untuk mendapatkan data lengkap
+          const allRegistrationsResponse = await getAllRegistrations({
             page: 1,
             limit: 1000
-          }).catch(() => ({ success: false, data: [] })),
-          getAllRegistrations({
-            status: 'Menunggu Penugasan',
-            page: 1,
-            limit: 1000
-          }).catch(() => ({ success: false, data: [] }))
-        ]);
-        
-        // Combine both responses
-        const allRegistrations: any[] = [];
-        
-        if (disetujuiResponse.success && Array.isArray(disetujuiResponse.data)) {
-          allRegistrations.push(...disetujuiResponse.data);
+          }).catch(() => ({ success: false, data: [] }));
+          
+          // Fetch registrations dengan status Disetujui dan Menunggu Penugasan
+          const [disetujuiResponse, menungguResponse] = await Promise.all([
+            getAllRegistrations({
+              status: 'Disetujui',
+              page: 1,
+              limit: 1000
+            }).catch(() => ({ success: false, data: [] })),
+            getAllRegistrations({
+              status: 'Menunggu Penugasan',
+              page: 1,
+              limit: 1000
+            }).catch(() => ({ success: false, data: [] }))
+          ]);
+          
+          // Combine both responses
+          const allRegistrations: any[] = [];
+          
+          if (disetujuiResponse.success && Array.isArray(disetujuiResponse.data)) {
+            allRegistrations.push(...disetujuiResponse.data);
+          }
+          
+          if (menungguResponse.success && Array.isArray(menungguResponse.data)) {
+            allRegistrations.push(...menungguResponse.data);
+          }
+          
+          // Jika tidak ada data dari filtered, coba ambil dari all registrations
+          if (allRegistrations.length === 0 && allRegistrationsResponse.success && Array.isArray(allRegistrationsResponse.data)) {
+            allRegistrations.push(...allRegistrationsResponse.data);
+          }
+          
+          console.log('📋 Total Registrations:', allRegistrations.length);
+          
+          // Filter registrations that don't have penghulu assigned
+          const pending = allRegistrations
+            .filter((reg: any) => {
+              const status = reg.status_pendaftaran || reg.status || '';
+              const hasPenghulu = reg.penghulu || reg.penghulu_id || reg.penghulu_id;
+              const needsAssignment = (status === 'Disetujui' || status === 'Menunggu Penugasan') && !hasPenghulu;
+              return needsAssignment;
+            })
+            .map((reg: any) => ({
+              id: reg.id?.toString() || reg.nomor_pendaftaran || reg.id,
+              nomorPendaftaran: reg.nomor_pendaftaran || `REG-${reg.id}` || 'N/A',
+              groomName: reg.calon_suami?.nama_lengkap || reg.calon_suami?.nama || reg.nama_suami || '',
+              brideName: reg.calon_istri?.nama_lengkap || reg.calon_istri?.nama || reg.nama_istri || '',
+              weddingDate: reg.tanggal_nikah || reg.weddingDate || '',
+              status: reg.status_pendaftaran || reg.status || 'Disetujui'
+            }));
+          
+          console.log('⏳ Pending Assignments:', pending.length);
+          setPendingAssignments(pending);
+          
+          // Simpan data registrations untuk perhitungan statistik
+          if (allRegistrationsResponse.success && Array.isArray(allRegistrationsResponse.data)) {
+            setAllRegistrationsData(allRegistrationsResponse.data);
+            
+            // Hitung statistik dari data registrations
+            const now = new Date();
+            const currentMonth = now.getMonth() + 1;
+            const currentYear = now.getFullYear();
+            const today = now.toISOString().split('T')[0];
+            
+            const bulanIni = allRegistrationsResponse.data.filter((reg: any) => {
+              const regDate = reg.tanggal_pendaftaran || reg.created_at || reg.tanggal_nikah;
+              if (!regDate) return false;
+              try {
+                const date = new Date(regDate);
+                return date.getMonth() + 1 === currentMonth && date.getFullYear() === currentYear;
+              } catch {
+                return false;
+              }
+            }).length;
+            
+            const hariIni = allRegistrationsResponse.data.filter((reg: any) => {
+              const regDate = reg.tanggal_pendaftaran || reg.created_at || reg.tanggal_nikah;
+              if (!regDate) return false;
+              try {
+                const dateStr = new Date(regDate).toISOString().split('T')[0];
+                return dateStr === today;
+              } catch {
+                return false;
+              }
+            }).length;
+            
+            const selesai = allRegistrationsResponse.data.filter((reg: any) => {
+              const status = reg.status_pendaftaran || reg.status || '';
+              return status === 'Selesai';
+            }).length;
+            
+            const pending = allRegistrationsResponse.data.filter((reg: any) => {
+              const status = reg.status_pendaftaran || reg.status || '';
+              return status !== 'Selesai' && status !== 'Ditolak';
+            }).length;
+            
+            // Update dashboard data dengan data yang dihitung dari database
+            setDashboardData((prev: any) => ({
+              ...prev,
+              statistics: {
+                total_periode: allRegistrationsResponse.data.length,
+                hari_ini: hariIni,
+                bulan_ini: bulanIni,
+                tahun_ini: allRegistrationsResponse.data.filter((reg: any) => {
+                  const regDate = reg.tanggal_pendaftaran || reg.created_at || reg.tanggal_nikah;
+                  if (!regDate) return false;
+                  try {
+                    return new Date(regDate).getFullYear() === currentYear;
+                  } catch {
+                    return false;
+                  }
+                }).length,
+                selesai: selesai,
+                pending: pending,
+                status_breakdown: prev?.statistics?.status_breakdown || {}
+              }
+            }));
+            
+            console.log('📊 Calculated Statistics from DB:', {
+              total: allRegistrationsResponse.data.length,
+              hari_ini: hariIni,
+              bulan_ini: bulanIni,
+              selesai: selesai,
+              pending: pending
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error loading pending assignments:', error);
+          setPendingAssignments([]);
         }
-        
-        if (menungguResponse.success && Array.isArray(menungguResponse.data)) {
-          allRegistrations.push(...menungguResponse.data);
-        }
-        
-        // Filter registrations that don't have penghulu assigned
-        const pending = allRegistrations
-          .filter((reg: any) => {
-            const status = reg.status_pendaftaran || reg.status || '';
-            const hasPenghulu = reg.penghulu || reg.penghulu_id;
-            return (status === 'Disetujui' || status === 'Menunggu Penugasan') && !hasPenghulu;
-          })
-          .map((reg: any) => ({
-            id: reg.id?.toString() || reg.nomor_pendaftaran || reg.id,
-            nomorPendaftaran: reg.nomor_pendaftaran || `REG-${reg.id}` || 'N/A',
-            groomName: reg.calon_suami?.nama_lengkap || reg.nama_suami || '',
-            brideName: reg.calon_istri?.nama_lengkap || reg.nama_istri || '',
-            weddingDate: reg.tanggal_nikah || reg.weddingDate || '',
-            status: reg.status_pendaftaran || reg.status || 'Disetujui'
-          }));
-        
-        setPendingAssignments(pending);
       } catch (error) {
         console.error('Error loading data:', error);
       }
@@ -251,7 +377,12 @@ export default function KepalaKUADashboard() {
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-4xl font-bold bg-gradient-to-r from-teal-600 to-teal-500 bg-clip-text text-transparent mb-1">
-              {dashboardData?.statistics?.bulan_ini || 0}
+              {(() => {
+                // Prioritaskan bulan_ini dari API, jika tidak ada gunakan total_periode
+                const bulanIni = dashboardData?.statistics?.bulan_ini;
+                const totalPeriode = dashboardData?.statistics?.total_periode;
+                return bulanIni !== undefined && bulanIni !== null ? bulanIni : (totalPeriode ?? 0);
+              })()}
             </div>
             <p className="text-xs text-muted-foreground font-medium">
               Total pendaftaran bulan ini

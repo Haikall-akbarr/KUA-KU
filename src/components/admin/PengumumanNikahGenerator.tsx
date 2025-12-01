@@ -10,7 +10,7 @@ import {
   getPengumumanList,
   getPengumumanListKepalaKUA,
   type CustomKopSurat,
-  type PengumumanParams,
+  type PengumumanListRequestBody,
   type PengumumanListResponse
 } from '@/lib/simnikah-api';
 import { Button } from '@/components/ui/button';
@@ -113,20 +113,21 @@ export function PengumumanNikahGenerator({ role = 'staff' }: PengumumanNikahGene
         return;
       }
 
-      const params: PengumumanParams = {
+      // Sesuai dokumentasi API: POST request dengan body
+      const requestBody: PengumumanListRequestBody = {
         tanggal_awal: formattedTanggalAwal,
         tanggal_akhir: formattedTanggalAkhir,
+        // Optional: kop_surat bisa ditambahkan jika diperlukan
       };
 
-      // console.log('📤 Loading pengumuman list with params:', params);
-      console.log('📅 Tanggal yang dipilih:', {
-        tanggalAwal: formattedTanggalAwal,
-        tanggalAkhir: formattedTanggalAkhir,
+      console.log('📅 POST Request Body:', {
+        tanggal_awal: formattedTanggalAwal,
+        tanggal_akhir: formattedTanggalAkhir,
       });
 
       const data = role === 'kepala_kua'
-        ? await getPengumumanListKepalaKUA(params)
-        : await getPengumumanList(params);
+        ? await getPengumumanListKepalaKUA(requestBody)
+        : await getPengumumanList(requestBody);
       
       console.log('✅ Pengumuman list loaded:', data);
       
@@ -197,17 +198,22 @@ export function PengumumanNikahGenerator({ role = 'staff' }: PengumumanNikahGene
     setHtml('');
 
     try {
-      const params: PengumumanParams = {
+      // Untuk generate, tetap menggunakan params (karena generate endpoint mungkin masih GET)
+      // Tapi jika backend juga menggunakan POST, perlu disesuaikan
+      const requestBody: PengumumanListRequestBody = {
         tanggal_awal: tanggalAwal || undefined,
         tanggal_akhir: tanggalAkhir || undefined,
+        kop_surat: showCustomKop ? kopSurat : undefined,
       };
 
+      // Note: generatePengumumanNikah mungkin masih menggunakan GET dengan params
+      // Jika backend sudah update ke POST, perlu disesuaikan di simnikah-api.ts
       const customKop = showCustomKop ? kopSurat : undefined;
       
       // Gunakan fungsi API sesuai role
       const htmlContent = role === 'kepala_kua'
-        ? await generatePengumumanNikahKepalaKUA(params, customKop)
-        : await generatePengumumanNikah(params, customKop);
+        ? await generatePengumumanNikahKepalaKUA(requestBody, customKop)
+        : await generatePengumumanNikah(requestBody, customKop);
       
       setHtml(htmlContent);
       

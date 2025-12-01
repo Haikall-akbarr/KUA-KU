@@ -330,7 +330,7 @@ export default function PenguluDashboard() {
             </h1>
             <p className="text-muted-foreground mt-2 text-base">
               Selamat datang, <span className="font-semibold text-foreground">{penguluData?.nama_lengkap || 'Penghulu'}</span>
-            </p>
+          </p>
           </div>
         </div>
 
@@ -514,30 +514,30 @@ export default function PenguluDashboard() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
                                 <h4 className="font-semibold text-lg text-foreground">
-                                  {reg.nomor_pendaftaran}
-                                </h4>
+                              {reg.nomor_pendaftaran}
+                            </h4>
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                                   {reg.status_pendaftaran}
                                 </Badge>
                               </div>
                               <p className="text-sm font-medium text-foreground">
-                                {reg.calon_suami?.nama_lengkap || 'Data tidak tersedia'} & {reg.calon_istri?.nama_lengkap || 'Data tidak tersedia'}
-                              </p>
-                            </div>
+                              {reg.calon_suami?.nama_lengkap || 'Data tidak tersedia'} & {reg.calon_istri?.nama_lengkap || 'Data tidak tersedia'}
+                            </p>
                           </div>
+                        </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
                             <div className="space-y-1">
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tanggal</p>
                               <p className="text-sm font-semibold text-foreground">
-                                {new Date(reg.tanggal_nikah).toLocaleDateString('id-ID', {
-                                  weekday: 'long',
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                })}
-                              </p>
-                            </div>
+                              {new Date(reg.tanggal_nikah).toLocaleDateString('id-ID', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })}
+                            </p>
+                          </div>
                             <div className="space-y-1">
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Waktu</p>
                               <p className="text-sm font-semibold text-foreground">{reg.waktu_nikah}</p>
@@ -545,7 +545,7 @@ export default function PenguluDashboard() {
                             <div className="space-y-1">
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tempat</p>
                               <p className="text-sm font-semibold text-foreground">{reg.tempat_nikah}</p>
-                            </div>
+                          </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -603,8 +603,8 @@ export default function PenguluDashboard() {
                           <CardContent className="pt-6">
                             <p className="text-sm font-medium text-muted-foreground mb-2">Total Pernikahan</p>
                             <p className="text-3xl font-bold text-blue-600">
-                              {penguluData.jumlah_nikah}
-                            </p>
+                            {penguluData.jumlah_nikah}
+                          </p>
                           </CardContent>
                         </Card>
                         <Card className="bg-yellow-50 border-yellow-200">
@@ -612,18 +612,18 @@ export default function PenguluDashboard() {
                             <p className="text-sm font-medium text-muted-foreground mb-2">Rating</p>
                             <div className="flex items-center gap-2">
                               <p className="text-3xl font-bold text-yellow-600">
-                                {penguluData.rating}
-                              </p>
+                              {penguluData.rating}
+                            </p>
                               <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-                            </div>
+                          </div>
                           </CardContent>
                         </Card>
                         <Card className="bg-green-50 border-green-200">
                           <CardContent className="pt-6">
                             <p className="text-sm font-medium text-muted-foreground mb-2">Status</p>
                             <Badge className="mt-2 bg-green-100 text-green-800 border-green-200 text-base px-3 py-1">
-                              {penguluData.status}
-                            </Badge>
+                            {penguluData.status}
+                          </Badge>
                           </CardContent>
                         </Card>
                       </div>
@@ -635,6 +635,6 @@ export default function PenguluDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+      </div>
     );
 }

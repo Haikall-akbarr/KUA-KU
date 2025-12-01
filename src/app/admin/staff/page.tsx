@@ -205,12 +205,12 @@ export default function StaffDashboard() {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border border-primary/20 shadow-sm">
           <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
           <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
+        <div>
               <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 Dashboard Staff KUA
               </h1>
               <p className="text-muted-foreground mt-2 text-base">Kelola dan verifikasi pendaftaran pernikahan dengan efisien</p>
-              {user && (
+          {user && (
                 <div className="mt-3 flex items-center gap-2 px-3 py-1.5 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50 w-fit">
                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="h-4 w-4 text-primary" />
@@ -220,19 +220,19 @@ export default function StaffDashboard() {
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
-              )}
-            </div>
+          )}
+        </div>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={handleLogout} 
               className="gap-2 hover:bg-destructive hover:text-destructive-foreground transition-colors shadow-sm"
             >
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
+          <LogOut className="h-4 w-4" />
+          Logout
+        </Button>
           </div>
-        </div>
+      </div>
 
         {/* Stats Cards dengan enhanced design */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -243,16 +243,16 @@ export default function StaffDashboard() {
                 <div className="p-1.5 rounded-lg bg-orange-100">
                   <Clock className="h-4 w-4 text-orange-600" />
                 </div>
-                Menunggu Verifikasi
-              </CardTitle>
-            </CardHeader>
+              Menunggu Verifikasi
+            </CardTitle>
+          </CardHeader>
             <CardContent className="relative z-10">
               <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent mb-2">
-                {dashboardData?.pending_verifications?.length || pendingVerification.length}
-              </div>
+              {dashboardData?.pending_verifications?.length || pendingVerification.length}
+            </div>
               <p className="text-xs text-muted-foreground font-medium">Pendaftaran perlu disetujui</p>
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
 
           <Card className="group relative overflow-hidden border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-blue-50/30">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
@@ -262,15 +262,15 @@ export default function StaffDashboard() {
                   <FileCheck className="h-4 w-4 text-blue-600" />
                 </div>
                 Terverifikasi
-              </CardTitle>
-            </CardHeader>
+            </CardTitle>
+          </CardHeader>
             <CardContent className="relative z-10">
               <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-2">
                 {approved.length}
-              </div>
+            </div>
               <p className="text-xs text-muted-foreground font-medium">Sudah ditugaskan ke penghulu</p>
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
 
           <Card className="group relative overflow-hidden border-l-4 border-l-red-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-red-50/30">
             <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
@@ -279,17 +279,17 @@ export default function StaffDashboard() {
                 <div className="p-1.5 rounded-lg bg-red-100">
                   <XCircle className="h-4 w-4 text-red-600" />
                 </div>
-                Ditolak
-              </CardTitle>
-            </CardHeader>
+              Ditolak
+            </CardTitle>
+          </CardHeader>
             <CardContent className="relative z-10">
               <div className="text-4xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent mb-2">
                 {rejected.length}
               </div>
               <p className="text-xs text-muted-foreground font-medium">Perlu perbaikan</p>
-            </CardContent>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
 
 
       {/* Main Content Tabs */}
@@ -387,9 +387,9 @@ export default function StaffDashboard() {
                               </div>
                             </div>
                           </div>
-                        </div>
+                      </div>
 
-                        {/* Details */}
+                      {/* Details */}
                         <div className="border-t pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                           <div className="space-y-1">
                             <p className="text-xs font-medium text-muted-foreground">Tanggal Nikah</p>
@@ -400,34 +400,34 @@ export default function StaffDashboard() {
                                 month: 'long',
                                 day: 'numeric'
                               })}
-                            </p>
-                          </div>
+                          </p>
+                        </div>
                           <div className="space-y-1">
                             <p className="text-xs font-medium text-muted-foreground">Lokasi</p>
                             <p className="font-medium text-foreground">{reg.weddingLocation}</p>
-                          </div>
                         </div>
+                      </div>
 
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row gap-2 mt-6 pt-4 border-t">
-                          <Button
-                            size="sm"
+                        <Button
+                          size="sm"
                             className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white flex-1 sm:flex-none shadow-md hover:shadow-lg transition-all duration-200"
-                            onClick={() => handleApprove(reg.id)}
-                          >
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Setujui
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
+                          onClick={() => handleApprove(reg.id)}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Setujui
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
                             className="flex-1 sm:flex-none shadow-md hover:shadow-lg transition-all duration-200"
-                            onClick={() => handleReject(reg.id)}
-                          >
-                            <XCircle className="h-4 w-4 mr-2" />
-                            Tolak
-                          </Button>
-                        </div>
+                          onClick={() => handleReject(reg.id)}
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Tolak
+                        </Button>
+                      </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -469,8 +469,8 @@ export default function StaffDashboard() {
                               </Badge>
                             </div>
                             <p className="text-sm font-medium text-foreground mb-2">
-                              {reg.groomName} & {reg.brideName}
-                            </p>
+                            {reg.groomName} & {reg.brideName}
+                          </p>
                             <p className="text-xs text-muted-foreground">
                               📅 {new Date(reg.weddingDate).toLocaleDateString('id-ID', {
                                 weekday: 'long',
@@ -478,7 +478,7 @@ export default function StaffDashboard() {
                                 month: 'long',
                                 day: 'numeric'
                               })}
-                            </p>
+                          </p>
                           </div>
                         </div>
                       </CardContent>
@@ -604,8 +604,8 @@ export default function StaffDashboard() {
                               <Badge variant="destructive">Ditolak</Badge>
                             </div>
                             <p className="text-sm font-medium text-foreground mb-2">
-                              {reg.groomName} & {reg.brideName}
-                            </p>
+                            {reg.groomName} & {reg.brideName}
+                          </p>
                             <p className="text-xs text-muted-foreground">
                               📅 {new Date(reg.weddingDate).toLocaleDateString('id-ID', {
                                 weekday: 'long',
@@ -613,7 +613,7 @@ export default function StaffDashboard() {
                                 month: 'long',
                                 day: 'numeric'
                               })}
-                            </p>
+                          </p>
                           </div>
                         </div>
                       </CardContent>

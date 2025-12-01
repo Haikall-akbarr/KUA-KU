@@ -18,8 +18,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, UserX, UserCheck, Loader2 } from "lucide-react"
+import { MoreHorizontal, UserX, UserCheck, Loader2, Edit } from "lucide-react"
 import { getAllPenghulu } from "@/lib/simnikah-api"
+import { UpdatePenghuluDialog } from "./UpdatePenghuluDialog"
 
 type Penghulu = {
   id: string
@@ -38,6 +39,8 @@ interface PenghuluTableProps {
 export function PenghuluTable({ refreshKey }: PenghuluTableProps) {
   const [penghulus, setPenghulus] = React.useState<Penghulu[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [selectedPenghulu, setSelectedPenghulu] = React.useState<Penghulu | null>(null);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     const loadPenghulu = async () => {
@@ -158,6 +161,13 @@ export function PenghuluTable({ refreshKey }: PenghuluTableProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => {
+                    setSelectedPenghulu(p);
+                    setIsUpdateDialogOpen(true);
+                  }}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    <span>Edit</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => toggleStatus(p.id)}>
                     {p.status === 'Aktif' ? (
                       <>
@@ -178,5 +188,24 @@ export function PenghuluTable({ refreshKey }: PenghuluTableProps) {
         ))}
       </TableBody>
     </Table>
+    <>
+      <UpdatePenghuluDialog
+        open={isUpdateDialogOpen}
+        onOpenChange={setIsUpdateDialogOpen}
+        penghulu={selectedPenghulu ? {
+          id: selectedPenghulu.id,
+          nama_lengkap: selectedPenghulu.name,
+          nip: selectedPenghulu.nip,
+          email: selectedPenghulu.email,
+          no_hp: selectedPenghulu.phone,
+          alamat: selectedPenghulu.address,
+          status: selectedPenghulu.status,
+        } : null}
+        onSuccess={() => {
+          // Reload penghulu data
+          window.location.reload();
+        }}
+      />
+    </>
   );
 }
