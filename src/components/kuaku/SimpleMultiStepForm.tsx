@@ -24,7 +24,7 @@ import { useAuth } from "@/context/AuthContext";
 import { submitMarriageRegistrationForm, type MarriageRegistrationFormState } from "@/app/daftar-nikah/actions";
 import { getCalendarAvailability, getAvailableTimeSlots } from "@/lib/simnikah-api";
 import { Loader2, CalendarIcon, User, Users, MapPin, AlertCircle, CheckCircle2, Info } from "lucide-react";
-import { MapSelector } from "@/components/kuaku/MapSelector";
+import { SimpleAddressSelector } from "@/components/kuaku/SimpleAddressSelector";
 
 // Valid kelurahan list (Kecamatan Banjarmasin Utara)
 const VALID_KELURAHAN = [
@@ -482,69 +482,37 @@ const Step3 = () => {
         </div>
 
         {tempatNikah === 'Di Luar KUA' && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="alamatNikah">Alamat Nikah *</Label>
-              <Textarea
-                id="alamatNikah"
-                placeholder="Jl. Ahmad Yani No. 123"
-                {...register('alamatNikah', { 
-                  required: tempatNikah === 'Di Luar KUA' ? 'Alamat nikah wajib diisi' : false 
-                })}
-              />
-              {errors.alamatNikah && (
-                <p className="text-sm text-destructive">{errors.alamatNikah.message}</p>
-              )}
-            </div>
+          <div className="space-y-3">
+            <SimpleAddressSelector
+              value={watch('alamatNikah') || ''}
+              latitude={watch('latitude') || null}
+              longitude={watch('longitude') || null}
+              onLocationSelect={(location) => {
+                setValue('alamatNikah', location.alamat);
+                setValue('latitude', location.latitude);
+                setValue('longitude', location.longitude);
+                // Trigger validation
+                trigger('alamatNikah');
+                trigger('latitude');
+              }}
+              disabled={false}
+              error={
+                errors.alamatNikah?.message ||
+                errors.latitude?.message ||
+                undefined
+              }
+            />
 
-            {/* Map Selector untuk memilih lokasi di peta */}
-            <div className="space-y-2">
-              <Label>Pilih Lokasi di Peta (Opsional)</Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Gunakan peta untuk memilih lokasi yang lebih akurat. Alamat akan terisi otomatis saat Anda memilih lokasi di peta.
-              </p>
-              <MapSelector
-                onLocationSelect={(location) => {
-                  setValue('alamatNikah', location.alamat);
-                  setValue('latitude', location.latitude);
-                  setValue('longitude', location.longitude);
-                }}
-                initialAddress={watch('alamatNikah')}
-                disabled={false}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="alamatDetail">Alamat Detail (Opsional)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="alamatDetail" className="text-sm">Detail Alamat (Opsional)</Label>
               <Textarea
                 id="alamatDetail"
-                placeholder="Rumah Pengantin Perempuan"
+                placeholder="RT 05 RW 02, Rumah Pengantin Perempuan"
                 {...register('alamatDetail')}
+                className="min-h-[60px] text-sm"
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="kelurahan">Kelurahan *</Label>
-              <Select
-                value={watch('kelurahan')}
-                onValueChange={(value) => setValue('kelurahan', value)}
-              >
-                <SelectTrigger id="kelurahan">
-                  <SelectValue placeholder="Pilih kelurahan" />
-                </SelectTrigger>
-                <SelectContent>
-                  {VALID_KELURAHAN.map((kel) => (
-                    <SelectItem key={kel} value={kel}>
-                      {kel}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.kelurahan && (
-                <p className="text-sm text-destructive">{errors.kelurahan.message}</p>
-              )}
-            </div>
-          </>
+          </div>
         )}
 
         <div className="space-y-2">

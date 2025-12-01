@@ -75,9 +75,9 @@ export interface SimpleMarriageRegistrationRequest {
     waktu_nikah: string; // HH:MM
     alamat_nikah?: string; // Required if tempat_nikah = 'Di Luar KUA'
     alamat_detail?: string; // Optional
-    kelurahan?: string; // Required if tempat_nikah = 'Di Luar KUA', must be in valid list
-    latitude?: number; // Optional: coordinates from map
-    longitude?: number; // Optional: coordinates from map
+    kelurahan?: string; // Optional: will be extracted from geolocation if not provided
+    latitude?: number; // Required if tempat_nikah = 'Di Luar KUA': coordinates from map
+    longitude?: number; // Required if tempat_nikah = 'Di Luar KUA': coordinates from map
   };
   wali_nikah: {
     nama_dan_bin: string;
@@ -686,7 +686,15 @@ export async function getProfile(): Promise<ProfileResponse> {
           user: responseData.data.user,
         };
       }
-      throw new Error('Invalid profile response: user field is missing');
+      // Try if responseData itself is the user object
+      if (responseData.user_id || responseData.email || responseData.username) {
+        return {
+          message: 'Profile berhasil diambil',
+          user: responseData as any,
+        };
+      }
+      // If still no user, throw error but with more context
+      throw new Error('Invalid profile response: user field is missing. Response structure: ' + JSON.stringify(Object.keys(responseData)));
     }
     
     // console.log('✅ Get Profile Response:', responseData);
@@ -765,8 +773,34 @@ export async function createSimpleMarriageRegistration(
     // console.log('✅ Create Simple Registration Response:', response.data);
     return response.data;
   } catch (error: any) {
-    console.error('❌ Create Simple Registration Error:', error.response?.data || error.message);
-    throw error;
+    // Enhanced error handling
+    let errorMessage = 'Gagal membuat pendaftaran nikah';
+    
+    if (error.message?.includes('Failed to parse URL') || error.message?.includes('Invalid URL')) {
+      errorMessage = 'Terjadi masalah koneksi atau kesalahan pada server. Detail: ' + (error.response?.data?.message || error.message);
+    } else if (error.response?.data) {
+      if (typeof error.response.data === 'string') {
+        errorMessage = error.response.data;
+      } else if (error.response.data.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response.data.error) {
+        errorMessage = error.response.data.error;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    console.error('❌ Create Simple Registration Error:', {
+      message: errorMessage,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    
+    // Create enhanced error with better message
+    const enhancedError: any = new Error(errorMessage);
+    enhancedError.response = error.response;
+    enhancedError.status = error.response?.status;
+    throw enhancedError;
   }
 }
 

@@ -23,6 +23,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, CalendarIcon, MapPin, Clock, AlertCircle, CheckCircle2, Users, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SimpleAddressSelector } from './SimpleAddressSelector';
 
 // Valid kelurahan list (Kecamatan Banjarmasin Utara)
 const VALID_KELURAHAN = [
@@ -79,10 +80,15 @@ const formSchema = z.object({
     tempat_nikah: z.enum(['Di KUA', 'Di Luar KUA']),
     tanggal_nikah: z.string().min(1, 'Pilih tanggal nikah'),
     waktu_nikah: z.string().min(1, 'Pilih waktu nikah'),
+    // Alamat dan koordinat digabung menjadi satu field wajib
     alamat_nikah: z.string().optional(),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
+    // Field ini akan diisi otomatis dari geolocation
     alamat_detail: z.string().optional(),
     kelurahan: z.string().optional(),
   }).refine((data) => {
+    // Untuk Di Luar KUA, alamat dan koordinat WAJIB
     if (data.tempat_nikah === 'Di Luar KUA') {
       return data.alamat_nikah && data.alamat_nikah.length > 0;
     }
@@ -91,13 +97,15 @@ const formSchema = z.object({
     message: 'Alamat nikah wajib diisi untuk nikah di luar KUA',
     path: ['alamat_nikah'],
   }).refine((data) => {
+    // Koordinat WAJIB untuk Di Luar KUA
     if (data.tempat_nikah === 'Di Luar KUA') {
-      return data.kelurahan && VALID_KELURAHAN.includes(data.kelurahan);
+      return data.latitude !== undefined && data.longitude !== undefined && 
+             data.latitude !== null && data.longitude !== null;
     }
     return true;
   }, {
-    message: 'Kelurahan harus dalam lingkup Kecamatan Banjarmasin Utara',
-    path: ['kelurahan'],
+    message: 'Koordinat lokasi wajib diisi. Silakan pilih lokasi di peta atau cari alamat.',
+    path: ['latitude'],
   }),
   wali_nikah: z.object({
     nama: z.string().min(2, 'Nama wali minimal 2 karakter'),
@@ -145,6 +153,8 @@ export function SimpleMarriageRegistrationForm() {
         tanggal_nikah: '',
         waktu_nikah: '',
         alamat_nikah: '',
+        latitude: undefined,
+        longitude: undefined,
         alamat_detail: '',
         kelurahan: '',
       },
@@ -350,7 +360,20 @@ export function SimpleMarriageRegistrationForm() {
           pendidikan_akhir: data.calon_perempuan.pendidikan_akhir,
           umur: data.calon_perempuan.umur,
         },
-        lokasi_nikah: data.lokasi_nikah,
+        lokasi_nikah: {
+          tempat_nikah: data.lokasi_nikah.tempat_nikah,
+          tanggal_nikah: data.lokasi_nikah.tanggal_nikah,
+          waktu_nikah: data.lokasi_nikah.waktu_nikah,
+          // Untuk Di Luar KUA, kirim alamat dan koordinat (wajib)
+          ...(data.lokasi_nikah.tempat_nikah === 'Di Luar KUA' && {
+            alamat_nikah: data.lokasi_nikah.alamat_nikah || '',
+            ...(data.lokasi_nikah.alamat_detail && { alamat_detail: data.lokasi_nikah.alamat_detail }),
+            ...(data.lokasi_nikah.kelurahan && { kelurahan: data.lokasi_nikah.kelurahan }),
+            // Koordinat wajib untuk Di Luar KUA
+            latitude: data.lokasi_nikah.latitude,
+            longitude: data.lokasi_nikah.longitude,
+          }),
+        },
         wali_nikah: {
           nama_dan_bin: `${data.wali_nikah.nama} bin ${data.wali_nikah.bin}`,
           hubungan_wali: data.wali_nikah.hubungan_wali,
@@ -426,9 +449,32 @@ export function SimpleMarriageRegistrationForm() {
       router.push(`/pendaftaran/sukses?${params.toString()}`);
     } catch (error: any) {
       console.error('Error submitting form:', error);
+      
+      // Extract error message
+      let errorMessage = 'Gagal membuat pendaftaran nikah. Silakan coba lagi.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.response.data.detail) {
+          errorMessage = `Terjadi masalah koneksi atau kesalahan pada server. Detail: ${error.response.data.detail.message || error.response.data.detail.error || 'Unknown error'}`;
+        }
+      }
+      
+      // Check for URL parsing errors
+      if (errorMessage.includes('Failed to parse URL') || errorMessage.includes('Invalid URL')) {
+        errorMessage = 'Terjadi masalah koneksi atau kesalahan pada server. Silakan hubungi administrator atau coba lagi nanti.';
+      }
+      
       toast({
-        title: 'Gagal',
-        description: error.response?.data?.error || error.message || 'Gagal membuat pendaftaran',
+        title: 'Gagal Mendaftar',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -459,16 +505,16 @@ export function SimpleMarriageRegistrationForm() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Formulir Pendaftaran Nikah</CardTitle>
-          <CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-xl">Formulir Pendaftaran Nikah</CardTitle>
+          <CardDescription className="text-sm">
             Isi formulir berikut untuk mendaftar nikah. Pastikan semua data yang diisi benar.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Calon Laki-laki */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Data Calon Suami</h3>
@@ -612,11 +658,13 @@ export function SimpleMarriageRegistrationForm() {
             </div>
 
             {/* Wali Nikah */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Data Wali Nikah</h3>
-              <p className="text-sm text-muted-foreground">
-                Wali nikah wajib diisi untuk calon pengantin perempuan
-              </p>
+            <div className="space-y-3">
+              <div>
+                <h3 className="text-base font-semibold">Data Wali Nikah</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Wali nikah wajib diisi untuk calon pengantin perempuan
+                </p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nama_wali">Nama Lengkap *</Label>
@@ -668,26 +716,26 @@ export function SimpleMarriageRegistrationForm() {
                   )}
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-md">
-                <p className="font-semibold mb-1">Urutan Wali Nasab:</p>
-                <ol className="list-decimal list-inside space-y-0.5">
-                  <li>Ayah Kandung (paling berhak jika ayah masih hidup)</li>
-                  <li>Kakek (jika ayah meninggal)</li>
+              <details className="text-xs text-muted-foreground bg-blue-50 p-2 rounded border border-blue-100">
+                <summary className="font-semibold cursor-pointer">Urutan Wali Nasab (klik untuk lihat)</summary>
+                <ol className="list-decimal list-inside space-y-0.5 mt-2 pl-2">
+                  <li>Ayah Kandung</li>
+                  <li>Kakek</li>
                   <li>Saudara Laki-Laki Kandung</li>
                   <li>Saudara Laki-Laki Seayah</li>
                   <li>Keponakan Laki-Laki</li>
                   <li>Paman Kandung</li>
                   <li>Paman Seayah</li>
                   <li>Sepupu Laki-Laki</li>
-                  <li>Wali Hakim (jika tidak ada wali nasab yang memenuhi syarat)</li>
+                  <li>Wali Hakim</li>
                   <li>Lainnya</li>
                 </ol>
-              </div>
+              </details>
             </div>
 
             {/* Lokasi Nikah */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Lokasi dan Waktu Nikah</h3>
+            <div className="space-y-3">
+              <h3 className="text-base font-semibold">Lokasi dan Waktu Nikah</h3>
               
               <div className="space-y-2">
                 <Label>Tempat Nikah *</Label>
@@ -712,52 +760,40 @@ export function SimpleMarriageRegistrationForm() {
               </div>
 
               {tempatNikah === 'Di Luar KUA' && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="alamat_nikah">Alamat Nikah *</Label>
-                    <Textarea
-                      id="alamat_nikah"
-                      placeholder="Jl. Ahmad Yani No. 123"
-                      {...form.register('lokasi_nikah.alamat_nikah')}
-                    />
-                    {form.formState.errors.lokasi_nikah?.alamat_nikah && (
-                      <p className="text-sm text-red-500">
-                        {form.formState.errors.lokasi_nikah.alamat_nikah.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="alamat_detail">Alamat Detail (Opsional)</Label>
+                <div className="space-y-3">
+                  <SimpleAddressSelector
+                    value={form.watch('lokasi_nikah.alamat_nikah') || ''}
+                    latitude={form.watch('lokasi_nikah.latitude') || null}
+                    longitude={form.watch('lokasi_nikah.longitude') || null}
+                    onLocationSelect={(location) => {
+                      // Simpan alamat dan koordinat
+                      form.setValue('lokasi_nikah.alamat_nikah', location.alamat);
+                      form.setValue('lokasi_nikah.latitude', location.latitude);
+                      form.setValue('lokasi_nikah.longitude', location.longitude);
+                      
+                      // Trigger validation
+                      form.trigger('lokasi_nikah.latitude');
+                      form.trigger('lokasi_nikah.alamat_nikah');
+                    }}
+                    disabled={isSubmitting}
+                    error={
+                      form.formState.errors.lokasi_nikah?.alamat_nikah?.message ||
+                      form.formState.errors.lokasi_nikah?.latitude?.message ||
+                      undefined
+                    }
+                  />
+                  
+                  {/* Alamat detail opsional */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="alamat_detail" className="text-sm">Detail Alamat (Opsional)</Label>
                     <Textarea
                       id="alamat_detail"
-                      placeholder="Rumah Pengantin Perempuan"
+                      placeholder="RT 05 RW 02, Rumah Pengantin Perempuan"
                       {...form.register('lokasi_nikah.alamat_detail')}
+                      className="min-h-[60px] text-sm"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="kelurahan">Kelurahan *</Label>
-                    <Select
-                      value={form.watch('lokasi_nikah.kelurahan') || ''}
-                      onValueChange={(value) => form.setValue('lokasi_nikah.kelurahan', value)}
-                    >
-                      <SelectTrigger id="kelurahan">
-                        <SelectValue placeholder="Pilih kelurahan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VALID_KELURAHAN.map((kel) => (
-                          <SelectItem key={kel} value={kel}>
-                            {kel}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {form.formState.errors.lokasi_nikah?.kelurahan && (
-                      <p className="text-sm text-red-500">
-                        {form.formState.errors.lokasi_nikah.kelurahan.message}
-                      </p>
-                    )}
-                  </div>
-                </>
+                </div>
               )}
 
               <div className="space-y-2">

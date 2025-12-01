@@ -140,7 +140,8 @@ async function proxy(request: Request, segments: string[]) {
   }
   
   // Build target URL - ensure TARGET ends without slash and urlPath doesn't start with slash
-  const cleanTarget = TARGET.endsWith('/') ? TARGET.slice(0, -1) : TARGET;
+  // Also ensure TARGET has protocol
+  const cleanTarget = ensureProtocol(TARGET.endsWith('/') ? TARGET.slice(0, -1) : TARGET);
   const cleanPath = urlPath.startsWith('/') ? urlPath.slice(1) : urlPath;
   const targetUrl = `${cleanTarget}/${cleanPath}`;
   
@@ -160,11 +161,13 @@ async function proxy(request: Request, segments: string[]) {
     return NextResponse.json(
       {
         error: 'Invalid URL',
-        message: `Failed to construct target URL: ${urlError.message}`,
+        message: `Failed to parse URL. Please check NEXT_PUBLIC_API_URL environment variable.`,
         detail: {
           target: TARGET,
+          cleanTarget: cleanTarget,
           path: urlPath,
           constructed: targetUrl,
+          error: urlError.message,
         },
       },
       { status: 500 }

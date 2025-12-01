@@ -183,11 +183,18 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         <div
           className={cn(
             'absolute top-full left-0 right-0 z-50 mt-1',
-            'bg-white border border-input rounded-md shadow-lg',
-            'px-4 py-3 text-sm text-muted-foreground'
+            'bg-blue-50 border border-blue-200 rounded-md shadow-lg',
+            'px-4 py-3 text-sm'
           )}
         >
-          ℹ️ Tidak ada hasil untuk "{value}"
+          <div className="space-y-2">
+            <p className="text-blue-900 font-medium">
+              ⚠️ Tidak ada hasil untuk "{value}"
+            </p>
+            <p className="text-blue-700 text-xs">
+              Komplek/perumahan mungkin belum ada di database. Gunakan tombol <strong>"Pilih di Peta"</strong> untuk memilih lokasi langsung di peta.
+            </p>
+          </div>
         </div>
       )}
 

@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useRef, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale } from 'date-fns/locale';
-import { Download, Printer, Loader2 } from 'lucide-react';
+import { Download, Printer, Loader2, Home, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { useAuth } from '@/context/AuthContext';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -25,10 +26,35 @@ const DetailItem: React.FC<DetailItemProps> = ({ label, value }) => (
 // Komponen internal yang menggunakan useSearchParams
 function RegistrationProofContent() {
   const searchParams = useSearchParams();
-  const proofRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { user, userRole } = useAuth();
+  const proofRef = useRef<HTMLDivElement>(null);
   const printProofRef = useRef<HTMLDivElement>(null); // Ref terpisah untuk print
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  // Fungsi untuk menentukan dashboard berdasarkan role
+  const getDashboardPath = () => {
+    if (!userRole) return '/';
+    
+    switch(userRole) {
+      case 'kepala_kua':
+        return '/admin/kepala';
+      case 'staff':
+        return '/admin/staff';
+      case 'penghulu':
+        return '/penghulu';
+      case 'administrator':
+        return '/admin';
+      default:
+        return '/';
+    }
+  };
+
+  const handleBackToDashboard = () => {
+    const dashboardPath = getDashboardPath();
+    router.push(dashboardPath);
+  };
 
   // Data sesuai dengan struktur yang dikirim dari actions.ts dan dokumentasi API
   const registrationData = {
@@ -143,22 +169,41 @@ function RegistrationProofContent() {
         </div>
 
       {/* Tombol-tombol Aksi */}
-        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4 print:hidden">
-             <Button onClick={handleDownloadPdf} className="w-full sm:w-auto" disabled={isDownloading || isPrinting}>
-                {isDownloading ? (
-                    <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mengunduh... </>
-                ) : (
-                    <> <Download className="mr-2 h-4 w-4" /> Unduh sebagai PDF </>
-                )}
-            </Button>
-            <Button variant="outline" onClick={handlePrint} className="w-full sm:w-auto" disabled={isPrinting || isDownloading}>
-                 {isPrinting ? (
-                    <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mempersiapkan... </>
-                ) : (
-                    <> <Printer className="mr-2 h-4 w-4" /> Cetak Halaman </>
-                )}
-            </Button>
-        </div>
+        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4 print:hidden">
+            <Button onClick={handleDownloadPdf} className="w-full sm:w-auto" disabled={isDownloading || isPrinting}>
+                {isDownloading ? (
+                    <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mengunduh... </>
+                ) : (
+                    <> <Download className="mr-2 h-4 w-4" /> Unduh sebagai PDF </>
+                )}
+            </Button>
+            <Button variant="outline" onClick={handlePrint} className="w-full sm:w-auto" disabled={isPrinting || isDownloading}>
+                 {isPrinting ? (
+                    <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mempersiapkan... </>
+                ) : (
+                    <> <Printer className="mr-2 h-4 w-4" /> Cetak Halaman </>
+                )}
+            </Button>
+            {(userRole && (userRole === 'staff' || userRole === 'kepala_kua' || userRole === 'penghulu' || userRole === 'administrator')) ? (
+              <Button 
+                variant="default" 
+                onClick={handleBackToDashboard} 
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90"
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Kembali ke Dashboard
+              </Button>
+            ) : (
+              <Button 
+                variant="default" 
+                onClick={() => router.push('/')} 
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Kembali ke Beranda
+              </Button>
+            )}
+        </div>
 
       {/* Versi Khusus untuk Print */}
         <style jsx global>{`

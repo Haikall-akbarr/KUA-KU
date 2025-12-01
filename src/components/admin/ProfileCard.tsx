@@ -32,11 +32,35 @@ export function ProfileCard() {
 
             try {
                 const result = await getProfile();
-                setProfile(result.user);
-                setError(null);
+                if (result.user) {
+                    setProfile(result.user);
+                    setError(null);
+                } else {
+                    throw new Error('User data tidak ditemukan dalam response');
+                }
             } catch (err) {
-                const errorMessage = handleApiError(err);
-                setError(errorMessage);
+                // Fallback ke localStorage jika API gagal
+                try {
+                    const storedUser = localStorage.getItem('user');
+                    if (storedUser) {
+                        const user = JSON.parse(storedUser);
+                        setProfile({
+                            user_id: user.user_id || '',
+                            username: user.username || user.email || '',
+                            email: user.email || '',
+                            role: user.role || '',
+                            nama: user.nama || 'User',
+                        });
+                        setError(null);
+                        console.warn('⚠️ Using user data from localStorage as fallback');
+                    } else {
+                        const errorMessage = handleApiError(err);
+                        setError(errorMessage);
+                    }
+                } catch (parseError) {
+                    const errorMessage = handleApiError(err);
+                    setError(errorMessage);
+                }
             } finally {
                 setLoading(false);
             }
