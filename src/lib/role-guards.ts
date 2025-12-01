@@ -90,12 +90,7 @@ export const FEATURE_ROLES = {
   VIEW_PENGHULU: ['kepala_kua'],
   MANAGE_PENGHULU: ['kepala_kua'],
   
-  // Verification - Staff only
-  VERIFY_FORMULIR: ['staff'],
-  VERIFY_BERKAS: ['staff'],
-  
-  // Penghulu Verification - Penghulu only
-  VERIFY_DOCUMENTS: ['penghulu'],
+  // Removed: Verification features - VERIFY_FORMULIR, VERIFY_BERKAS, VERIFY_DOCUMENTS
   GET_ASSIGNED_REGISTRATIONS: ['penghulu'],
   
   // Assignment - hanya Kepala KUA

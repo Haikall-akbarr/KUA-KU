@@ -319,13 +319,19 @@ export default function PenguluDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard Penghulu</h1>
-          <p className="text-gray-600 mt-2">
-            Selamat datang, {penguluData?.nama_lengkap || 'Penghulu'}
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <div className="space-y-6 p-6 max-w-7xl mx-auto">
+        {/* Header dengan gradient background */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border border-primary/20 shadow-sm">
+          <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
+          <div className="relative">
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Dashboard Penghulu
+            </h1>
+            <p className="text-muted-foreground mt-2 text-base">
+              Selamat datang, <span className="font-semibold text-foreground">{penguluData?.nama_lengkap || 'Penghulu'}</span>
+            </p>
+          </div>
         </div>
 
         {/* Error Alert */}
@@ -337,48 +343,73 @@ export default function PenguluDashboard() {
           </Alert>
         )}
 
-        {/* Stats Cards */}
+        {/* Stats Cards dengan enhanced design */}
         {penguluData && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Status</CardTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="group relative overflow-hidden border-l-4 border-l-green-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-green-50/30">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+              <CardHeader className="pb-3 relative z-10">
+                <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-green-100">
+                    <Users className="h-4 w-4 text-green-600" />
+                  </div>
+                  Status
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{penguluData.status}</div>
-                <Badge className="mt-2 bg-green-100 text-green-800">Aktif</Badge>
+              <CardContent className="relative z-10">
+                <div className="text-3xl font-bold text-foreground mb-2">{penguluData.status}</div>
+                <Badge className="bg-green-100 text-green-800 border-green-200">Aktif</Badge>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Nikah</CardTitle>
+            <Card className="group relative overflow-hidden border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-blue-50/30">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+              <CardHeader className="pb-3 relative z-10">
+                <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-blue-100">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                  </div>
+                  Total Nikah
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{penguluData.jumlah_nikah}</div>
-                <p className="text-xs text-gray-500 mt-2">Pernikahan selesai</p>
+              <CardContent className="relative z-10">
+                <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-1">{penguluData.jumlah_nikah}</div>
+                <p className="text-xs text-muted-foreground font-medium">Pernikahan selesai</p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Rating</CardTitle>
+            <Card className="group relative overflow-hidden border-l-4 border-l-yellow-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-yellow-50/30">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+              <CardHeader className="pb-3 relative z-10">
+                <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-yellow-100">
+                    <Star className="h-4 w-4 text-yellow-600 fill-yellow-600" />
+                  </div>
+                  Rating
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <div className="text-2xl font-bold">{penguluData.rating}</div>
-                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+              <CardContent className="relative z-10">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="text-4xl font-bold bg-gradient-to-r from-yellow-600 to-yellow-500 bg-clip-text text-transparent">{penguluData.rating}</div>
+                  <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
                 </div>
+                <p className="text-xs text-muted-foreground font-medium">Rating penghulu</p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Terjadwalkan</CardTitle>
+            <Card className="group relative overflow-hidden border-l-4 border-l-orange-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-orange-50/30">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+              <CardHeader className="pb-3 relative z-10">
+                <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-orange-100">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                  </div>
+                  Terjadwalkan
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{assignedRegistrations.length}</div>
-                <p className="text-xs text-gray-500 mt-2">Tugas menunggu</p>
+              <CardContent className="relative z-10">
+                <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent mb-1">{assignedRegistrations.length}</div>
+                <p className="text-xs text-muted-foreground font-medium">Tugas menunggu</p>
               </CardContent>
             </Card>
           </div>
@@ -444,11 +475,16 @@ export default function PenguluDashboard() {
 
                   if (todaySchedule.length === 0) {
                     return (
-                      <div className="text-center py-8">
-                        <Calendar className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                        <p className="text-gray-500">Tidak ada jadwal pernikahan hari ini</p>
-                        <p className="text-sm text-gray-400 mt-2">
-                          Total jadwal yang ditugaskan: {assignedRegistrations.length}
+                      <div className="text-center py-16">
+                        <div className="relative mx-auto w-24 h-24 mb-6">
+                          <div className="absolute inset-0 bg-blue-100 rounded-full animate-pulse" />
+                          <div className="absolute inset-4 bg-blue-200 rounded-full flex items-center justify-center">
+                            <Calendar className="h-10 w-10 text-blue-500" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-semibold text-foreground mb-2">Tidak ada jadwal hari ini</h3>
+                        <p className="text-sm text-muted-foreground max-w-md mx-auto mb-2">
+                          Total jadwal yang ditugaskan: <span className="font-semibold text-foreground">{assignedRegistrations.length}</span>
                         </p>
                         {assignedRegistrations.length > 0 && (
                           <div className="mt-4 text-xs text-gray-500">
@@ -466,43 +502,53 @@ export default function PenguluDashboard() {
                   }
 
                   return (
-                    <div className="space-y-4">
-                      {todaySchedule.map((reg) => (
-                      <div key={reg.id} className="border rounded-lg p-4 hover:shadow-md transition">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h4 className="font-semibold text-lg">
-                              {reg.nomor_pendaftaran}
-                            </h4>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {reg.calon_suami?.nama_lengkap || 'Data tidak tersedia'} & {reg.calon_istri?.nama_lengkap || 'Data tidak tersedia'}
-                            </p>
+                    <div className="space-y-3">
+                      {todaySchedule.map((reg, index) => (
+                      <Card 
+                        key={reg.id} 
+                        className="group border-l-4 border-l-blue-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-br from-white to-blue-50/20"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <CardContent className="pt-6">
+                          <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-semibold text-lg text-foreground">
+                                  {reg.nomor_pendaftaran}
+                                </h4>
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  {reg.status_pendaftaran}
+                                </Badge>
+                              </div>
+                              <p className="text-sm font-medium text-foreground">
+                                {reg.calon_suami?.nama_lengkap || 'Data tidak tersedia'} & {reg.calon_istri?.nama_lengkap || 'Data tidak tersedia'}
+                              </p>
+                            </div>
                           </div>
-                          <Badge variant="outline">{reg.status_pendaftaran}</Badge>
-                        </div>
 
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-500">Tanggal</p>
-                            <p className="font-medium">
-                              {new Date(reg.tanggal_nikah).toLocaleDateString('id-ID', {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })}
-                            </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tanggal</p>
+                              <p className="text-sm font-semibold text-foreground">
+                                {new Date(reg.tanggal_nikah).toLocaleDateString('id-ID', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                })}
+                              </p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Waktu</p>
+                              <p className="text-sm font-semibold text-foreground">{reg.waktu_nikah}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tempat</p>
+                              <p className="text-sm font-semibold text-foreground">{reg.tempat_nikah}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-gray-500">Waktu</p>
-                            <p className="font-medium">{reg.waktu_nikah}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">Tempat</p>
-                            <p className="font-medium">{reg.tempat_nikah}</p>
-                          </div>
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
                       ))}
                     </div>
                   );
@@ -512,68 +558,74 @@ export default function PenguluDashboard() {
           </TabsContent>
 
           {/* Profil Tab */}
-          <TabsContent value="profil" className="space-y-4">
+          <TabsContent value="profil" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Profil Penghulu</CardTitle>
+                <CardTitle className="text-xl">Profil Penghulu</CardTitle>
                 <CardDescription>Informasi profil penghulu</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {penguluData && (
                   <>
                     {/* Informasi Pribadi */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Nama Lengkap</label>
-                        <p className="text-lg font-semibold mt-2">{penguluData.nama_lengkap}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nama Lengkap</label>
+                        <p className="text-lg font-semibold text-foreground mt-2">{penguluData.nama_lengkap}</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">NIP</label>
-                        <p className="text-lg font-semibold mt-2">{penguluData.nip}</p>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">NIP</label>
+                        <p className="text-lg font-semibold text-foreground mt-2">{penguluData.nip}</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Email</label>
-                        <p className="text-lg font-semibold mt-2">{penguluData.email}</p>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email</label>
+                        <p className="text-lg font-semibold text-foreground mt-2">{penguluData.email}</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Nomor HP</label>
-                        <p className="text-lg font-semibold mt-2">{penguluData.no_hp}</p>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nomor HP</label>
+                        <p className="text-lg font-semibold text-foreground mt-2">{penguluData.no_hp}</p>
                       </div>
                     </div>
 
                     {/* Alamat */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Alamat</label>
-                      <p className="text-lg font-semibold mt-2">
+                    <div className="pt-4 border-t">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Alamat</label>
+                      <p className="text-lg font-semibold text-foreground mt-2">
                         {penguluData.alamat || 'Tidak ada data'}
                       </p>
                     </div>
 
                     {/* Statistik */}
                     <div className="border-t pt-6">
-                      <h3 className="font-semibold mb-4">Statistik</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-blue-50 p-4 rounded">
-                          <p className="text-sm text-gray-600">Total Pernikahan</p>
-                          <p className="text-2xl font-bold text-blue-600 mt-2">
-                            {penguluData.jumlah_nikah}
-                          </p>
-                        </div>
-                        <div className="bg-yellow-50 p-4 rounded">
-                          <p className="text-sm text-gray-600">Rating</p>
-                          <div className="flex items-center mt-2">
-                            <p className="text-2xl font-bold text-yellow-600">
-                              {penguluData.rating}
+                      <h3 className="font-semibold mb-4 text-foreground">Statistik</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <Card className="bg-blue-50 border-blue-200">
+                          <CardContent className="pt-6">
+                            <p className="text-sm font-medium text-muted-foreground mb-2">Total Pernikahan</p>
+                            <p className="text-3xl font-bold text-blue-600">
+                              {penguluData.jumlah_nikah}
                             </p>
-                            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500 ml-2" />
-                          </div>
-                        </div>
-                        <div className="bg-green-50 p-4 rounded">
-                          <p className="text-sm text-gray-600">Status</p>
-                          <Badge className="mt-2 bg-green-100 text-green-800">
-                            {penguluData.status}
-                          </Badge>
-                        </div>
+                          </CardContent>
+                        </Card>
+                        <Card className="bg-yellow-50 border-yellow-200">
+                          <CardContent className="pt-6">
+                            <p className="text-sm font-medium text-muted-foreground mb-2">Rating</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-3xl font-bold text-yellow-600">
+                                {penguluData.rating}
+                              </p>
+                              <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card className="bg-green-50 border-green-200">
+                          <CardContent className="pt-6">
+                            <p className="text-sm font-medium text-muted-foreground mb-2">Status</p>
+                            <Badge className="mt-2 bg-green-100 text-green-800 border-green-200 text-base px-3 py-1">
+                              {penguluData.status}
+                            </Badge>
+                          </CardContent>
+                        </Card>
                       </div>
                     </div>
                   </>

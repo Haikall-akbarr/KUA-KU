@@ -4,7 +4,7 @@
  * API Base: https://simnikah-api-production-5583.up.railway.app
  */
 
-import { getAssignedRegistrations as getAssignedRegistrationsAPI, verifyDocuments, handleApiError } from './simnikah-api';
+import { getAssignedRegistrations as getAssignedRegistrationsAPI, handleApiError } from './simnikah-api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
 
@@ -266,37 +266,7 @@ export const getPenguluSchedule = async (tanggal: string): Promise<PenguluSchedu
   return [];
 };
 
-/**
- * 4.5 Verify Documents (Legacy wrapper - now uses API from simnikah-api.ts)
- * POST /simnikah/penghulu/verify-documents/:id
- */
-export const verifyDocumentsLocal = async (
-  registrationId: string,
-  status: 'approved' | 'rejected',
-  catatan?: string
-): Promise<VerificationResult> => {
-  try {
-    // Map status to API format
-    const apiStatus = status === 'approved' ? 'Menunggu Bimbingan' : 'Penolakan Dokumen';
-    
-    // Call API from simnikah-api.ts
-    const response = await verifyDocuments(registrationId, {
-      status: apiStatus,
-      catatan: catatan || ''
-    });
-
-    return {
-      id: registrationId,
-      nomor_pendaftaran: response.data?.nomor_pendaftaran || registrationId,
-      status_verifikasi: status,
-      catatan: catatan || '',
-      waktu_verifikasi: new Date().toISOString()
-    };
-  } catch (error) {
-    console.error('Error verifying documents:', error);
-    throw error;
-  }
-};
+// Removed: verifyDocumentsLocal function - verification feature has been removed
 
 // ========== DATA MANAGEMENT FUNCTIONS ==========
 
@@ -387,73 +357,7 @@ export const getOfflineVerifications = () => {
   }
 };
 
-/**
- * Complete verification workflow with notifications
- */
-export const completeVerification = async (
-  registrationId: string,
-  nomor_pendaftaran: string,
-  status: 'approved' | 'rejected',
-  catatan?: string
-): Promise<boolean> => {
-  try {
-    // Map status to API format
-    const apiStatus = status === 'approved' ? 'Menunggu Bimbingan' : 'Penolakan Dokumen';
-    
-    // Call API from simnikah-api.ts
-    const response = await verifyDocuments(registrationId, {
-      status: apiStatus,
-      catatan: catatan || ''
-    });
-
-    // Save verification data
-    const result: VerificationResult = {
-      id: registrationId,
-      nomor_pendaftaran: response.data?.nomor_pendaftaran || nomor_pendaftaran,
-      status_verifikasi: status,
-      catatan: catatan || '',
-      waktu_verifikasi: new Date().toISOString()
-    };
-    
-    saveVerificationData(registrationId, result);
-
-    // Create notification
-    const message =
-      status === 'approved'
-        ? `Dokumen ${nomor_pendaftaran} telah disetujui. Status: Menunggu Bimbingan`
-        : `Dokumen ${nomor_pendaftaran} telah ditolak. Catatan: ${catatan || 'Lihat detail untuk informasi lebih lanjut'}`;
-
-    createPenguluNotification(
-      status === 'approved' ? 'success' : 'error',
-      message
-    );
-
-    // Update local cache (API already updates backend, this is just for UI)
-    const existing = localStorage.getItem('penghulu_assigned_registrations');
-    if (existing) {
-      const registrations = JSON.parse(existing);
-      const updated = registrations.map((reg: AssignedRegistration) =>
-        reg.id === registrationId
-          ? {
-              ...reg,
-              status_pendaftaran: apiStatus,
-            }
-          : reg
-      );
-      localStorage.setItem(
-        'penghulu_assigned_registrations',
-        JSON.stringify(updated)
-      );
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error completing verification:', error);
-    const errorMessage = handleApiError(error);
-    createPenguluNotification('error', `Gagal memverifikasi dokumen: ${errorMessage}`);
-    return false;
-  }
-};
+// Removed: completeVerification function - verification feature has been removed
 
 /**
  * Cache assigned registrations

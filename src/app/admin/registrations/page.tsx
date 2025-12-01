@@ -117,20 +117,19 @@ export default function RegistrationsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 p-6">
       {staffNotifications.length > 0 && (
-        <div>
-          <Alert>
-            <AlertTitle>Terdapat pendaftaran baru</AlertTitle>
-            <AlertDescription>
-              {`Ada ${staffNotifications.length} pendaftaran baru yang menunggu verifikasi.`}
-            </AlertDescription>
-          </Alert>
-        </div>
+        <Alert className="border-blue-200 bg-blue-50">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertTitle className="text-blue-900">Terdapat pendaftaran baru</AlertTitle>
+          <AlertDescription className="text-blue-800">
+            {`Ada ${staffNotifications.length} pendaftaran baru yang menunggu verifikasi.`}
+          </AlertDescription>
+        </Alert>
       )}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Pendaftaran Nikah</h1>
-        <p className="text-muted-foreground">
+      <div className="pb-4 border-b">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Pendaftaran Nikah</h1>
+        <p className="text-muted-foreground mt-1.5">
           Verifikasi, setujui, dan kelola semua pendaftaran nikah yang masuk.
         </p>
       </div>

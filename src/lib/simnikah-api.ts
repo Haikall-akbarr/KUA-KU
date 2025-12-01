@@ -272,15 +272,7 @@ export interface CreateStaffRequest {
   alamat?: string;
 }
 
-export interface VerifyFormulirRequest {
-  approved: boolean;
-  catatan?: string;
-}
-
-export interface VerifyBerkasRequest {
-  approved: boolean;
-  catatan?: string;
-}
+// Removed: VerifyFormulirRequest and VerifyBerkasRequest - verification feature has been removed
 
 // Penghulu Management Types
 export interface CreatePenghuluRequest {
@@ -293,10 +285,7 @@ export interface CreatePenghuluRequest {
   alamat?: string;
 }
 
-export interface VerifyDocumentsRequest {
-  approved: boolean;
-  catatan?: string;
-}
+// Removed: VerifyDocumentsRequest - verification feature has been removed
 
 // Update Status Types
 export interface UpdateStatusRequest {
@@ -1154,105 +1143,7 @@ export async function approveRegistration(
   }
 }
 
-/**
- * 3.3 Verify Formulir (Staff Only)
- * POST /simnikah/staff/verify-formulir/:id
- */
-export async function verifyFormulir(
-  id: string | number,
-  data: VerifyFormulirRequest
-): Promise<any> {
-  try {
-    // console.log('📤 Verify Formulir Request:', {
-    //   id,
-    //   data,
-    //   endpoint: `/simnikah/staff/verify-formulir/${id}`
-    // });
-    const response = await api.post(`/simnikah/staff/verify-formulir/${id}`, data);
-    // console.log('✅ Verify Formulir Response:', response.data);
-    return response.data;
-  } catch (error: any) {
-    // Log error detail
-    console.error('❌ Verify Formulir Error Details:', {
-      message: error.message,
-      response: error.response,
-      responseData: error.response?.data,
-      responseStatus: error.response?.status,
-      responseHeaders: error.response?.headers,
-      requestUrl: error.config?.url,
-      requestData: error.config?.data,
-      fullError: error
-    });
-
-    // Extract error message
-    let errorMessage = 'Gagal memverifikasi formulir';
-    if (error.response?.data?.error) {
-      errorMessage = error.response.data.error;
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    } else if (error.response?.status) {
-      errorMessage = `Error ${error.response.status}: ${error.response.statusText || 'Request failed'}`;
-    }
-
-    // Create a new error with proper message
-    const enhancedError = new Error(errorMessage);
-    (enhancedError as any).response = error.response;
-    (enhancedError as any).status = error.response?.status;
-    throw enhancedError;
-  }
-}
-
-/**
- * 3.3 Verify Berkas (Staff Only)
- * POST /simnikah/staff/verify-berkas/:id
- */
-export async function verifyBerkas(
-  id: string | number,
-  data: VerifyBerkasRequest
-): Promise<any> {
-  try {
-    console.log('📤 Verify Berkas Request:', {
-      id,
-      data,
-      endpoint: `/simnikah/staff/verify-berkas/${id}`
-    });
-    const response = await api.post(`/simnikah/staff/verify-berkas/${id}`, data);
-    console.log('✅ Verify Berkas Response:', response.data);
-    return response.data;
-  } catch (error: any) {
-    // Log error detail
-    console.error('❌ Verify Berkas Error Details:', {
-      message: error.message,
-      response: error.response,
-      responseData: error.response?.data,
-      responseStatus: error.response?.status,
-      responseHeaders: error.response?.headers,
-      requestUrl: error.config?.url,
-      requestData: error.config?.data,
-      fullError: error
-    });
-
-    // Extract error message
-    let errorMessage = 'Gagal memverifikasi berkas';
-    if (error.response?.data?.error) {
-      errorMessage = error.response.data.error;
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    } else if (error.response?.status) {
-      errorMessage = `Error ${error.response.status}: ${error.response.statusText || 'Request failed'}`;
-    }
-
-    // Create a new error with proper message
-    const enhancedError = new Error(errorMessage);
-    (enhancedError as any).response = error.response;
-    (enhancedError as any).status = error.response?.status;
-    throw enhancedError;
-  }
-}
+// Removed: verifyFormulir and verifyBerkas functions - verification feature has been removed
 
 /**
  * 3.4 Get All Staff (Kepala KUA Only)
@@ -1331,59 +1222,7 @@ export async function createPenghulu(data: CreatePenghuluRequest): Promise<any> 
   }
 }
 
-/**
- * 4.2 Verify Documents (Penghulu Only)
- * POST /simnikah/penghulu/verify-documents/:id
- * 
- * NOTE: This endpoint is not in the API documentation.
- * According to documentation, penghulu should use complete-marriage instead.
- * Keeping for backward compatibility but may need to be removed.
- */
-export async function verifyDocuments(
-  id: string | number,
-  data: VerifyDocumentsRequest
-): Promise<any> {
-  try {
-    // console.log('📤 Verify Documents Request:', {
-    //   id,
-    //   data,
-    //   endpoint: `/simnikah/penghulu/verify-documents/${id}`
-    // });
-    const response = await api.post(`/simnikah/penghulu/verify-documents/${id}`, data);
-    // console.log('✅ Verify Documents Response:', response.data);
-    return response.data;
-  } catch (error: any) {
-    // Log error detail
-    console.error('❌ Verify Documents Error Details:', {
-      message: error.message,
-      response: error.response,
-      responseData: error.response?.data,
-      responseStatus: error.response?.status,
-      responseHeaders: error.response?.headers,
-      requestUrl: error.config?.url,
-      requestData: error.config?.data,
-      fullError: error
-    });
-
-    // Extract error message
-    let errorMessage = 'Gagal memverifikasi dokumen';
-    if (error.response?.data?.error) {
-      errorMessage = error.response.data.error;
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    } else if (error.response?.status) {
-      errorMessage = `Error ${error.response.status}: ${error.response.statusText || 'Request failed'}`;
-    }
-
-    // Create a new error with proper message
-    const enhancedError = new Error(errorMessage);
-    (enhancedError as any).response = error.response;
-    (enhancedError as any).status = error.response?.status;
-    throw enhancedError;
-  }
-}
+// Removed: verifyDocuments function - verification feature has been removed
 
 /**
  * 4.3 Complete Marriage (Penghulu Only)

@@ -43,10 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { StaffVerificationPanel } from './StaffVerificationPanel';
-
 import type { MarriageRegistration } from '@/lib/admin-data';
-import { getVerificationData } from '@/lib/staff-verification-service';
 
 type BadgeVariant = 'secondary' | 'default' | 'destructive' | 'outline';
 
@@ -114,101 +111,69 @@ export const columns: ColumnDef<MarriageRegistration>[] = [
     id: 'actions',
     cell: ({ row }) => {
       const registration = row.original;
-      const [showVerificationDialog, setShowVerificationDialog] = useState(false);
-      const verificationData = getVerificationData(registration.id);
 
       return (
-        <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Buka menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setShowVerificationDialog(true)}>
-                <Eye className="mr-2 h-4 w-4" />
-                Verifikasi & Detail
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={() => {
-                    try {
-                      const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
-                      const index = registrations.findIndex((item: MarriageRegistration) => item.id === registration.id);
-                      if (index !== -1) {
-                        registrations[index] = {
-                          ...registrations[index],
-                          status: 'Disetujui'
-                        };
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Buka menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => {
+                  try {
+                    const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
+                    const index = registrations.findIndex((item: MarriageRegistration) => item.id === registration.id);
+                    if (index !== -1) {
+                      registrations[index] = {
+                        ...registrations[index],
+                        status: 'Disetujui'
+                      };
 
-                        localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
-                        window.location.reload();
-                      }
-                    } catch (error) {
-                      console.error('Error updating status:', error);
-                      alert('Gagal mengubah status pendaftaran');
+                      localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
+                      window.location.reload();
                     }
-                  }}>
-                    <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-                    <span>Setujui</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    try {
-                      const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
-                      const index = registrations.findIndex((item: MarriageRegistration) => item.id === registration.id);
-                      if (index !== -1) {
-                        registrations[index] = {
-                          ...registrations[index],
-                          status: 'Ditolak'
-                        };
+                  } catch (error) {
+                    console.error('Error updating status:', error);
+                    alert('Gagal mengubah status pendaftaran');
+                  }
+                }}>
+                  <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                  <span>Setujui</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  try {
+                    const registrations = JSON.parse(localStorage.getItem('marriageRegistrations') || '[]');
+                    const index = registrations.findIndex((item: MarriageRegistration) => item.id === registration.id);
+                    if (index !== -1) {
+                      registrations[index] = {
+                        ...registrations[index],
+                        status: 'Ditolak'
+                      };
 
-                        localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
-                        window.location.reload();
-                      }
-                    } catch (error) {
-                      console.error('Error updating status:', error);
-                      alert('Gagal mengubah status pendaftaran');
+                      localStorage.setItem('marriageRegistrations', JSON.stringify(registrations));
+                      window.location.reload();
                     }
-                  }}>
-                    <XCircle className="mr-2 h-4 w-4 text-red-600" />
-                    <span>Tolak</span>
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              <DropdownMenuItem>Assign Penghulu</DropdownMenuItem>
-              <DropdownMenuItem>Terbitkan Surat</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Verification Dialog */}
-          <Dialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Verifikasi Pendaftaran</DialogTitle>
-                <DialogDescription>
-                  Kelola verifikasi formulir online dan berkas fisik untuk pendaftaran ini
-                </DialogDescription>
-              </DialogHeader>
-
-              <StaffVerificationPanel
-                registrationId={registration.id}
-                registrationNumber={registration.id}
-                groomName={registration.groomName}
-                brideName={registration.brideName}
-                currentStatus={registration.status}
-                verificationStatus={{
-                  formulir_online: verificationData?.formulir_online?.approved,
-                  berkas_fisik: verificationData?.berkas_fisik?.approved,
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        </>
+                  } catch (error) {
+                    console.error('Error updating status:', error);
+                    alert('Gagal mengubah status pendaftaran');
+                  }
+                }}>
+                  <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                  <span>Tolak</span>
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuItem>Assign Penghulu</DropdownMenuItem>
+            <DropdownMenuItem>Terbitkan Surat</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
   },

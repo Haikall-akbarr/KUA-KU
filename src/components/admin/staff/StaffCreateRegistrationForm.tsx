@@ -21,7 +21,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, CalendarIcon, AlertCircle, CheckCircle2, User, Key, Mail, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MapSelector } from '@/components/kuaku/MapSelector';
+import { SimpleAddressSelector } from '@/components/kuaku/SimpleAddressSelector';
 
 // Valid kelurahan list (Kecamatan Banjarmasin Utara)
 const VALID_KELURAHAN = [
@@ -78,12 +78,15 @@ const formSchema = z.object({
     tempat_nikah: z.enum(['Di KUA', 'Di Luar KUA']),
     tanggal_nikah: z.string().min(1, 'Pilih tanggal nikah'),
     waktu_nikah: z.string().min(1, 'Pilih waktu nikah'),
+    // Alamat dan koordinat digabung menjadi satu field wajib
     alamat_nikah: z.string().optional(),
-    alamat_detail: z.string().optional(),
-    kelurahan: z.string().optional(),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
+    // Field ini akan diisi otomatis dari geolocation
+    alamat_detail: z.string().optional(),
+    kelurahan: z.string().optional(),
   }).refine((data) => {
+    // Untuk Di Luar KUA, alamat dan koordinat WAJIB
     if (data.tempat_nikah === 'Di Luar KUA') {
       return data.alamat_nikah && data.alamat_nikah.length > 0;
     }
@@ -92,13 +95,15 @@ const formSchema = z.object({
     message: 'Alamat nikah wajib diisi untuk nikah di luar KUA',
     path: ['alamat_nikah'],
   }).refine((data) => {
+    // Koordinat WAJIB untuk Di Luar KUA
     if (data.tempat_nikah === 'Di Luar KUA') {
-      return data.kelurahan && VALID_KELURAHAN.includes(data.kelurahan);
+      return data.latitude !== undefined && data.longitude !== undefined && 
+             data.latitude !== null && data.longitude !== null;
     }
     return true;
   }, {
-    message: 'Kelurahan harus dalam lingkup Kecamatan Banjarmasin Utara',
-    path: ['kelurahan'],
+    message: 'Koordinat lokasi wajib diisi. Silakan pilih lokasi di peta atau cari alamat.',
+    path: ['latitude'],
   }),
   wali_nikah: z.object({
     nama: z.string().min(2, 'Nama wali minimal 2 karakter'),
@@ -125,11 +130,6 @@ export function StaffCreateRegistrationForm({ onSuccess }: StaffCreateRegistrati
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [createdAccount, setCreatedAccount] = useState<any>(null);
   const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<{
-    alamat: string;
-    latitude: number;
-    longitude: number;
-  } | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -301,7 +301,6 @@ export function StaffCreateRegistrationForm({ onSuccess }: StaffCreateRegistrati
       form.reset();
       setSelectedDate(undefined);
       setSelectedTime('');
-      setSelectedLocation(null);
       
       toast({
         title: 'Berhasil!',
@@ -636,7 +635,6 @@ export function StaffCreateRegistrationForm({ onSuccess }: StaffCreateRegistrati
                       form.setValue('lokasi_nikah.kelurahan', '');
                       form.setValue('lokasi_nikah.latitude', undefined);
                       form.setValue('lokasi_nikah.longitude', undefined);
-                      setSelectedLocation(null);
                     }
                   }}
                 >
@@ -651,81 +649,40 @@ export function StaffCreateRegistrationForm({ onSuccess }: StaffCreateRegistrati
               </div>
 
               {tempatNikah === 'Di Luar KUA' && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="alamat_nikah">Alamat Nikah *</Label>
-                    <Textarea
-                      id="alamat_nikah"
-                      placeholder="Jl. Ahmad Yani No. 123"
-                      {...form.register('lokasi_nikah.alamat_nikah')}
-                    />
-                    {form.formState.errors.lokasi_nikah?.alamat_nikah && (
-                      <p className="text-sm text-red-500">
-                        {form.formState.errors.lokasi_nikah.alamat_nikah.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="alamat_detail">Alamat Detail (Opsional)</Label>
+                <div className="space-y-3">
+                  <SimpleAddressSelector
+                    value={form.watch('lokasi_nikah.alamat_nikah') || ''}
+                    latitude={form.watch('lokasi_nikah.latitude') || null}
+                    longitude={form.watch('lokasi_nikah.longitude') || null}
+                    onLocationSelect={(location) => {
+                      // Simpan alamat dan koordinat
+                      form.setValue('lokasi_nikah.alamat_nikah', location.alamat);
+                      form.setValue('lokasi_nikah.latitude', location.latitude);
+                      form.setValue('lokasi_nikah.longitude', location.longitude);
+                      
+                      // Trigger validation
+                      form.trigger('lokasi_nikah.latitude');
+                      form.trigger('lokasi_nikah.alamat_nikah');
+                    }}
+                    disabled={isSubmitting}
+                    error={
+                      form.formState.errors.lokasi_nikah?.alamat_nikah?.message ||
+                      form.formState.errors.lokasi_nikah?.latitude?.message ||
+                      undefined
+                    }
+                  />
+                  
+                  {/* Alamat detail opsional */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="alamat_detail" className="text-sm">Detail Alamat (Opsional)</Label>
                     <Textarea
                       id="alamat_detail"
-                      placeholder="Rumah Pengantin Perempuan"
+                      placeholder="RT 05 RW 02, Rumah Pengantin Perempuan"
                       {...form.register('lokasi_nikah.alamat_detail')}
+                      className="min-h-[60px] text-sm"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="kelurahan">Kelurahan *</Label>
-                    <Select
-                      value={form.watch('lokasi_nikah.kelurahan') || ''}
-                      onValueChange={(value) => form.setValue('lokasi_nikah.kelurahan', value)}
-                    >
-                      <SelectTrigger id="kelurahan">
-                        <SelectValue placeholder="Pilih kelurahan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VALID_KELURAHAN.map((kel) => (
-                          <SelectItem key={kel} value={kel}>
-                            {kel}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {form.formState.errors.lokasi_nikah?.kelurahan && (
-                      <p className="text-sm text-red-500">
-                        {form.formState.errors.lokasi_nikah.kelurahan.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Map Selector untuk Geolocation */}
-                  <div className="space-y-2">
-                    <Label>Pilih Lokasi di Peta *</Label>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Gunakan peta di bawah untuk memilih lokasi pernikahan dengan akurat. Koordinat akan disimpan untuk keperluan navigasi penghulu.
-                    </p>
-                    <MapSelector
-                      onLocationSelect={(location) => {
-                        setSelectedLocation(location);
-                        form.setValue('lokasi_nikah.alamat_nikah', location.alamat);
-                        form.setValue('lokasi_nikah.latitude', location.latitude);
-                        form.setValue('lokasi_nikah.longitude', location.longitude);
-                      }}
-                      initialAddress={form.watch('lokasi_nikah.alamat_nikah') || ''}
-                      disabled={false}
-                    />
-                    {selectedLocation && (
-                      <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
-                        <p className="text-sm font-medium text-green-900">✓ Lokasi terpilih</p>
-                        <p className="text-xs text-green-700 mt-1">
-                          {selectedLocation.alamat}
-                        </p>
-                        <p className="text-xs text-green-600 mt-1">
-                          Koordinat: {selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </>
+                </div>
               )}
 
               <div className="space-y-2">

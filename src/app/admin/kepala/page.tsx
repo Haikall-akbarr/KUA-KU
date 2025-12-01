@@ -162,13 +162,20 @@ export default function KepalaKUADashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard Kepala KUA</h1>
-        <p className="text-muted-foreground">
-          Manajemen staff, penghulu, dan penugasan nikah.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <div className="space-y-6 p-6 max-w-7xl mx-auto">
+        {/* Header dengan gradient background */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border border-primary/20 shadow-sm">
+          <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
+          <div className="relative">
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Dashboard Kepala KUA
+            </h1>
+            <p className="text-muted-foreground mt-2 text-base">
+              Manajemen staff, penghulu, dan penugasan nikah dengan efisien
+            </p>
+          </div>
+        </div>
 
       {pendingAssignments.length > 0 && (
         <Alert>
@@ -180,53 +187,73 @@ export default function KepalaKUADashboard() {
         </Alert>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="group relative overflow-hidden border-l-4 border-l-purple-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-purple-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+            <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-purple-100">
+                <Users className="h-4 w-4 text-purple-600" />
+              </div>
+              Total Staff
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{staffCount}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent mb-1">{staffCount}</div>
+            <p className="text-xs text-muted-foreground font-medium">
               Staff aktif saat ini
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Penghulu</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        <Card className="group relative overflow-hidden border-l-4 border-l-indigo-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-indigo-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+            <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-indigo-100">
+                <Users className="h-4 w-4 text-indigo-600" />
+              </div>
+              Penghulu
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{penghuluCount}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent mb-1">{penghuluCount}</div>
+            <p className="text-xs text-muted-foreground font-medium">
               Penghulu aktif saat ini
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Menunggu Penugasan</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+        <Card className="group relative overflow-hidden border-l-4 border-l-amber-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-amber-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+            <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-amber-100">
+                <Calendar className="h-4 w-4 text-amber-600" />
+              </div>
+              Menunggu Penugasan
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingAssignments.length}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-amber-500 bg-clip-text text-transparent mb-1">{pendingAssignments.length}</div>
+            <p className="text-xs text-muted-foreground font-medium">
               Pendaftaran perlu penugasan
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bulan Ini</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+        <Card className="group relative overflow-hidden border-l-4 border-l-teal-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-teal-50/30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+            <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-teal-100">
+                <Activity className="h-4 w-4 text-teal-600" />
+              </div>
+              Bulan Ini
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold bg-gradient-to-r from-teal-600 to-teal-500 bg-clip-text text-transparent mb-1">
               {dashboardData?.statistics?.bulan_ini || 0}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground font-medium">
               Total pendaftaran bulan ini
             </p>
           </CardContent>
