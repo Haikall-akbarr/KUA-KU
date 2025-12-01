@@ -625,7 +625,7 @@ export default function StaffDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-
+      </div>
     </div>
   );
 }

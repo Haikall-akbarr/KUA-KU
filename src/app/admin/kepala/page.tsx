@@ -367,6 +367,7 @@ export default function KepalaKUADashboard() {
           }).catch(console.error);
         }}
       />
+      </div>
     </div>
   );
 }
