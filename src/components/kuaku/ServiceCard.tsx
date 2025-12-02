@@ -38,18 +38,18 @@ export function ServiceCard({ slug, iconName, title, description, isExternal = f
           "h-full transform transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1",
           isLoading && "opacity-70"
         )}>
-        <CardHeader className="items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
+        <CardHeader className="items-center text-center pb-3">
+          <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
             {isLoading ? (
               <LucideIcons.Loader2 className="h-8 w-8 animate-spin" />
             ) : (
               <Icon className="h-8 w-8" />
             )}
           </div>
-          <CardTitle className="font-headline text-xl group-hover:text-primary transition-colors">{title}</CardTitle>
+          <CardTitle className="font-headline text-xl font-black text-black group-hover:text-primary transition-colors">{title}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-center text-sm text-muted-foreground">{description}</p>
+        <CardContent className="pt-0">
+          <p className="text-center text-sm font-medium text-black/80">{description}</p>
         </CardContent>
       </Card>
     </Link>

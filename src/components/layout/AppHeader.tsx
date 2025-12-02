@@ -154,7 +154,8 @@ export function AppHeader() {
             {item.label}
           </NavLink>
         ))}
-        {!user && (
+        {/* Hide login/register buttons in header */}
+        {/* {!user && (
            <>
             <NavLink href={authNavItems.login.href} onClick={() => isMobile && setIsMobileSheetOpen(false)} className={linkClass}>
               {isMobile && <authNavItems.login.icon className="h-5 w-5 text-primary" />}
@@ -165,7 +166,7 @@ export function AppHeader() {
               {authNavItems.register.label}
             </NavLink>
           </>
-        )}
+        )} */}
       </>
     );
   };

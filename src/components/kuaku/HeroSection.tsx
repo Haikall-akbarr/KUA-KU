@@ -19,14 +19,14 @@ export function HeroSection() {
   };
 
   return (
-    <div id="hero" className="relative bg-gradient-to-br from-primary/20 via-background to-background pt-16 md:pt-24">
+    <div id="hero" className="relative bg-gradient-to-br from-primary/20 via-background to-background pt-12 md:pt-16 pb-8">
       <div className="container relative z-10">
         <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
           <div className="animate-fadeInFromBottom space-y-6 text-center md:text-left opacity-0" style={{animationDelay: '0.1s', animationFillMode: 'forwards'}}>
-            <h1 className="font-headline text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="font-headline text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl text-black">
               Selamat Datang di <span className="text-primary">KUA Banjarmasin Utara</span>
             </h1>
-            <p className="text-lg text-foreground/80 md:text-xl">
+            <p className="text-xl font-semibold text-black/90 md:text-2xl">
               Pusat layanan informasi terpadu untuk kebutuhan Anda. Kami siap melayani dengan hati.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">

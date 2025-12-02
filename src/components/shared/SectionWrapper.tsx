@@ -22,7 +22,7 @@ export function SectionWrapper({
     <section
       id={id}
       className={cn(
-        "py-12 md:py-20",
+        "py-8 md:py-12",
         hasAnimation && "animate-fadeInFromBottom opacity-0", // opacity-0 for initial state if animation is JS controlled
         className
       )}
@@ -30,14 +30,14 @@ export function SectionWrapper({
     >
       <div className="container">
         {(title || subtitle) && (
-          <div className="mb-10 text-center md:mb-12">
+          <div className="mb-8 text-center md:mb-10">
             {subtitle && (
-              <p className="mb-2 font-headline text-base font-medium text-primary md:text-lg">
+              <p className="mb-2 font-headline text-lg font-semibold text-primary md:text-xl">
                 {subtitle}
               </p>
             )}
             {title && (
-              <h2 className="font-headline text-3xl font-bold md:text-4xl">
+              <h2 className="font-headline text-4xl font-black text-black md:text-5xl">
                 {title}
               </h2>
             )}

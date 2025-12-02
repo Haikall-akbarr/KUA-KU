@@ -80,93 +80,104 @@ export function RegisterForm() {
 
 	return (
 		<Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Daftar Akun Baru</CardTitle>
-        <CardDescription>Isi data di bawah untuk membuat akun</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            
-            {/* UBAH: 'fullName' menjadi 'nama' */}
-		  <div className="space-y-2">
-			  <Label htmlFor="nama">Nama Lengkap</Label>
-			  <Input
-			  id="nama"
-			  type="text"
-			  placeholder="Nama Lengkap Anda"
-			  {...register('nama')}
-			  disabled={isLoading}
-			  autoComplete="name"
-			  />
-			  {errors.nama && <p className="text-sm text-destructive">{errors.nama.message}</p>}
-		  </div>
-            
-            {/* TAMBAH: Input untuk 'username' */}
-		  <div className="space-y-2">
-			  <Label htmlFor="username">Username</Label>
-			  <Input
-			  id="username"
-			  type="text"
-			  placeholder="Username unik Anda"
-			  {...register('username')}
-			  disabled={isLoading}
-			  autoComplete="username"
-			  />
-			  {errors.username && <p className="text-sm text-destructive">{errors.username.message}</p>}
-		  </div>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-2xl font-bold">Daftar Akun Baru</CardTitle>
+        <CardDescription className="mt-1">Isi data di bawah untuk membuat akun</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="nama" className="text-sm font-medium">Nama Lengkap</Label>
+            <Input
+              id="nama"
+              type="text"
+              placeholder="Nama Lengkap Anda"
+              {...register('nama')}
+              disabled={isLoading}
+              autoComplete="name"
+              className="w-full"
+            />
+            {errors.nama && (
+              <p className="text-sm text-destructive mt-1">{errors.nama.message}</p>
+            )}
+          </div>
+          
+          <div className="space-y-1.5">
+            <Label htmlFor="username" className="text-sm font-medium">Username</Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="Username unik Anda"
+              {...register('username')}
+              disabled={isLoading}
+              autoComplete="username"
+              className="w-full"
+            />
+            {errors.username && (
+              <p className="text-sm text-destructive mt-1">{errors.username.message}</p>
+            )}
+          </div>
 
-            {/* Input 'email' tetap sama */}
-		  <div className="space-y-2">
-			  <Label htmlFor="email">Email</Label>
-			  <Input
-			  id="email"
-			  type="email"
-			  placeholder="nama@email.com"
-			  {...register('email')}
-			  disabled={isLoading}
-			  autoComplete="email"
-			  />
-			  {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-		  </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="nama@email.com"
+              {...register('email')}
+              disabled={isLoading}
+              autoComplete="email"
+              className="w-full"
+            />
+            {errors.email && (
+              <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+            )}
+          </div>
 
-            {/* Input 'password' tetap sama */}
-					<div className="space-y-2">
-							<Label htmlFor="password">Password</Label>
-							<div className="relative">
-								<Input
-									id="password"
-									type={showPassword ? 'text' : 'password'}
-									placeholder="Minimal 6 karakter"
-									{...register('password')}
-									disabled={isLoading}
-									autoComplete="new-password"
-									aria-invalid={errors.password ? 'true' : 'false'}
-								/>
-								<button
-									type="button"
-									aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-									onClick={() => setShowPassword((s) => !s)}
-									className="absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 text-sm text-muted-foreground hover:text-foreground"
-								>
-									{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-								</button>
-							</div>
-							{errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
-					</div>
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Minimal 6 karakter"
+                {...register('password')}
+                disabled={isLoading}
+                autoComplete="new-password"
+                aria-invalid={errors.password ? 'true' : 'false'}
+                className="w-full pr-10"
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                onClick={() => setShowPassword((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 text-sm text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
+            )}
+          </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Daftar'}
-            </Button>
-        </form>
-      </CardContent>
-      <CardFooter>
-        <p className="w-full text-center text-sm text-muted-foreground">
-            Sudah punya akun?{' '}
-            <Link href="/login" className="font-semibold text-primary hover:underline">
-              Masuk di sini
-            </Link>
-          </p>
-      </CardFooter>
-    </Card>
-  );
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Daftar'}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="pt-4 pb-0">
+        <div className="flex flex-col items-center gap-3 w-full">
+          <p className="text-center text-sm text-muted-foreground">
+            Sudah punya akun?
+          </p>
+          <Link href="/login" className="w-full">
+            <Button variant="outline" className="w-full" type="button">
+              Masuk di sini
+            </Button>
+          </Link>
+        </div>
+      </CardFooter>
+    </Card>
+  );
 }
