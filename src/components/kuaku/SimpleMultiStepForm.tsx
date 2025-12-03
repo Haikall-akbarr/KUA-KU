@@ -362,7 +362,7 @@ const Step2 = () => {
 };
 
 const Step3 = () => {
-  const { register, watch, setValue, formState: { errors } } = useFormContext<FormData>();
+  const { register, watch, setValue, trigger, formState: { errors } } = useFormContext<FormData>();
   const { toast } = useToast();
   const [dateOpen, setDateOpen] = useState(false);
   const [loadingCalendar, setLoadingCalendar] = useState(false);
@@ -442,10 +442,27 @@ const Step3 = () => {
     today.setHours(0, 0, 0, 0);
     if (date < today) return true;
     
-    if (!calendarData) return false;
+    // Cek hari Minggu - KUA tutup pada hari Minggu
+    if (tempatNikah === 'Di KUA' && date.getDay() === 0) return true;
+    
+    if (!calendarData?.data?.calendar) return false;
+    
     const dateStr = format(date, 'yyyy-MM-dd');
-    const dayData = calendarData.data?.hari?.find((h: any) => h.tanggal === dateStr);
-    return dayData?.status === 'Penuh';
+    const dayData = calendarData.data.calendar.find((h: any) => h.tanggal_str === dateStr);
+    
+    if (dayData) {
+      // Hari libur + nikah Di KUA = disabled
+      if (dayData.is_hari_libur && tempatNikah === 'Di KUA') return true;
+      
+      // Status Penuh (semua slot terpakai)
+      if (dayData.status === 'Penuh' || !dayData.tersedia) return true;
+      
+      // Cek ketersediaan berdasarkan lokasi nikah
+      if (tempatNikah === 'Di KUA' && dayData.tersedia_kua === false) return true;
+      if (tempatNikah === 'Di Luar KUA' && dayData.tersedia_luar_kua === false) return true;
+    }
+    
+    return false;
   };
 
   return (
@@ -478,6 +495,17 @@ const Step3 = () => {
           </Select>
           {errors.tempatNikah && (
             <p className="text-sm text-destructive">{errors.tempatNikah.message}</p>
+          )}
+          
+          {/* Informasi hari libur untuk nikah Di KUA */}
+          {tempatNikah === 'Di KUA' && (
+            <Alert className="bg-amber-50 border-amber-200">
+              <Info className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800 text-sm">
+                <strong>Perhatian:</strong> KUA tutup pada hari <strong>Minggu</strong> dan <strong>hari libur nasional</strong>. 
+                Jika ingin nikah di hari tersebut, pilih "Di Luar KUA".
+              </AlertDescription>
+            </Alert>
           )}
         </div>
 
@@ -964,6 +992,25 @@ export function SimpleMultiStepForm() {
 
     if (state.success && state.data) {
       toast({ title: "Berhasil!", description: state.message, variant: "default" });
+      
+      // Save to localStorage for fallback in status page
+      if (state.data.nomor_pendaftaran) {
+        try {
+          const storageKey = `registration_${state.data.nomor_pendaftaran}`;
+          const storageData = {
+            calon_suami: { nama_lengkap: state.data.nama_suami },
+            calon_istri: { nama_lengkap: state.data.nama_istri },
+            waktu_nikah: state.data.weddingTime,
+            alamat_akad: state.data.alamat_akad,
+            tempat_nikah: state.data.weddingLocation,
+            tanggal_nikah: state.data.tanggal_nikah
+          };
+          localStorage.setItem(storageKey, JSON.stringify(storageData));
+          console.log('💾 Saved registration to localStorage:', storageKey, storageData);
+        } catch (e) {
+          console.warn('Failed to save to localStorage:', e);
+        }
+      }
       
       // Redirect dengan data yang sesuai dengan struktur API response
       const params = new URLSearchParams();

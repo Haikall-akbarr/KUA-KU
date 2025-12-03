@@ -282,7 +282,7 @@ export function AvailabilityCalendar() {
     return (
       <SectionWrapper 
         id="availability-calendar" 
-        title="Kalender Ketersediaan" 
+        title="Kalender Ketersediaan Pernikahan" 
         subtitle="Transparansi Data Pendaftaran"
       >
         <Card className="border-blue-200 bg-blue-50">
@@ -303,7 +303,7 @@ export function AvailabilityCalendar() {
     return (
       <SectionWrapper 
         id="availability-calendar" 
-        title="Kalender Ketersediaan" 
+        title="Kalender Ketersediaan Pernikahan" 
         subtitle="Transparansi Data Pendaftaran"
       >
         <Card className="border-blue-200 bg-blue-50">
@@ -328,7 +328,7 @@ export function AvailabilityCalendar() {
     return (
       <SectionWrapper 
         id="availability-calendar" 
-        title="Kalender Ketersediaan" 
+        title="Kalender Ketersediaan Pernikahan" 
         subtitle="Transparansi Data Pendaftaran"
       >
         <Card className="border-red-200 bg-red-50">
@@ -353,7 +353,7 @@ export function AvailabilityCalendar() {
     return (
       <SectionWrapper 
         id="availability-calendar" 
-        title="Kalender Ketersediaan" 
+        title="Kalender Ketersediaan Pernikahan" 
         subtitle="Transparansi Data Pendaftaran"
       >
         <Card className="border-blue-200 bg-blue-50">
@@ -449,7 +449,7 @@ export function AvailabilityCalendar() {
   return (
     <SectionWrapper 
       id="availability-calendar" 
-      title="Kalender Ketersediaan" 
+      title="Kalender Ketersediaan Pernikahan" 
       subtitle="Transparansi Data Pendaftaran"
     >
       <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white">

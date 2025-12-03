@@ -672,34 +672,44 @@ export async function getProfile(): Promise<ProfileResponse> {
     }
     
     // Check if response structure matches documentation
-    const responseData = response.data;
+    let responseData = response.data as any;
+    
+    // Handle case where axios wraps data twice
+    if (responseData.data && typeof responseData.data === 'object') {
+      responseData = responseData.data;
+    }
+    
     if (typeof responseData === 'string' && responseData.trim().startsWith('<')) {
       throw new Error('API returned HTML instead of JSON. Possible authentication error or server error.');
     }
     
-    // Validate response structure
-    if (!responseData.user) {
-      console.warn('⚠️ Profile response missing user field:', responseData);
-      // Try to extract user from different possible structures
-      if (responseData.data?.user) {
-        return {
-          ...responseData,
-          user: responseData.data.user,
-        };
-      }
-      // Try if responseData itself is the user object
-      if (responseData.user_id || responseData.email || responseData.username) {
-        return {
-          message: 'Profile berhasil diambil',
-          user: responseData as any,
-        };
-      }
-      // If still no user, throw error but with more context
-      throw new Error('Invalid profile response: user field is missing. Response structure: ' + JSON.stringify(Object.keys(responseData)));
+    // Handle API response structure: { success, message, data: { user: {...} } } or { user: {...} }
+    let userData = null;
+    
+    // Check for nested data.user structure
+    if (responseData.data?.user) {
+      userData = responseData.data.user;
+    }
+    // Check for top-level user field
+    else if (responseData.user) {
+      userData = responseData.user;
+    }
+    // Check if responseData itself is the user object
+    else if (responseData.user_id || responseData.email || responseData.username) {
+      userData = responseData;
     }
     
-    // console.log('✅ Get Profile Response:', responseData);
-    return responseData;
+    if (!userData) {
+      const keys = Object.keys(responseData).join(', ');
+      console.warn('Profile response data:', JSON.stringify(responseData, null, 2));
+      throw new Error(`Invalid profile response structure. Expected user data but found keys: ${keys}`);
+    }
+    
+    // console.log('✅ Get Profile Response:', userData);
+    return {
+      message: responseData.message || 'Profile berhasil diambil',
+      user: userData,
+    };
   } catch (error: any) {
     // Enhanced error logging with better handling of empty response data
     const responseData = error.response?.data;
@@ -1509,13 +1519,20 @@ export async function assignPenghulu(
 
 /**
  * 5.2 List Available Officers (Kepala KUA Only)
- * GET /simnikah/kepala-kua/available-penghulu
+ * GET /simnikah/kepala-kua/penghulu-tersedia
  * 
- * Sesuai dokumentasi API endpoint #23
+ * Sesuai dokumentasi API - dengan filter tanggal dan waktu
  */
-export async function getAvailablePenghulu(): Promise<any> {
+export interface AvailablePenghuluParams {
+  tanggal?: string; // YYYY-MM-DD
+  waktu?: string;   // HH:MM
+}
+
+export async function getAvailablePenghulu(params?: AvailablePenghuluParams): Promise<any> {
   try {
-    const response = await api.get('/simnikah/kepala-kua/available-penghulu');
+    console.log('📤 Get Available Penghulu Request:', params);
+    const response = await api.get('/simnikah/kepala-kua/penghulu-tersedia', { params });
+    console.log('✅ Get Available Penghulu Response:', response.data);
     return response.data;
   } catch (error: any) {
     console.error('❌ Get Available Penghulu Error:', error.response?.data || error.message);
@@ -1595,9 +1612,10 @@ export async function getUserNotifications(
     
     // Backward compatibility: jika response dalam format lama
     if (response.data.notifications && Array.isArray(response.data.notifications)) {
+      const { notifications, ...restData } = response.data as any;
       return {
         success: true,
-        data: response.data.notifications.map((notif: any) => ({
+        data: notifications.map((notif: any) => ({
           id: notif.id,
           judul: notif.judul,
           pesan: notif.pesan,
@@ -1606,7 +1624,7 @@ export async function getUserNotifications(
           created_at: notif.created_at,
           link: notif.link,
         })),
-        ...response.data,
+        ...restData,
       };
     }
     
@@ -1875,13 +1893,14 @@ export async function getCalendarAvailability(
     );
     
     // Additional validation: ensure response.data is valid
-    if (!response.data || typeof response.data !== 'object') {
+    const responseData = response.data as any;
+    if (!responseData || typeof responseData !== 'object') {
       throw new Error('Invalid response format from calendar API');
     }
     
     // Check if response.data is actually HTML (string starting with <)
-    if (typeof response.data === 'string' && response.data.trim().startsWith('<')) {
-      console.error('⚠️ Calendar API returned HTML:', response.data.substring(0, 200));
+    if (typeof responseData === 'string' && responseData.trim().startsWith('<')) {
+      console.error('⚠️ Calendar API returned HTML:', responseData.substring(0, 200));
       throw new Error('API returned HTML error page instead of JSON');
     }
     
@@ -1968,13 +1987,14 @@ export async function getAvailableTimeSlots(
     );
     
     // Additional validation: ensure response.data is valid
-    if (!response.data || typeof response.data !== 'object') {
+    const responseData = response.data as any;
+    if (!responseData || typeof responseData !== 'object') {
       throw new Error('Invalid response format from time slots API');
     }
     
     // Check if response.data is actually HTML (string starting with <)
-    if (typeof response.data === 'string' && response.data.trim().startsWith('<')) {
-      console.error('⚠️ Time Slots API returned HTML:', response.data.substring(0, 200));
+    if (typeof responseData === 'string' && responseData.trim().startsWith('<')) {
+      console.error('⚠️ Time Slots API returned HTML:', responseData.substring(0, 200));
       throw new Error('API returned HTML error page instead of JSON');
     }
     
@@ -2075,13 +2095,14 @@ export async function getWeddingsByDate(
     );
     
     // Additional validation: ensure response.data is valid
-    if (!response.data || typeof response.data !== 'object') {
+    const responseData = response.data as any;
+    if (!responseData || typeof responseData !== 'object') {
       throw new Error('Invalid response format from weddings API');
     }
     
     // Check if response.data is actually HTML (string starting with <)
-    if (typeof response.data === 'string' && response.data.trim().startsWith('<')) {
-      console.error('⚠️ Weddings API returned HTML:', response.data.substring(0, 200));
+    if (typeof responseData === 'string' && responseData.trim().startsWith('<')) {
+      console.error('⚠️ Weddings API returned HTML:', responseData.substring(0, 200));
       throw new Error('API returned HTML error page instead of JSON');
     }
     
@@ -2593,6 +2614,7 @@ export interface CustomKopSurat {
 
 /**
  * Response untuk List Pendaftaran Disetujui
+ * Sesuai dokumentasi API v1.1.0 - Surat Pengumuman Nikah
  */
 export interface PengumumanListResponse {
   success: boolean;
@@ -2602,6 +2624,17 @@ export interface PengumumanListResponse {
     tanggal_akhir: string;
     periode: string;
     total: number;
+    kop_surat: {
+      nama_kua: string;
+      alamat_kua: string;
+      kota: string;
+      provinsi: string;
+      kode_pos: string;
+      telepon: string;
+      email: string;
+      website: string;
+      logo_url: string;
+    };
     registrations: Array<{
       id: number;
       nomor_pendaftaran: string;

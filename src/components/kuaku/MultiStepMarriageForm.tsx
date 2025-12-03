@@ -261,7 +261,7 @@ const Step1 = () => {
                     </Label>
                     {dispensasiRequired && (
                         <p className="text-xs text-amber-600 mb-1">
-                            ⚠️ Wajib diisi karena tanggal nikah kurang dari 10 hari kerja
+                            ⚠️ Wajib diisi karena di tanggal nikah kurang dari 10 hari kerja
                         </p>
                     )}
                     <Controller 

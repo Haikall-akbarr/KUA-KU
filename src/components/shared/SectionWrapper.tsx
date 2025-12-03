@@ -32,12 +32,12 @@ export function SectionWrapper({
         {(title || subtitle) && (
           <div className="mb-8 text-center md:mb-10">
             {subtitle && (
-              <p className="mb-2 font-headline text-lg font-semibold text-primary md:text-xl">
+              <p className="mb-2 font-sans text-lg font-semibold text-teal-700 md:text-xl">
                 {subtitle}
               </p>
             )}
             {title && (
-              <h2 className="font-headline text-4xl font-black text-black md:text-5xl">
+              <h2 className="font-sans text-4xl font-black text-teal-700 md:text-5xl">
                 {title}
               </h2>
             )}

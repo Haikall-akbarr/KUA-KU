@@ -121,74 +121,74 @@ export function PenghuluTable({ refreshKey }: PenghuluTableProps) {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>NIP</TableHead>
-          <TableHead>Nama</TableHead>
-          <TableHead>Kontak</TableHead>
-          <TableHead>Alamat</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Aksi</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {penghulus.map((p) => (
-          <TableRow key={p.id}>
-            <TableCell>{p.nip}</TableCell>
-            <TableCell>{p.name}</TableCell>
-            <TableCell>
-              <div className="space-y-1">
-                <div className="text-sm">{p.phone}</div>
-                <div className="text-xs text-muted-foreground">{p.email}</div>
-              </div>
-            </TableCell>
-            <TableCell className="max-w-[200px] truncate" title={p.address}>
-              {p.address}
-            </TableCell>
-            <TableCell>
-              <Badge variant={p.status === 'Aktif' ? 'default' : 'secondary'}>
-                {p.status}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Buka menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => {
-                    setSelectedPenghulu(p);
-                    setIsUpdateDialogOpen(true);
-                  }}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    <span>Edit</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => toggleStatus(p.id)}>
-                    {p.status === 'Aktif' ? (
-                      <>
-                        <UserX className="mr-2 h-4 w-4" />
-                        <span>Nonaktifkan</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserCheck className="mr-2 h-4 w-4" />
-                        <span>Aktifkan</span>
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
     <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>NIP</TableHead>
+            <TableHead>Nama</TableHead>
+            <TableHead>Kontak</TableHead>
+            <TableHead>Alamat</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Aksi</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {penghulus.map((p) => (
+            <TableRow key={p.id}>
+              <TableCell>{p.nip}</TableCell>
+              <TableCell>{p.name}</TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  <div className="text-sm">{p.phone}</div>
+                  <div className="text-xs text-muted-foreground">{p.email}</div>
+                </div>
+              </TableCell>
+              <TableCell className="max-w-[200px] truncate" title={p.address}>
+                {p.address}
+              </TableCell>
+              <TableCell>
+                <Badge variant={p.status === 'Aktif' ? 'default' : 'secondary'}>
+                  {p.status}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Buka menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => {
+                      setSelectedPenghulu(p);
+                      setIsUpdateDialogOpen(true);
+                    }}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      <span>Edit</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toggleStatus(p.id)}>
+                      {p.status === 'Aktif' ? (
+                        <>
+                          <UserX className="mr-2 h-4 w-4" />
+                          <span>Nonaktifkan</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="mr-2 h-4 w-4" />
+                          <span>Aktifkan</span>
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
       <UpdatePenghuluDialog
         open={isUpdateDialogOpen}
         onOpenChange={setIsUpdateDialogOpen}

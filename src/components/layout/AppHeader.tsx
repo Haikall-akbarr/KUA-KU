@@ -172,7 +172,38 @@ export function AppHeader() {
   };
 
   const renderAuthControls = (isMobile = false) => {
-     if (!user) return null;
+     if (!user) {
+       // Render Login & Register buttons when not logged in
+       return (
+         <div className={cn("flex items-center gap-2", isMobile && "flex-col border-t pt-4 mt-4 w-full")}>
+           <Link href="/login">
+             <Button 
+               className={cn(
+                 "bg-green-600 hover:bg-green-700 text-white",
+                 isMobile && "w-full"
+               )}
+             >
+               <LogIn className="mr-2 h-4 w-4" />
+               Login
+             </Button>
+           </Link>
+           <Link href="/register">
+             <Button 
+               variant="outline"
+               className={cn(
+                 "border-green-600 text-green-600 hover:bg-green-50",
+                 isMobile && "w-full"
+               )}
+             >
+               <UserPlus className="mr-2 h-4 w-4" />
+               Register
+             </Button>
+           </Link>
+         </div>
+       );
+     }
+
+     // Render notification and profile when logged in
      const buttonClass = isMobile ? "w-full justify-start text-base flex items-center gap-3 py-2 text-sm font-medium transition-colors hover:text-primary" : "";
 
      return (
@@ -222,14 +253,7 @@ export function AppHeader() {
       </DropdownMenuContent>
         </DropdownMenu>
 
-         {isMobile ? (
-            <button onClick={() => { handleLogout(); setIsMobileSheetOpen(false); }} className={buttonClass}>
-              <LogOut className="h-5 w-5 text-primary" />
-              Logout
-            </button>
-          ) : (
-            <UserProfileMenu />
-          )}
+         <UserProfileMenu />
        </div>
      )
   }

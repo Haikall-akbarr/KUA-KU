@@ -90,7 +90,7 @@ export default function RegistrationStatusPage() {
       const response = await checkRegistrationStatus();
       
       if (response.success && response.data?.registration) {
-        const regData = response.data.registration;
+        const regData = response.data.registration as any;
         
         // Cek localStorage untuk data tambahan (calon suami, calon istri, penghulu)
         let localStorageData: any = null;
@@ -115,17 +115,41 @@ export default function RegistrationStatusPage() {
         
         // Merge data dari API dengan data dari localStorage
         // Prioritas: localStorage > API (karena localStorage lebih lengkap)
+        
+        // Check for alternative field names from API
+        const apiCalonSuami = regData.calon_suami || 
+                              regData.calon_laki_laki || 
+                              regData.suami || 
+                              regData.catin_pria || 
+                              regData.groomName || 
+                              regData.nama_suami || 
+                              regData.nama_calon_suami || 
+                              null;
+                              
+        const apiCalonIstri = regData.calon_istri || 
+                              regData.calon_perempuan || 
+                              regData.istri || 
+                              regData.catin_wanita || 
+                              regData.brideName || 
+                              regData.nama_istri || 
+                              regData.nama_calon_istri || 
+                              null;
+        
         const mergedData = {
           ...regData,
           // Gunakan data dari localStorage jika ada, jika tidak baru pakai dari API
           calon_suami: (localStorageData?.calon_suami && (
             localStorageData.calon_suami.nama_lengkap || 
-            localStorageData.calon_suami.nama_dan_bin
-          )) ? localStorageData.calon_suami : (regData.calon_suami || null),
+            localStorageData.calon_suami.nama_dan_bin ||
+            localStorageData.calon_suami.nama
+          )) ? localStorageData.calon_suami : apiCalonSuami,
+          
           calon_istri: (localStorageData?.calon_istri && (
             localStorageData.calon_istri.nama_lengkap || 
-            localStorageData.calon_istri.nama_dan_binti
-          )) ? localStorageData.calon_istri : (regData.calon_istri || null),
+            localStorageData.calon_istri.nama_dan_binti ||
+            localStorageData.calon_istri.nama
+          )) ? localStorageData.calon_istri : apiCalonIstri,
+          
           // Update penghulu dari localStorage jika API tidak mengembalikan
           penghulu: localStorageData?.penghulu || regData.penghulu || null,
           // Update data lain dari localStorage jika lebih lengkap
@@ -232,6 +256,65 @@ export default function RegistrationStatusPage() {
 
   const isCompleted = registrationData.status_pendaftaran === 'Selesai';
 
+  // Helper to extract names safely
+  const getGroomName = (data: any) => {
+    // 1. Check nested objects
+    const cs = data.calon_suami || 
+               data.calon_laki_laki || 
+               data.suami || 
+               data.catin_pria;
+               
+    if (cs) {
+      if (typeof cs === 'string') return cs;
+      if (typeof cs === 'object') {
+        return cs.nama_lengkap || 
+               cs.nama_dan_bin || 
+               cs.nama || 
+               cs.name || 
+               cs.groomName || 
+               cs.user?.nama ||
+               cs.user?.nama_lengkap ||
+               null;
+      }
+    }
+    // 2. Check top level fields
+    return data.nama_suami || 
+           data.nama_calon_suami || 
+           data.groomName || 
+           data.groom_name || 
+           data.suami_nama || 
+           '-';
+  };
+
+  const getBrideName = (data: any) => {
+    // 1. Check nested objects
+    const ci = data.calon_istri || 
+               data.calon_perempuan || 
+               data.istri || 
+               data.catin_wanita;
+               
+    if (ci) {
+      if (typeof ci === 'string') return ci;
+      if (typeof ci === 'object') {
+        return ci.nama_lengkap || 
+               ci.nama_dan_binti || 
+               ci.nama || 
+               ci.name || 
+               ci.brideName || 
+               ci.user?.nama ||
+               ci.user?.nama_lengkap ||
+               null;
+      }
+    }
+    // 2. Check top level fields
+    return data.nama_istri || 
+           data.nama_calon_istri || 
+           data.brideName || 
+           data.bride_name || 
+           data.istri_nama || 
+           '-';
+  };
+
   return (
     <div className="max-w-4xl mx-auto my-8 px-4 space-y-6">
       {/* Header */}
@@ -260,30 +343,12 @@ export default function RegistrationStatusPage() {
           <dl className="divide-y divide-border/50">
             <DetailItem 
               label="Calon Suami" 
-              value={
-                (registrationData.calon_suami && typeof registrationData.calon_suami === 'object')
-                  ? (registrationData.calon_suami.nama_lengkap || 
-                     registrationData.calon_suami.nama_dan_bin || 
-                     registrationData.calon_suami.nama || 
-                     '-')
-                  : (typeof registrationData.calon_suami === 'string' 
-                      ? registrationData.calon_suami 
-                      : '-')
-              }
+              value={getGroomName(registrationData)}
               icon={<User className="h-4 w-4" />}
             />
             <DetailItem 
               label="Calon Istri" 
-              value={
-                (registrationData.calon_istri && typeof registrationData.calon_istri === 'object')
-                  ? (registrationData.calon_istri.nama_lengkap || 
-                     registrationData.calon_istri.nama_dan_binti || 
-                     registrationData.calon_istri.nama || 
-                     '-')
-                  : (typeof registrationData.calon_istri === 'string' 
-                      ? registrationData.calon_istri 
-                      : '-')
-              }
+              value={getBrideName(registrationData)}
               icon={<User className="h-4 w-4" />}
             />
             <DetailItem 
@@ -381,6 +446,14 @@ export default function RegistrationStatusPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Debug Info - Temporary for troubleshooting */}
+      <div className="mt-8 p-4 border rounded-lg bg-slate-50 text-xs font-mono overflow-auto">
+        <details>
+          <summary className="cursor-pointer font-bold mb-2 text-amber-600">Debug Data (Klik untuk melihat detail JSON)</summary>
+          <pre className="whitespace-pre-wrap break-all">{JSON.stringify(registrationData, null, 2)}</pre>
+        </details>
+      </div>
 
       {/* Action Buttons */}
       <div className="flex gap-4">

@@ -46,7 +46,7 @@ export function ServiceCard({ slug, iconName, title, description, isExternal = f
               <Icon className="h-8 w-8" />
             )}
           </div>
-          <CardTitle className="font-headline text-xl font-black text-black group-hover:text-primary transition-colors">{title}</CardTitle>
+          <CardTitle className="font-sans text-xl font-black text-teal-700 group-hover:text-teal-800 transition-colors">{title}</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           <p className="text-center text-sm font-medium text-black/80">{description}</p>

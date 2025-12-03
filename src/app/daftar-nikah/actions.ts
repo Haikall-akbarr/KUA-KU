@@ -399,8 +399,8 @@ export async function submitMarriageRegistrationForm(
           let profileData = null;
           if (profileResp.ok) {
             const profileJson = await profileResp.json();
-            // API might return { user: {...} } or the user object directly
-            profileData = profileJson.user || profileJson;
+            // Handle API response structure: { success, message, data: { user: {...} } }
+            profileData = profileJson.data?.user || profileJson.user || profileJson;
           } else {
             console.warn('Could not fetch profile, status:', profileResp.status);
           }

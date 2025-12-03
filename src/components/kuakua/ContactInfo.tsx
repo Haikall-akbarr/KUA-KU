@@ -7,14 +7,14 @@ const contactItems = [
   {
     icon: MapPin,
     label: "Alamat Kantor",
-    value: "Jl. Cinta Damai No. 123, Kota Kasih, Indonesia",
-    href: "https://maps.google.com/?q=Jl.CintaDamaiNo.123,KotaKasih,Indonesia",
+    value: "Jl. Wira Karya, Pangeran, Kec. Banjarmasin Utara, Kota Banjarmasin, Kalimantan Selatan 70123",
+    href: "https://maps.google.com/?q=Jl.WiraKarya,Pangeran,BanjarmasinUtara,Banjarmasin",
   },
   {
     icon: Phone,
     label: "Telepon",
-    value: "(0511) 123-456",
-    href: "tel:+62511123456",
+    value: "(0511) 3301966",
+    href: "tel:+62511-3301966",
   },
   {
     icon: Mail,
@@ -36,7 +36,7 @@ export function ContactInfo() {
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <Card className="transform transition-all duration-300 hover:shadow-xl">
           <CardContent className="p-6">
-            <h3 className="mb-6 font-headline text-2xl font-semibold">Detail Kontak</h3>
+                <h3 className="mb-6 font-sans text-2xl font-semibold text-teal-700">Detail Kontak</h3>
             <ul className="space-y-6">
               {contactItems.map((item) => (
                 <li key={item.label} className="flex items-start gap-4">
@@ -49,7 +49,7 @@ export function ContactInfo() {
                       href={item.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
+                          className="text-teal-700 font-medium hover:text-teal-800 transition-colors"
                     >
                       {item.value}
                     </a>
@@ -61,7 +61,7 @@ export function ContactInfo() {
         </Card>
         <Card className="transform transition-all duration-300 hover:shadow-xl">
           <CardContent className="p-6">
-            <h3 className="mb-6 font-headline text-2xl font-semibold">Jam Operasional</h3>
+                <h3 className="mb-6 font-sans text-2xl font-semibold text-teal-700">Jam Operasional</h3>
             <ul className="space-y-4">
               {officeHours.map((item) => (
                 <li key={item.day} className="flex items-start gap-4">
@@ -70,7 +70,7 @@ export function ContactInfo() {
                   </div>
                   <div>
                     <p className="font-semibold">{item.day}</p>
-                    <p className="text-muted-foreground">{item.hours}</p>
+                                            <p className="text-teal-700 font-medium">{item.hours}</p>
                   </div>
                 </li>
               ))}

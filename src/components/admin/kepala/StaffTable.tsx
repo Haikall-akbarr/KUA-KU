@@ -123,74 +123,74 @@ export function StaffTable({ refreshKey }: StaffTableProps) {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>NIP</TableHead>
-          <TableHead>Nama</TableHead>
-          <TableHead>Bagian</TableHead>
-          <TableHead>Jabatan</TableHead>
-          <TableHead>Kontak</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Aksi</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {staff.map((s) => (
-          <TableRow key={s.id}>
-            <TableCell>{s.nip}</TableCell>
-            <TableCell>{s.name}</TableCell>
-            <TableCell>{s.bagian}</TableCell>
-            <TableCell>{s.jabatan}</TableCell>
-            <TableCell>
-              <div className="space-y-1">
-                <div className="text-sm">{s.phone}</div>
-                <div className="text-xs text-muted-foreground">{s.email}</div>
-              </div>
-            </TableCell>
-            <TableCell>
-              <Badge variant={s.status === 'Aktif' ? 'default' : 'secondary'}>
-                {s.status}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Buka menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => {
-                    setSelectedStaff(s);
-                    setIsUpdateDialogOpen(true);
-                  }}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    <span>Edit</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => toggleStatus(s.id)}>
-                    {s.status === 'Aktif' ? (
-                      <>
-                        <UserX className="mr-2 h-4 w-4" />
-                        <span>Nonaktifkan</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserCheck className="mr-2 h-4 w-4" />
-                        <span>Aktifkan</span>
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
     <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>NIP</TableHead>
+            <TableHead>Nama</TableHead>
+            <TableHead>Bagian</TableHead>
+            <TableHead>Jabatan</TableHead>
+            <TableHead>Kontak</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Aksi</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {staff.map((s) => (
+            <TableRow key={s.id}>
+              <TableCell>{s.nip}</TableCell>
+              <TableCell>{s.name}</TableCell>
+              <TableCell>{s.bagian}</TableCell>
+              <TableCell>{s.jabatan}</TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  <div className="text-sm">{s.phone}</div>
+                  <div className="text-xs text-muted-foreground">{s.email}</div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant={s.status === 'Aktif' ? 'default' : 'secondary'}>
+                  {s.status}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Buka menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => {
+                      setSelectedStaff(s);
+                      setIsUpdateDialogOpen(true);
+                    }}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      <span>Edit</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toggleStatus(s.id)}>
+                      {s.status === 'Aktif' ? (
+                        <>
+                          <UserX className="mr-2 h-4 w-4" />
+                          <span>Nonaktifkan</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="mr-2 h-4 w-4" />
+                          <span>Aktifkan</span>
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
       <UpdateStaffDialog
         open={isUpdateDialogOpen}
         onOpenChange={setIsUpdateDialogOpen}
