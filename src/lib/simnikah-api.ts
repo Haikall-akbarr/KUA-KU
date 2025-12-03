@@ -2871,7 +2871,7 @@ export async function generatePengumumanNikahKepalaKUA(
     // Untuk konsistensi dengan list endpoint, gunakan POST dengan body
     const config: any = {
       method: 'post',
-      url: '/simnikah/kepala-kua/pengumuman-nikah/generate',
+      url: '/simnikah/kepala-kua/pengumuman-nikah/list',
       data: requestBody,
       responseType: 'text',
       headers: {

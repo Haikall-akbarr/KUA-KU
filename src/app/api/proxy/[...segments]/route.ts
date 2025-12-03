@@ -390,7 +390,7 @@ async function proxy(request: Request, segments: string[]) {
     }
     
     // Check if this is an endpoint that expects HTML response (like pengumuman-nikah/generate)
-    const isExpectedHTMLEndpoint = urlPath.includes('pengumuman-nikah/generate');
+    const isExpectedHTMLEndpoint = urlPath.includes('pengumuman-nikah/list');
     
     // Check content type before reading body
     const contentType = res.headers.get('content-type') || '';
