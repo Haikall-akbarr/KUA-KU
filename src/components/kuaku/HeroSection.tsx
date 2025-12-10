@@ -23,10 +23,10 @@ export function HeroSection() {
       <div className="container relative z-10">
         <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
           <div className="animate-fadeInFromBottom space-y-6 text-center md:text-left opacity-0" style={{animationDelay: '0.1s', animationFillMode: 'forwards'}}>
-            <h1 className="font-sans text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl text-teal-700">
-              Selamat Datang di <span className="text-teal-700">KUA Banjarmasin Utara</span>
+            <h1 className="font-sans text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl" style={{ color: '#1a4d3a', fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
+              Selamat Datang di <span style={{ color: '#1a4d3a' }}>KUA Banjarmasin Utara</span>
             </h1>
-            <p className="text-xl font-semibold text-black/90 md:text-2xl">
+            <p className="text-lg font-semibold md:text-xl" style={{ color: '#1a4d3a', lineHeight: '1.6' }}>
               Pusat layanan informasi terpadu untuk kebutuhan Anda. Kami siap melayani dengan hati.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">

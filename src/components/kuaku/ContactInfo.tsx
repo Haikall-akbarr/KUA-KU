@@ -38,7 +38,7 @@ export function ContactInfo() {
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="transform transition-all duration-300 hover:shadow-xl h-full">
               <CardContent className="p-6">
-                <h3 className="mb-6 font-sans text-2xl font-semibold text-teal-700">Detail Kontak</h3>
+                <h3 className="mb-6 font-sans text-2xl font-bold" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>Detail Kontak</h3>
                 <ul className="space-y-6">
                   {contactItems.map((item) => (
                     <li key={item.label} className="flex items-start gap-4">
@@ -46,12 +46,13 @@ export function ContactInfo() {
                         <item.icon className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="font-semibold">{item.label}</p>
+                        <p className="font-bold text-base" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>{item.label}</p>
                         <a
                           href={item.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-teal-700 font-medium hover:text-teal-800 transition-colors"
+                          className="font-medium text-base transition-colors"
+                          style={{ color: '#1a4d3a', lineHeight: '1.6' }}
                         >
                           {item.value}
                         </a>
@@ -63,7 +64,7 @@ export function ContactInfo() {
             </Card>
             <Card className="transform transition-all duration-300 hover:shadow-xl h-full">
               <CardContent className="p-6">
-                <h3 className="mb-6 font-sans text-2xl font-semibold text-teal-700">Jam Operasional</h3>
+                <h3 className="mb-6 font-sans text-2xl font-bold" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>Jam Operasional</h3>
                 <ul className="space-y-4">
                   {officeHours.map((item) => (
                     <li key={item.day} className="flex items-start gap-4">
@@ -71,8 +72,8 @@ export function ContactInfo() {
                         <Clock className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="font-semibold">{item.day}</p>
-                        <p className="text-teal-700 font-medium">{item.hours}</p>
+                        <p className="font-bold text-base" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>{item.day}</p>
+                        <p className="font-medium text-base" style={{ color: '#1a4d3a', lineHeight: '1.6' }}>{item.hours}</p>
                       </div>
                     </li>
                   ))}

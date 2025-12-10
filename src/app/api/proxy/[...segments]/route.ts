@@ -201,6 +201,23 @@ async function proxy(request: Request, segments: string[]) {
     headers['Content-Type'] = 'application/json';
   }
   
+  // Get request body if it exists
+  let body = null;
+  // Allow body for GET requests too as some endpoints might use it (e.g. pengumuman-nikah/list with kop_surat)
+  if (['POST', 'PUT', 'PATCH', 'DELETE', 'GET'].includes(request.method)) {
+    try {
+      const contentType = request.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        body = await request.json();
+      } else {
+        body = await request.arrayBuffer();
+      }
+    } catch (bodyError: any) {
+      console.error('[proxy] Error reading request body:', bodyError.message);
+      // Continue without body if reading fails
+    }
+  }
+  
   // Don't forward Origin/Referer to backend - these are browser-specific
   // Backend should accept requests from any origin when coming from server-side proxy
   // Remove Origin and Referer to avoid CORS issues
@@ -228,16 +245,39 @@ async function proxy(request: Request, segments: string[]) {
 
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     try {
-      const body = await request.arrayBuffer();
-      if (body.byteLength > 0) {
-        init.body = body;
-        console.log('[proxy] Request body size:', body.byteLength, 'bytes');
+      if (body != null) {
+        // If body was parsed as JSON earlier, stringify it for fetch
+        if (!(body instanceof ArrayBuffer) && typeof body === 'object') {
+          const jsonString = JSON.stringify(body);
+          init.body = jsonString;
+          console.log('[proxy] Forwarding JSON request body size (chars):', jsonString.length);
+          console.log('[proxy] Request body (json preview):', jsonString.slice(0, 1000));
+        } else if (body instanceof ArrayBuffer) {
+          if (body.byteLength > 0) {
+            init.body = body;
+            console.log('[proxy] Forwarding binary request body size (bytes):', body.byteLength);
+            try {
+              const textPreview = new TextDecoder().decode(new Uint8Array(body)).slice(0, 1000);
+              console.log('[proxy] Request body (text preview):', textPreview);
+            } catch (e) {
+              // ignore decode errors for binary bodies
+            }
+          } else {
+            console.warn('[proxy] Request body is empty for', request.method, 'request');
+          }
+        } else {
+          // Fallback: convert to string
+          const str = String(body);
+          init.body = str;
+          console.log('[proxy] Forwarding string request body size (chars):', str.length);
+          console.log('[proxy] Request body (string preview):', str.slice(0, 1000));
+        }
       } else {
-        console.warn('[proxy] Request body is empty for', request.method, 'request');
+        console.warn('[proxy] No request body to forward for', request.method);
       }
     } catch (bodyError: any) {
-      console.error('[proxy] Error reading request body:', bodyError.message);
-      // Continue without body if reading fails
+      console.error('[proxy] Error preparing request body:', bodyError.message);
+      // Continue without body if preparing fails
     }
   }
 
@@ -292,12 +332,34 @@ async function proxy(request: Request, segments: string[]) {
       );
     }
     
+    // Read response body once and reuse for logging and forwarding
+    let respArray: ArrayBuffer | null = null;
+    try {
+      respArray = await res.arrayBuffer();
+    } catch (e) {
+      console.error('[proxy] Failed to read upstream response body:', (e as any)?.message || e);
+    }
+
+    // Prepare a text preview of response body for logging
+    let respTextPreview = '';
+    try {
+      if (respArray && respArray.byteLength > 0) {
+        respTextPreview = new TextDecoder().decode(respArray.slice(0, 2000));
+      }
+    } catch (e) {
+      // ignore decode errors
+    }
+
     // Log response details
     console.log('[proxy] ========================================');
     console.log('[proxy] Response received:');
     console.log('[proxy]   Status:', res.status, res.statusText);
     console.log('[proxy]   Target URL:', url.toString());
     console.log('[proxy]   Response headers:', Object.fromEntries(res.headers.entries()));
+    if (res.status >= 400) {
+      console.error('[proxy] Upstream response body preview (first 2000 chars):');
+      console.error(respTextPreview || '<no-body>');
+    }
     console.log('[proxy] ========================================');
     
     // Handle 403 Forbidden - usually means API is blocking the request
@@ -310,14 +372,12 @@ async function proxy(request: Request, segments: string[]) {
       console.error('[proxy] Request Method:', request.method);
       console.error('[proxy] Request Headers:', JSON.stringify(headers, null, 2));
       console.error('[proxy] Response Headers:', Object.fromEntries(res.headers.entries()));
-      
-      const errorBody = await res.text().catch(() => '');
-      console.error('[proxy] Error Response Body:', errorBody.substring(0, 1000));
+      console.error('[proxy] Error Response Body Preview:', respTextPreview.substring(0, 1000));
       console.error('[proxy] ========================================');
       
       // Check if error body contains CORS-related messages
-      const isCorsError = errorBody.toLowerCase().includes('cors') || 
-                         errorBody.toLowerCase().includes('origin') ||
+      const isCorsError = respTextPreview.toLowerCase().includes('cors') || 
+                         respTextPreview.toLowerCase().includes('origin') ||
                          res.headers.get('access-control-allow-origin') === null;
       
       return NextResponse.json(
@@ -327,7 +387,7 @@ async function proxy(request: Request, segments: string[]) {
             ? 'Akses ditolak oleh server API karena CORS policy. Backend API perlu dikonfigurasi untuk mengizinkan request dari domain Vercel. Lihat BACKEND_CORS_SETUP.md untuk panduan setup CORS di backend.'
             : 'Akses ditolak oleh server API. Pastikan environment variable NEXT_PUBLIC_API_URL sudah di-set dengan benar di Vercel.',
           status: 403,
-          detail: errorBody || 'No error details available',
+          detail: respTextPreview || 'No error details available',
           isCorsError,
           troubleshooting: {
             step1: 'Pastikan NEXT_PUBLIC_API_URL sudah di-set di Vercel Environment Variables',
@@ -348,20 +408,18 @@ async function proxy(request: Request, segments: string[]) {
       console.error('[proxy] Request Method:', request.method);
       console.error('[proxy] Request Headers:', JSON.stringify(headers, null, 2));
       console.error('[proxy] Response Headers:', Object.fromEntries(res.headers.entries()));
-      
-      const errorBody = await res.text().catch(() => '');
-      console.error('[proxy] Error Response Body:', errorBody.substring(0, 2000));
+      console.error('[proxy] Error Response Body Preview:', respTextPreview.substring(0, 2000));
       console.error('[proxy] ========================================');
       
       // Try to parse error body as JSON
       let errorData: any = {};
       try {
-        if (errorBody) {
-          errorData = JSON.parse(errorBody);
+        if (respTextPreview) {
+          errorData = JSON.parse(respTextPreview);
         }
       } catch (e) {
         // If not JSON, keep as string
-        errorData = { raw: errorBody.substring(0, 500) };
+        errorData = { raw: respTextPreview.substring(0, 500) };
       }
       
       return NextResponse.json(
@@ -369,7 +427,7 @@ async function proxy(request: Request, segments: string[]) {
           error: 'Internal Server Error',
           message: errorData.message || errorData.error || 'Terjadi kesalahan pada server API. Silakan coba lagi nanti atau hubungi administrator.',
           status: 500,
-          detail: errorData.detail || errorData.raw || errorBody.substring(0, 500),
+          detail: errorData.detail || errorData.raw || respTextPreview.substring(0, 500),
           backendError: errorData
         },
         { status: 500 }
@@ -398,7 +456,7 @@ async function proxy(request: Request, segments: string[]) {
     // If it's an expected HTML endpoint and status is 200, forward HTML response directly
     if (isExpectedHTMLEndpoint && res.status === 200) {
       console.log('[proxy] Forwarding HTML response for endpoint:', urlPath, 'Status:', res.status);
-      const respBody = await res.arrayBuffer();
+      const respBody = respArray || new ArrayBuffer(0);
       
       const responseHeaders: Record<string, string> = {};
       res.headers.forEach((value, key) => {
@@ -427,7 +485,7 @@ async function proxy(request: Request, segments: string[]) {
     }
     
     // For other endpoints, check if response is HTML (error page)
-    const respBody = await res.arrayBuffer();
+    const respBody = respArray || new ArrayBuffer(0);
     
     // Check if response body is HTML (even if content-type says JSON)
     // This catches cases where server returns HTML with wrong content-type

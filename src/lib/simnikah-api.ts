@@ -5,6 +5,8 @@
  */
 
 import api from './api';
+import { format } from 'date-fns';
+import { id as IndonesianLocale } from 'date-fns/locale';
 
 // ============================================
 // 📋 TYPE DEFINITIONS
@@ -919,6 +921,114 @@ export async function checkRegistrationStatus(): Promise<RegistrationStatusRespo
     return response.data;
   } catch (error: any) {
     console.error('❌ Check Status Error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
+ * 2.2.1 Get Detail Pendaftaran by ID
+ * GET /simnikah/pendaftaran/:id
+ * 
+ * Sesuai dokumentasi: Get Detail Pendaftaran by ID
+ * Auth Required: ✅ Yes
+ * Role Access:
+ * - user_biasa: Hanya bisa melihat pendaftaran miliknya sendiri
+ * - staff, penghulu, kepala_kua: Bisa melihat semua pendaftaran
+ */
+export interface RegistrationDetailResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    nomor_pendaftaran: string;
+    pendaftar_id: string;
+    status_pendaftaran: string;
+    tanggal_pendaftaran: string;
+    tanggal_nikah: string;
+    waktu_nikah: string;
+    tempat_nikah: string;
+    alamat_akad: string;
+    latitude?: number;
+    longitude?: number;
+    catatan?: string;
+    disetujui_oleh?: string;
+    disetujui_pada?: string;
+    created_at: string;
+    updated_at: string;
+    calon_suami: {
+      id: number;
+      user_id: string;
+      nik?: string;
+      nama_lengkap: string;
+      tanggal_lahir?: string;
+      jenis_kelamin?: string;
+      pendidikan_terakhir?: string;
+      created_at: string;
+      updated_at: string;
+    };
+    calon_istri: {
+      id: number;
+      user_id: string;
+      nik?: string;
+      nama_lengkap: string;
+      tanggal_lahir?: string;
+      jenis_kelamin?: string;
+      pendidikan_terakhir?: string;
+      created_at: string;
+      updated_at: string;
+    };
+    wali_nikah: {
+      id: number;
+      nama_dan_bin: string;
+      hubungan_wali: string;
+      created_at: string;
+      updated_at: string;
+    };
+    penghulu?: {
+      id: number;
+      user_id: string;
+      nip: string;
+      nama_lengkap: string;
+      no_hp?: string;
+      email?: string;
+      alamat?: string;
+      status?: string;
+      ditugaskan_oleh?: string;
+      ditugaskan_pada?: string;
+      created_at: string;
+      updated_at: string;
+    };
+    location?: {
+      latitude: number;
+      longitude: number;
+      has_coordinates: boolean;
+      google_maps_url?: string;
+      google_maps_directions_url?: string;
+      waze_url?: string;
+      osm_url?: string;
+    };
+  };
+}
+
+export async function getRegistrationDetail(
+  id: string | number
+): Promise<RegistrationDetailResponse> {
+  try {
+    const response = await api.get<RegistrationDetailResponse>(
+      `/simnikah/pendaftaran/${id}`
+    );
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Get Registration Detail Error:', error.response?.data || error.message);
+    
+    // Enhanced error handling
+    if (error.response?.status === 404) {
+      throw new Error('Pendaftaran tidak ditemukan');
+    } else if (error.response?.status === 403) {
+      throw new Error('Anda tidak memiliki akses untuk melihat pendaftaran ini');
+    }
+    
     throw error;
   }
 }
@@ -2613,8 +2723,9 @@ export interface CustomKopSurat {
 }
 
 /**
- * Response untuk List Pendaftaran Disetujui
- * Sesuai dokumentasi API v1.1.0 - Surat Pengumuman Nikah
+ * Response untuk List Pendaftaran (semua status kecuali "Ditolak")
+ * Sesuai dokumentasi API v1.0.0 - Surat Pengumuman Nikah
+ * Backend sudah memfilter status "Ditolak" secara otomatis
  */
 export interface PengumumanListResponse {
   success: boolean;
@@ -2665,70 +2776,51 @@ export interface PengumumanParams {
 }
 
 /**
- * 24. Get Approved Registrations Per Week (Staff)
- * POST /simnikah/staff/pengumuman-nikah/list
+ * 24. Get Registrations for Pengumuman (Staff)
+ * GET /simnikah/staff/pengumuman-nikah/list
  * 
- * Sesuai dokumentasi API - menggunakan POST dengan body (optional untuk custom kop surat)
+ * Sesuai dokumentasi API v1.0.0 - Surat Pengumuman Nikah
+ * Backend sudah memfilter status "Ditolak" secara otomatis
+ * Menampilkan semua status kecuali "Ditolak" (Draft, Disetujui, Menunggu Penugasan, Penghulu Ditugaskan, Selesai)
  * Role Required: staff, kepala_kua
  */
 export interface PengumumanListRequestBody {
   tanggal_awal?: string; // YYYY-MM-DD
   tanggal_akhir?: string; // YYYY-MM-DD
-  kop_surat?: {
-    nama_kua?: string;
-    alamat?: string;
-    // ... data kop surat lainnya
-  };
+  kop_surat?: CustomKopSurat; // Optional untuk custom kop surat
 }
 
 export async function getPengumumanList(
   params?: PengumumanListRequestBody
 ): Promise<PengumumanListResponse> {
   try {
-    // Filter out undefined values dan validasi format tanggal
-    const requestBody: PengumumanListRequestBody = {};
-    
+    // Build query parameters
+    const queryParams: any = {};
     if (params?.tanggal_awal) {
-      const dateStr = params.tanggal_awal;
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        requestBody.tanggal_awal = dateStr;
-      } else {
-        console.warn('⚠️ Invalid tanggal_awal format:', dateStr);
-      }
+      queryParams.tanggal_awal = params.tanggal_awal;
     }
-    
     if (params?.tanggal_akhir) {
-      const dateStr = params.tanggal_akhir;
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        requestBody.tanggal_akhir = dateStr;
-      } else {
-        console.warn('⚠️ Invalid tanggal_akhir format:', dateStr);
-      }
+      queryParams.tanggal_akhir = params.tanggal_akhir;
     }
-    
-    if (params?.kop_surat) {
-      requestBody.kop_surat = params.kop_surat;
-    }
-    
-    // Jika tidak ada params, kirim body kosong (sesuai dokumentasi: POST dengan body)
-    
-    console.log('📅 POST Pengumuman List Request:', {
-      tanggal_awal: requestBody.tanggal_awal,
-      tanggal_akhir: requestBody.tanggal_akhir,
-      has_kop_surat: !!requestBody.kop_surat,
+
+    console.log('📅 GET Pengumuman List Request:', {
+      endpoint: '/simnikah/staff/pengumuman-nikah/list',
+      queryParams,
     });
-    
-    // Sesuai dokumentasi: POST request dengan body
-    const response = await api.post<PengumumanListResponse>(
+
+    // Sesuai dokumentasi: GET request dengan query params
+    const response = await api.get<PengumumanListResponse>(
       '/simnikah/staff/pengumuman-nikah/list',
-      requestBody
+      { params: queryParams }
     );
-    
+
     console.log('📊 Response data:', {
+      success: response.data.success,
       total: response.data.data?.total,
       periode: response.data.data?.periode,
       registrations_count: response.data.data?.registrations?.length,
     });
+
     return response.data;
   } catch (error: any) {
     console.error('❌ Get Pengumuman List Error:', error.response?.data || error.message);
@@ -2746,27 +2838,35 @@ export async function getPengumumanList(
  * 25. Generate Surat Pengumuman Nikah (Staff)
  * GET /simnikah/staff/pengumuman-nikah/generate
  * 
+ * Sesuai dokumentasi: Parsing API Surat Pengumuman Nikah
  * Role Required: staff, kepala_kua
  * Returns: HTML string
+ * 
+ * @param params - Query parameters (tanggal_awal, tanggal_akhir)
+ * @param customKopSurat - Optional custom kop surat (jika ada, gunakan POST dengan body)
  */
 export async function generatePengumumanNikah(
   params?: PengumumanListRequestBody,
   customKopSurat?: CustomKopSurat
 ): Promise<string> {
   try {
-    // Build request body sesuai dokumentasi
-    const requestBody: PengumumanListRequestBody = {
-      tanggal_awal: params?.tanggal_awal,
-      tanggal_akhir: params?.tanggal_akhir,
-      kop_surat: customKopSurat || params?.kop_surat,
-    };
+    // Build request sesuai dokumentasi
+    // Jika ada custom kop surat, gunakan POST dengan body
+    // Jika tidak, gunakan GET dengan query params
+    const hasCustomKop = customKopSurat || params?.kop_surat;
     
-    // Generate endpoint mungkin masih menggunakan GET dengan params atau POST dengan body
-    // Untuk konsistensi dengan list endpoint, gunakan POST dengan body
     const config: any = {
-      method: 'post',
       url: '/simnikah/staff/pengumuman-nikah/generate',
-      data: requestBody,
+      method: hasCustomKop ? 'post' : 'get',
+      params: hasCustomKop ? undefined : {
+        tanggal_awal: params?.tanggal_awal,
+        tanggal_akhir: params?.tanggal_akhir,
+      },
+      data: hasCustomKop ? {
+        tanggal_awal: params?.tanggal_awal,
+        tanggal_akhir: params?.tanggal_akhir,
+        ...(customKopSurat || params?.kop_surat ? { kop_surat: customKopSurat || params?.kop_surat } : {}),
+      } : undefined,
       responseType: 'text', // Important: untuk mendapatkan HTML sebagai string
       headers: {
         'Content-Type': 'application/json',
@@ -2774,67 +2874,76 @@ export async function generatePengumumanNikah(
     };
     
     const response = await api.request<string>(config);
-    console.log('✅ Generate Pengumuman Response: HTML received');
-    return response.data;
+    
+    // Validate response is HTML
+    if (typeof response.data === 'string' && response.data.trim().startsWith('<!')) {
+      console.log('✅ Generate Pengumuman Response: HTML received');
+      return response.data;
+    } else if (typeof response.data === 'string') {
+      // If it's a string but not HTML, might be error message
+      console.warn('⚠️ Response is string but not HTML:', response.data.substring(0, 200));
+      return response.data;
+    } else {
+      throw new Error('Invalid response format: expected HTML string');
+    }
   } catch (error: any) {
     console.error('❌ Generate Pengumuman Error:', error.response?.data || error.message);
+    
+    // Enhanced error handling sesuai dokumentasi
+    if (error.response?.status === 400) {
+      throw new Error(error.response.data?.error || 'Format tanggal tidak valid');
+    } else if (error.response?.status === 401) {
+      throw new Error('Token tidak valid atau sudah kadaluarsa');
+    } else if (error.response?.status === 403) {
+      throw new Error('Anda tidak memiliki permission untuk mengakses endpoint ini');
+    } else if (error.response?.status === 500) {
+      throw new Error(error.response.data?.error || 'Terjadi kesalahan pada server');
+    }
+    
     throw error;
   }
 }
 
 /**
- * 26. Get Approved Registrations Per Week (Kepala KUA)
- * POST /simnikah/kepala-kua/pengumuman-nikah/list
+ * 26. Get Registrations for Pengumuman (Kepala KUA)
+ * GET /simnikah/kepala-kua/pengumuman-nikah/list
  * 
- * Sesuai dokumentasi API - menggunakan POST dengan body (optional untuk custom kop surat)
+ * Sesuai dokumentasi API v1.0.0 - Surat Pengumuman Nikah
+ * Backend sudah memfilter status "Ditolak" secara otomatis
+ * Menampilkan semua status kecuali "Ditolak" (Draft, Disetujui, Menunggu Penugasan, Penghulu Ditugaskan, Selesai)
  * Role Required: kepala_kua
  */
 export async function getPengumumanListKepalaKUA(
   params?: PengumumanListRequestBody
 ): Promise<PengumumanListResponse> {
   try {
-    // Filter out undefined values dan validasi format tanggal
-    const requestBody: PengumumanListRequestBody = {};
-    
+    // Build query parameters
+    const queryParams: any = {};
     if (params?.tanggal_awal) {
-      const dateStr = params.tanggal_awal;
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        requestBody.tanggal_awal = dateStr;
-      } else {
-        console.warn('⚠️ Invalid tanggal_awal format:', dateStr);
-      }
+      queryParams.tanggal_awal = params.tanggal_awal;
     }
-    
     if (params?.tanggal_akhir) {
-      const dateStr = params.tanggal_akhir;
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        requestBody.tanggal_akhir = dateStr;
-      } else {
-        console.warn('⚠️ Invalid tanggal_akhir format:', dateStr);
-      }
+      queryParams.tanggal_akhir = params.tanggal_akhir;
     }
-    
-    if (params?.kop_surat) {
-      requestBody.kop_surat = params.kop_surat;
-    }
-    
-    console.log('📅 POST Pengumuman List (Kepala KUA) Request:', {
-      tanggal_awal: requestBody.tanggal_awal,
-      tanggal_akhir: requestBody.tanggal_akhir,
-      has_kop_surat: !!requestBody.kop_surat,
+
+    console.log('📅 GET Pengumuman List (Kepala KUA) Request:', {
+      endpoint: '/simnikah/kepala-kua/pengumuman-nikah/list',
+      queryParams,
     });
-    
-    // Sesuai dokumentasi: POST request dengan body
-    const response = await api.post<PengumumanListResponse>(
+
+    // Sesuai dokumentasi: GET request dengan query params
+    const response = await api.get<PengumumanListResponse>(
       '/simnikah/kepala-kua/pengumuman-nikah/list',
-      requestBody
+      { params: queryParams }
     );
-    
-    console.log('📊 Response data:', {
+
+    console.log('📊 Response data (Kepala KUA):', {
+      success: response.data.success,
       total: response.data.data?.total,
       periode: response.data.data?.periode,
       registrations_count: response.data.data?.registrations?.length,
     });
+
     return response.data;
   } catch (error: any) {
     console.error('❌ Get Pengumuman List (Kepala KUA) Error:', error.response?.data || error.message);
@@ -2852,38 +2961,68 @@ export async function getPengumumanListKepalaKUA(
  * 27. Generate Surat Pengumuman Nikah (Kepala KUA)
  * GET /simnikah/kepala-kua/pengumuman-nikah/generate
  * 
+ * Sesuai dokumentasi API v1.0.0 - Parsing API Surat Pengumuman Nikah
  * Role Required: kepala_kua
  * Returns: HTML string
+ * 
+ * @param params - Query parameters (tanggal_awal, tanggal_akhir)
+ * @param customKopSurat - Optional custom kop surat (jika ada, gunakan POST dengan body)
  */
 export async function generatePengumumanNikahKepalaKUA(
   params?: PengumumanListRequestBody,
   customKopSurat?: CustomKopSurat
 ): Promise<string> {
   try {
-    // Build request body sesuai dokumentasi
-    const requestBody: PengumumanListRequestBody = {
-      tanggal_awal: params?.tanggal_awal,
-      tanggal_akhir: params?.tanggal_akhir,
-      kop_surat: customKopSurat || params?.kop_surat,
-    };
+    // Build request sesuai dokumentasi
+    // Jika ada custom kop surat, gunakan POST dengan body
+    // Jika tidak, gunakan GET dengan query params
+    const hasCustomKop = customKopSurat || params?.kop_surat;
     
-    // Generate endpoint mungkin masih menggunakan GET dengan params atau POST dengan body
-    // Untuk konsistensi dengan list endpoint, gunakan POST dengan body
     const config: any = {
-      method: 'post',
-      url: '/simnikah/kepala-kua/pengumuman-nikah/list',
-      data: requestBody,
-      responseType: 'text',
+      url: '/simnikah/kepala-kua/pengumuman-nikah/generate',
+      method: hasCustomKop ? 'post' : 'get',
+      params: hasCustomKop ? undefined : {
+        tanggal_awal: params?.tanggal_awal,
+        tanggal_akhir: params?.tanggal_akhir,
+      },
+      data: hasCustomKop ? {
+        tanggal_awal: params?.tanggal_awal,
+        tanggal_akhir: params?.tanggal_akhir,
+        ...(customKopSurat || params?.kop_surat ? { kop_surat: customKopSurat || params?.kop_surat } : {}),
+      } : undefined,
+      responseType: 'text', // Important: untuk mendapatkan HTML sebagai string
       headers: {
         'Content-Type': 'application/json',
       },
     };
     
     const response = await api.request<string>(config);
-    console.log('✅ Generate Pengumuman (Kepala KUA) Response: HTML received');
-    return response.data;
+    
+    // Validate response is HTML
+    if (typeof response.data === 'string' && response.data.trim().startsWith('<!')) {
+      console.log('✅ Generate Pengumuman (Kepala KUA) Response: HTML received');
+      return response.data;
+    } else if (typeof response.data === 'string') {
+      // If it's a string but not HTML, might be error message
+      console.warn('⚠️ Response is string but not HTML:', response.data.substring(0, 200));
+      return response.data;
+    } else {
+      throw new Error('Invalid response format: expected HTML string');
+    }
   } catch (error: any) {
     console.error('❌ Generate Pengumuman (Kepala KUA) Error:', error.response?.data || error.message);
+    
+    // Enhanced error handling sesuai dokumentasi
+    if (error.response?.status === 400) {
+      throw new Error(error.response.data?.error || 'Format tanggal tidak valid');
+    } else if (error.response?.status === 401) {
+      throw new Error('Token tidak valid atau sudah kadaluarsa');
+    } else if (error.response?.status === 403) {
+      throw new Error('Anda tidak memiliki permission untuk mengakses endpoint ini');
+    } else if (error.response?.status === 500) {
+      throw new Error(error.response.data?.error || 'Terjadi kesalahan pada server');
+    }
+    
     throw error;
   }
 }

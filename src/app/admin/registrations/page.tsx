@@ -43,17 +43,26 @@ export default function RegistrationsPage() {
       
       if (response.success && registrationsArray.length > 0) {
         // Map langsung sesuai struktur backend
-        const mappedRegs: MarriageRegistration[] = registrationsArray.map((reg: any) => ({
-          id: reg.nomor_pendaftaran || reg.id,
-          groomName: reg.calon_suami?.nama_lengkap || 'Data tidak tersedia',
-          brideName: reg.calon_istri?.nama_lengkap || 'Data tidak tersedia',
-          registrationDate: reg.tanggal_pendaftaran || reg.created_at,
-          weddingDate: reg.tanggal_nikah || '',
-          weddingTime: reg.waktu_nikah || '',
-          weddingLocation: reg.tempat_nikah || '',
-          status: reg.status_pendaftaran || 'Menunggu Penugasan',
-          penghulu: reg.penghulu?.nama_lengkap || reg.penghulu?.nama || null,
-        }));
+        // IMPORTANT: Backend API expects numeric ID (reg.id), not nomor_pendaftaran
+        const mappedRegs: MarriageRegistration[] = registrationsArray.map((reg: any) => {
+          // Use numeric ID as primary ID for API calls
+          const numericId = reg.id;
+          return {
+            // Use numeric ID converted to string for type compatibility
+            id: String(numericId || reg.nomor_pendaftaran),
+            groomName: reg.calon_suami?.nama_lengkap || 'Data tidak tersedia',
+            brideName: reg.calon_istri?.nama_lengkap || 'Data tidak tersedia',
+            registrationDate: reg.tanggal_pendaftaran || reg.created_at,
+            weddingDate: reg.tanggal_nikah || '',
+            weddingTime: reg.waktu_nikah || '',
+            weddingLocation: reg.tempat_nikah || '',
+            status: reg.status_pendaftaran || 'Menunggu Penugasan',
+            penghulu: reg.penghulu?.nama_lengkap || reg.penghulu?.nama || null,
+            // Store original data for reference (using any to extend type)
+            ...(numericId && { _originalId: numericId }), // Numeric ID from backend
+            ...(reg.nomor_pendaftaran && { _nomorPendaftaran: reg.nomor_pendaftaran }), // Nomor pendaftaran for display
+          } as any;
+        });
         
         // Sort by registration date (newest first)
         mappedRegs.sort((a, b) => {

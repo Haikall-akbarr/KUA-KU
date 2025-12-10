@@ -167,7 +167,7 @@ export function UserProfileMenu() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Keluar</span>
+                    <span>Logout</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

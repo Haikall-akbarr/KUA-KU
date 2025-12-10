@@ -183,16 +183,33 @@ export default function KepalaKUADashboard() {
             const currentYear = now.getFullYear();
             const today = now.toISOString().split('T')[0];
             
+            // Hitung bulan ini berdasarkan tanggal pendaftaran (bukan tanggal nikah)
             const bulanIni = allRegistrationsResponse.data.filter((reg: any) => {
-              const regDate = reg.tanggal_pendaftaran || reg.created_at || reg.tanggal_nikah;
+              // Prioritaskan tanggal_pendaftaran, lalu created_at
+              const regDate = reg.tanggal_pendaftaran || reg.created_at;
               if (!regDate) return false;
               try {
                 const date = new Date(regDate);
+                // Pastikan tanggal valid
+                if (isNaN(date.getTime())) return false;
                 return date.getMonth() + 1 === currentMonth && date.getFullYear() === currentYear;
               } catch {
                 return false;
               }
             }).length;
+            
+            console.log('📅 Bulan Ini Calculation:', {
+              currentMonth,
+              currentYear,
+              totalData: allRegistrationsResponse.data.length,
+              bulanIni,
+              sampleDates: allRegistrationsResponse.data.slice(0, 5).map((reg: any) => ({
+                id: reg.id,
+                tanggal_pendaftaran: reg.tanggal_pendaftaran,
+                created_at: reg.created_at,
+                tanggal_nikah: reg.tanggal_nikah
+              }))
+            });
             
             const hariIni = allRegistrationsResponse.data.filter((reg: any) => {
               const regDate = reg.tanggal_pendaftaran || reg.created_at || reg.tanggal_nikah;
@@ -210,9 +227,11 @@ export default function KepalaKUADashboard() {
               return status === 'Selesai';
             }).length;
             
+            // Pending = semua yang belum selesai dan belum ditolak
+            // Termasuk: Draft, Disetujui, Menunggu Penugasan, Penghulu Ditugaskan
             const pending = allRegistrationsResponse.data.filter((reg: any) => {
               const status = reg.status_pendaftaran || reg.status || '';
-              return status !== 'Selesai' && status !== 'Ditolak';
+              return status !== 'Selesai' && status !== 'Ditolak' && status !== '';
             }).length;
             
             // Update dashboard data dengan data yang dihitung dari database
@@ -242,7 +261,12 @@ export default function KepalaKUADashboard() {
               hari_ini: hariIni,
               bulan_ini: bulanIni,
               selesai: selesai,
-              pending: pending
+              pending: pending,
+              statusBreakdown: allRegistrationsResponse.data.reduce((acc: any, reg: any) => {
+                const status = reg.status_pendaftaran || reg.status || 'Unknown';
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+              }, {})
             });
           }
         } catch (error) {

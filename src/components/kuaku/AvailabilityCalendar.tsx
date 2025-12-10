@@ -183,44 +183,6 @@ export function AvailabilityCalendar() {
           }),
         };
         setCalendarData(mappedData);
-      } else if (responseData.hari && Array.isArray(responseData.hari) && responseData.hari.length > 0) {
-        // Old API format (v1.0) - map hari to kalender
-        const mappedData: CalendarData = {
-          bulan: responseData.bulan || currentMonth.getMonth() + 1,
-          tahun: responseData.tahun || currentMonth.getFullYear(),
-          nama_bulan: currentMonth.toLocaleString("id-ID", { month: "long" }),
-          kapasitas_harian: responseData.kapasitas_per_hari || 9,
-          penghulu_info: {
-            total_penghulu: totalPenghulu,
-            penghulu_aktif: penghuluAktif,
-            penghulu_cadangan: penghuluCadangan,
-            slot_waktu_per_hari: 9,
-            nikah_per_slot: 1,
-            total_kapasitas_harian: responseData.kapasitas_per_hari || 9,
-          },
-          kalender: responseData.hari.map((day: any) => {
-            const date = new Date(day.tanggal);
-            return {
-              tanggal: date.getDate(),
-              tanggal_str: day.tanggal,
-              status: day.status || "Tersedia",
-              tersedia: day.status !== "Penuh",
-              jumlah_nikah_total: day.total_nikah || 0,
-              jumlah_nikah_kua: 0,
-              jumlah_nikah_luar: 0,
-              kuning_count: 0,
-              hijau_count: 0,
-              warna: day.status === "Penuh" ? "gray" : day.status === "Sebagian Tersedia" ? "kuning" : "hijau",
-              sisa_kuota: day.sisa_kuota || 0,
-              sisa_kuota_kua: day.sisa_kuota || 0,
-              kapasitas_kua: responseData.kapasitas_per_hari || 9,
-            };
-          }),
-        };
-        setCalendarData(mappedData);
-      } else if (responseData.kalender && Array.isArray(responseData.kalender) && responseData.kalender.length > 0) {
-        // Very old API format - use as is
-        setCalendarData(responseData);
       } else {
         // If no valid data, create default calendar
         console.warn("⚠️ No valid calendar data in response, creating default calendar");

@@ -49,7 +49,7 @@ export function ServiceCard({ slug, iconName, title, description, isExternal = f
           <CardTitle className="font-sans text-xl font-black text-teal-700 group-hover:text-teal-800 transition-colors">{title}</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <p className="text-center text-sm font-medium text-black/80">{description}</p>
+          <p className="text-center text-sm font-semibold text-black/90">{description}</p>
         </CardContent>
       </Card>
     </Link>

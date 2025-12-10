@@ -66,29 +66,109 @@ export default function FeedbackManagementPage() {
         params.jenis_feedback = filterJenis;
       }
 
+      console.log('📤 Request params:', params);
+
       const [feedbackResponse, statsResponse] = await Promise.all([
         getFeedbackList(params),
         getFeedbackStats()
       ]);
 
-      if (feedbackResponse?.success && Array.isArray(feedbackResponse.data)) {
-        setFeedbacks(feedbackResponse.data);
-      } else if (Array.isArray(feedbackResponse?.data)) {
-        setFeedbacks(feedbackResponse.data);
-      } else {
-        setFeedbacks([]);
+      console.log('📊 Feedback Response (Full):', JSON.stringify(feedbackResponse, null, 2));
+      console.log('📊 Stats Response (Full):', JSON.stringify(statsResponse, null, 2));
+      console.log('📊 Feedback Response Type:', typeof feedbackResponse);
+      console.log('📊 Feedback Response Success:', feedbackResponse?.success);
+      console.log('📊 Feedback Response Data:', feedbackResponse?.data);
+      console.log('📊 Is Array Check:', Array.isArray(feedbackResponse?.data));
+
+      // Handle feedback response - check multiple possible structures
+      let feedbacksData: any[] = [];
+      
+      // Case 1: response.success === true && response.data is array
+      if (feedbackResponse?.success === true) {
+        if (Array.isArray(feedbackResponse.data)) {
+          feedbacksData = feedbackResponse.data;
+          console.log('✅ Found data in: feedbackResponse.success === true && Array.isArray(data)');
+        } 
+        // Case 2: response.success === true && response.data.data is array
+        else if (feedbackResponse.data && typeof feedbackResponse.data === 'object') {
+          if (Array.isArray(feedbackResponse.data.data)) {
+            feedbacksData = feedbackResponse.data.data;
+            console.log('✅ Found data in: feedbackResponse.data.data');
+          }
+          // Case 3: response.success === true && response.data is object with feedbacks array
+          else if (Array.isArray(feedbackResponse.data.feedbacks)) {
+            feedbacksData = feedbackResponse.data.feedbacks;
+            console.log('✅ Found data in: feedbackResponse.data.feedbacks');
+          }
+          // Case 4: response.success === true && response.data is object with list array
+          else if (Array.isArray(feedbackResponse.data.list)) {
+            feedbacksData = feedbackResponse.data.list;
+            console.log('✅ Found data in: feedbackResponse.data.list');
+          }
+        }
+      } 
+      // Case 5: response.data is directly an array (no success field)
+      else if (Array.isArray(feedbackResponse?.data)) {
+        feedbacksData = feedbackResponse.data;
+        console.log('✅ Found data in: feedbackResponse.data (direct array)');
+      }
+      // Case 6: response itself is an array
+      else if (Array.isArray(feedbackResponse)) {
+        feedbacksData = feedbackResponse;
+        console.log('✅ Found data in: feedbackResponse (direct array)');
+      }
+      // Case 7: response.data.feedbacks is array
+      else if (Array.isArray(feedbackResponse?.data?.feedbacks)) {
+        feedbacksData = feedbackResponse.data.feedbacks;
+        console.log('✅ Found data in: feedbackResponse.data.feedbacks');
+      }
+      // Case 8: response.data.list is array
+      else if (Array.isArray(feedbackResponse?.data?.list)) {
+        feedbacksData = feedbackResponse.data.list;
+        console.log('✅ Found data in: feedbackResponse.data.list');
+      }
+      // Case 9: Try to find any array in the response
+      else if (feedbackResponse && typeof feedbackResponse === 'object') {
+        // Try to find any array property
+        const keys = Object.keys(feedbackResponse);
+        for (const key of keys) {
+          if (Array.isArray((feedbackResponse as any)[key])) {
+            feedbacksData = (feedbackResponse as any)[key];
+            console.log(`✅ Found data in: feedbackResponse.${key}`);
+            break;
+          }
+        }
       }
 
+      console.log('📊 Final Feedbacks Data:', feedbacksData);
+      console.log('📊 Feedbacks Count:', feedbacksData.length);
+      
+      setFeedbacks(feedbacksData);
+
+      // Handle stats response
       if (statsResponse?.success && statsResponse.data) {
+        setStats(statsResponse.data);
+      } else if (statsResponse?.data) {
         setStats(statsResponse.data);
       }
     } catch (error: any) {
-      console.error('Error loading feedback:', error);
-      toast({
-        title: 'Error',
-        description: 'Gagal memuat data feedback',
-        variant: 'destructive',
-      });
+      console.error('❌ Error loading feedback:', error);
+      console.error('❌ Error response:', error.response);
+      console.error('❌ Error data:', error.response?.data);
+      console.error('❌ Error message:', error.message);
+      
+      // Set empty array on error but don't show toast if it's just empty data
+      if (error.response?.status === 404 || error.response?.status === 200) {
+        console.log('ℹ️ No feedback data available (404 or empty response)');
+        setFeedbacks([]);
+      } else {
+        toast({
+          title: 'Error',
+          description: error.response?.data?.message || error.message || 'Gagal memuat data feedback',
+          variant: 'destructive',
+        });
+        setFeedbacks([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -185,7 +265,7 @@ export default function FeedbackManagementPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Belum Dibaca</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-orange-600">{stats.belum_dibaca || 0}</div>
+                <div className="text-3xl font-bold text-orange-600">{stats.total_belum_dibaca || stats.belum_dibaca || 0}</div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-md transition-shadow">
@@ -193,7 +273,7 @@ export default function FeedbackManagementPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Sudah Dibaca</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-green-600">{stats.sudah_dibaca || 0}</div>
+                <div className="text-3xl font-bold text-green-600">{stats.total_sudah_dibaca || stats.sudah_dibaca || 0}</div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-md transition-shadow">
@@ -202,7 +282,7 @@ export default function FeedbackManagementPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-yellow-600">
-                  {stats.rating_average ? stats.rating_average.toFixed(1) : '-'}
+                  {stats.rating_rata_rata || stats.rating_average ? (stats.rating_rata_rata || stats.rating_average).toFixed(1) : '-'}
                 </div>
               </CardContent>
             </Card>
@@ -257,6 +337,11 @@ export default function FeedbackManagementPage() {
             <CardTitle>Daftar Feedback</CardTitle>
             <CardDescription>
               {feedbacks.length} feedback ditemukan
+              {process.env.NODE_ENV === 'development' && (
+                <span className="ml-2 text-xs text-muted-foreground">
+                  (Check console for debug info)
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -264,6 +349,13 @@ export default function FeedbackManagementPage() {
               <div className="text-center py-12">
                 <MessageSquare className="h-16 w-16 mx-auto text-gray-300 mb-4" />
                 <p className="text-gray-500">Tidak ada feedback</p>
+                {process.env.NODE_ENV === 'development' && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Filter aktif: Status={filterStatus}, Jenis={filterJenis}
+                    <br />
+                    Silakan cek console browser untuk melihat struktur response API
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-4">

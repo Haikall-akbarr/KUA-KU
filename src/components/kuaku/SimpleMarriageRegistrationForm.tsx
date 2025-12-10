@@ -21,7 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Loader2, CalendarIcon, MapPin, Clock, AlertCircle, CheckCircle2, Users, Info } from 'lucide-react';
+import { Loader2, CalendarIcon, MapPin, Clock, AlertCircle, CheckCircle2, Users, Info, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SimpleAddressSelector } from './SimpleAddressSelector';
 
@@ -167,6 +167,26 @@ export function SimpleMarriageRegistrationForm() {
   });
 
   const tempatNikah = form.watch('lokasi_nikah.tempat_nikah');
+  
+  // Watch form values to determine step completion
+  const calonLakiLaki = form.watch('calon_laki_laki');
+  const calonPerempuan = form.watch('calon_perempuan');
+  const lokasiNikah = form.watch('lokasi_nikah');
+  const waliNikah = form.watch('wali_nikah');
+  
+  // Check if steps are completed
+  const isStep1Complete = calonLakiLaki?.nama && calonLakiLaki?.bin && calonLakiLaki?.pendidikan_akhir && calonLakiLaki?.umur;
+  const isStep2Complete = calonPerempuan?.nama && calonPerempuan?.binti && calonPerempuan?.pendidikan_akhir && calonPerempuan?.umur;
+  const isStep3Complete = lokasiNikah?.tanggal_nikah && lokasiNikah?.waktu_nikah && 
+    (lokasiNikah?.tempat_nikah === 'Di KUA' || (lokasiNikah?.tempat_nikah === 'Di Luar KUA' && lokasiNikah?.alamat_nikah && lokasiNikah?.latitude && lokasiNikah?.longitude));
+  const isStep4Complete = waliNikah?.nama && waliNikah?.bin && waliNikah?.hubungan_wali;
+  
+  const steps = [
+    { id: '01', name: 'Data Calon Suami', completed: !!isStep1Complete },
+    { id: '02', name: 'Data Calon Istri', completed: !!isStep2Complete },
+    { id: '03', name: 'Lokasi & Waktu Nikah', completed: !!isStep3Complete },
+    { id: '04', name: 'Data Wali Nikah', completed: !!isStep4Complete },
+  ];
 
   // Load calendar availability
   useEffect(() => {
@@ -508,45 +528,85 @@ export function SimpleMarriageRegistrationForm() {
     <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4">
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-xl">Formulir Pendaftaran Nikah</CardTitle>
-          <CardDescription className="text-sm">
+          <CardTitle className="text-2xl font-bold" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>Formulir Pendaftaran Nikah</CardTitle>
+          <CardDescription className="text-base" style={{ color: '#1a4d3a', lineHeight: '1.6' }}>
             Isi formulir berikut untuk mendaftar nikah. Pastikan semua data yang diisi benar.
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Step Indicators */}
+          <div className="mb-8">
+            <ol className="flex items-center w-full text-sm font-medium text-center sm:text-base">
+              {steps.map((step, index) => (
+                <li key={step.id} className={cn(
+                  "flex items-center",
+                  index !== steps.length - 1 && "w-full after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:hidden sm:after:inline-block sm:after:mx-6 xl:after:mx-10"
+                )}>
+                  <div className="flex flex-col items-center">
+                    <span className={cn(
+                      "flex items-center justify-center rounded-full text-white font-semibold flex-shrink-0",
+                      step.completed ? "bg-green-600" : "bg-blue-600"
+                    )} style={{ 
+                      width: '48px', 
+                      height: '48px', 
+                      minWidth: '48px', 
+                      minHeight: '48px',
+                      aspectRatio: '1 / 1',
+                      padding: 0
+                    }}>
+                      {step.completed ? (
+                        <Check className="w-6 h-6" />
+                      ) : (
+                        <span className="leading-none">{step.id}</span>
+                      )}
+                    </span>
+                    <span className={cn(
+                      "mt-2 text-xs sm:text-sm",
+                      step.completed ? "text-green-600 font-semibold" : "text-gray-600"
+                    )} style={{ color: step.completed ? '#16a34a' : '#1a4d3a' }}>
+                      {step.name.split(' ').map((word, i) => (
+                        <span key={i} className="block">{word}</span>
+                      ))}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+          
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Calon Laki-laki */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Data Calon Suami</h3>
+              <h3 className="text-xl font-bold" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>Data Calon Suami</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="nama_laki">Nama Lengkap *</Label>
+                  <Label htmlFor="nama_laki" style={{ color: '#1a4d3a' }}>Nama Lengkap *</Label>
                   <Input
                     id="nama_laki"
                     placeholder="Ahmad Wijaya"
                     {...form.register('calon_laki_laki.nama')}
                   />
                   {form.formState.errors.calon_laki_laki?.nama && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.calon_laki_laki.nama.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bin_laki">Bin *</Label>
+                  <Label htmlFor="bin_laki" style={{ color: '#1a4d3a' }}>Bin *</Label>
                   <Input
                     id="bin_laki"
                     placeholder="Abdullah"
                     {...form.register('calon_laki_laki.bin')}
                   />
                   {form.formState.errors.calon_laki_laki?.bin && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.calon_laki_laki.bin.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pendidikan_laki">Pendidikan Akhir *</Label>
+                  <Label htmlFor="pendidikan_laki" style={{ color: '#1a4d3a' }}>Pendidikan Akhir *</Label>
                   <Select
                     value={form.watch('calon_laki_laki.pendidikan_akhir')}
                     onValueChange={(value) => form.setValue('calon_laki_laki.pendidikan_akhir', value)}
@@ -563,13 +623,13 @@ export function SimpleMarriageRegistrationForm() {
                     </SelectContent>
                   </Select>
                   {form.formState.errors.calon_laki_laki?.pendidikan_akhir && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.calon_laki_laki.pendidikan_akhir.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="umur_laki">Umur *</Label>
+                  <Label htmlFor="umur_laki" style={{ color: '#1a4d3a' }}>Umur *</Label>
                   <Input
                     id="umur_laki"
                     type="number"
@@ -578,7 +638,7 @@ export function SimpleMarriageRegistrationForm() {
                     {...form.register('calon_laki_laki.umur', { valueAsNumber: true })}
                   />
                   {form.formState.errors.calon_laki_laki?.umur && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.calon_laki_laki.umur.message}
                     </p>
                   )}
@@ -588,36 +648,36 @@ export function SimpleMarriageRegistrationForm() {
 
             {/* Calon Perempuan */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Data Calon Istri</h3>
+              <h3 className="text-xl font-bold" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>Data Calon Istri</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="nama_perempuan">Nama Lengkap *</Label>
+                  <Label htmlFor="nama_perempuan" style={{ color: '#1a4d3a' }}>Nama Lengkap *</Label>
                   <Input
                     id="nama_perempuan"
                     placeholder="Siti Nurhaliza"
                     {...form.register('calon_perempuan.nama')}
                   />
                   {form.formState.errors.calon_perempuan?.nama && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.calon_perempuan.nama.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="binti_perempuan">Binti *</Label>
+                  <Label htmlFor="binti_perempuan" style={{ color: '#1a4d3a' }}>Binti *</Label>
                   <Input
                     id="binti_perempuan"
                     placeholder="Muhammad"
                     {...form.register('calon_perempuan.binti')}
                   />
                   {form.formState.errors.calon_perempuan?.binti && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.calon_perempuan.binti.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pendidikan_perempuan">Pendidikan Akhir *</Label>
+                  <Label htmlFor="pendidikan_perempuan" style={{ color: '#1a4d3a' }}>Pendidikan Akhir *</Label>
                   <Select
                     value={form.watch('calon_perempuan.pendidikan_akhir')}
                     onValueChange={(value) => form.setValue('calon_perempuan.pendidikan_akhir', value)}
@@ -634,13 +694,13 @@ export function SimpleMarriageRegistrationForm() {
                     </SelectContent>
                   </Select>
                   {form.formState.errors.calon_perempuan?.pendidikan_akhir && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.calon_perempuan.pendidikan_akhir.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="umur_perempuan">Umur *</Label>
+                  <Label htmlFor="umur_perempuan" style={{ color: '#1a4d3a' }}>Umur *</Label>
                   <Input
                     id="umur_perempuan"
                     type="number"
@@ -649,7 +709,7 @@ export function SimpleMarriageRegistrationForm() {
                     {...form.register('calon_perempuan.umur', { valueAsNumber: true })}
                   />
                   {form.formState.errors.calon_perempuan?.umur && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.calon_perempuan.umur.message}
                     </p>
                   )}
@@ -660,40 +720,40 @@ export function SimpleMarriageRegistrationForm() {
             {/* Wali Nikah */}
             <div className="space-y-3">
               <div>
-                <h3 className="text-base font-semibold">Data Wali Nikah</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <h3 className="text-xl font-bold" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>Data Wali Nikah</h3>
+                <p className="text-sm text-muted-foreground mt-0.5" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>
                   Wali nikah wajib diisi untuk calon pengantin perempuan
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="nama_wali">Nama Lengkap *</Label>
+                  <Label htmlFor="nama_wali" style={{ color: '#1a4d3a' }}>Nama Lengkap *</Label>
                   <Input
                     id="nama_wali"
                     placeholder="Abdullah"
                     {...form.register('wali_nikah.nama')}
                   />
                   {form.formState.errors.wali_nikah?.nama && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.wali_nikah.nama.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bin_wali">Bin *</Label>
+                  <Label htmlFor="bin_wali" style={{ color: '#1a4d3a' }}>Bin *</Label>
                   <Input
                     id="bin_wali"
                     placeholder="Muhammad"
                     {...form.register('wali_nikah.bin')}
                   />
                   {form.formState.errors.wali_nikah?.bin && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.wali_nikah.bin.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="hubungan_wali">Hubungan Wali *</Label>
+                  <Label htmlFor="hubungan_wali" style={{ color: '#1a4d3a' }}>Hubungan Wali *</Label>
                   <Select
                     value={form.watch('wali_nikah.hubungan_wali')}
                     onValueChange={(value) => form.setValue('wali_nikah.hubungan_wali', value)}
@@ -710,15 +770,15 @@ export function SimpleMarriageRegistrationForm() {
                     </SelectContent>
                   </Select>
                   {form.formState.errors.wali_nikah?.hubungan_wali && (
-                    <p className="text-sm text-red-500">
+                    <p className="text-base text-red-500 font-medium">
                       {form.formState.errors.wali_nikah.hubungan_wali.message}
                     </p>
                   )}
                 </div>
               </div>
-              <details className="text-xs text-muted-foreground bg-blue-50 p-2 rounded border border-blue-100">
-                <summary className="font-semibold cursor-pointer">Urutan Wali Nasab (klik untuk lihat)</summary>
-                <ol className="list-decimal list-inside space-y-0.5 mt-2 pl-2">
+              <details className="text-sm bg-blue-50 p-3 rounded border border-blue-100">
+                <summary className="font-semibold cursor-pointer" style={{ color: '#1a4d3a' }}>Urutan Wali Nasab (klik untuk lihat)</summary>
+                <ol className="list-decimal list-inside space-y-1 mt-2 pl-2" style={{ color: '#1a4d3a', lineHeight: '1.6' }}>
                   <li>Ayah Kandung</li>
                   <li>Kakek</li>
                   <li>Saudara Laki-Laki Kandung</li>
@@ -735,10 +795,10 @@ export function SimpleMarriageRegistrationForm() {
 
             {/* Lokasi Nikah */}
             <div className="space-y-3">
-              <h3 className="text-base font-semibold">Lokasi dan Waktu Nikah</h3>
+              <h3 className="text-xl font-bold" style={{ color: '#1a4d3a', lineHeight: '1.5' }}>Lokasi dan Waktu Nikah</h3>
               
               <div className="space-y-2">
-                <Label>Tempat Nikah *</Label>
+                <Label style={{ color: '#1a4d3a' }}>Tempat Nikah *</Label>
                 <Select
                   value={form.watch('lokasi_nikah.tempat_nikah')}
                   onValueChange={(value) => {
@@ -785,7 +845,7 @@ export function SimpleMarriageRegistrationForm() {
                   
                   {/* Alamat detail opsional */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="alamat_detail" className="text-sm">Detail Alamat (Opsional)</Label>
+                    <Label htmlFor="alamat_detail" className="text-base" style={{ color: '#1a4d3a' }}>Detail Alamat (Opsional)</Label>
                     <Textarea
                       id="alamat_detail"
                       placeholder="RT 05 RW 02, Rumah Pengantin Perempuan"
@@ -797,7 +857,7 @@ export function SimpleMarriageRegistrationForm() {
               )}
 
               <div className="space-y-2">
-                <Label>Tanggal Nikah *</Label>
+                <Label style={{ color: '#1a4d3a' }}>Tanggal Nikah *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -828,16 +888,16 @@ export function SimpleMarriageRegistrationForm() {
                   </PopoverContent>
                 </Popover>
                 {form.formState.errors.lokasi_nikah?.tanggal_nikah && (
-                  <p className="text-sm text-red-500">
+                  <p className="text-base text-red-500 font-medium">
                     {form.formState.errors.lokasi_nikah.tanggal_nikah.message}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label>Waktu Nikah *</Label>
+                <Label style={{ color: '#1a4d3a' }}>Waktu Nikah *</Label>
                 {!tempatNikah ? (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base" style={{ color: '#1a4d3a' }}>
                     Pilih lokasi nikah terlebih dahulu
                   </p>
                 ) : loadingTimeSlots ? (
@@ -986,12 +1046,12 @@ export function SimpleMarriageRegistrationForm() {
                     </AlertDescription>
                   </Alert>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base" style={{ color: '#1a4d3a' }}>
                     Pilih tanggal terlebih dahulu untuk melihat slot waktu
                   </p>
                 )}
                 {form.formState.errors.lokasi_nikah?.waktu_nikah && (
-                  <p className="text-sm text-red-500">
+                  <p className="text-base text-red-500 font-medium">
                     {form.formState.errors.lokasi_nikah.waktu_nikah.message}
                   </p>
                 )}

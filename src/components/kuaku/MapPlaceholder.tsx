@@ -4,24 +4,39 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export function MapPlaceholder() {
   return (
-    <SectionWrapper id="map" title="Temukan Kami" subtitle="Lokasi Kantor KUA Banjarmasin Utara">
+    <SectionWrapper id="map" title="Kegiatan Kami">
       <Card className="overflow-hidden shadow-lg">
         <CardContent className="p-0">
-          <div className="aspect-w-16 aspect-h-6 md:aspect-h-5">
-            <Image
-              src="https://placehold.co/1200x400.png"
-              alt="Peta Lokasi KUA Banjarmasin Utara"
-              layout="fill"
-              objectFit="cover"
-              data-ai-hint="city roadmap"
-              className="transform transition-transform duration-500 hover:scale-105"
-            />
+          <div className="w-full h-[400px] relative">
+            <div className="grid grid-cols-3 gap-0 h-full">
+              <div className="relative w-full h-full">
+                <Image
+                  src="/kegiatan1.jpg"
+                  alt="Foto Kegiatan KUA 1"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="relative w-full h-full">
+                <Image
+                  src="/kegiatan2.jpg"
+                  alt="Foto Kegiatan KUA 2"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="relative w-full h-full">
+                <Image
+                  src="/kegiatan3.jpg"
+                  alt="Foto Kegiatan KUA 3"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
-      <p className="mt-4 text-center text-sm text-muted-foreground">
-        Untuk peta interaktif, silakan kunjungi kami atau gunakan aplikasi peta favorit Anda dengan alamat di atas.
-      </p>
     </SectionWrapper>
   );
 }

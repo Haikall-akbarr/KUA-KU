@@ -36,6 +36,7 @@ export function AddStaffDialog({ open, onOpenChange, onSuccess }: AddStaffDialog
     password: 'password123',
     nip: '',
     no_hp: '',
+    bagian: '',
     alamat: ''
   });
 
@@ -83,6 +84,7 @@ export function AddStaffDialog({ open, onOpenChange, onSuccess }: AddStaffDialog
         email: '',
         password: 'password123',
         nip: '',
+        bagian: '',
         no_hp: '',
         alamat: ''
       });

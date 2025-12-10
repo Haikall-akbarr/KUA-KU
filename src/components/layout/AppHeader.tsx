@@ -272,9 +272,10 @@ export function AppHeader() {
               alt="Logo Kemenag"
               width={32}
               height={32}
-              className="h-8 w-8"
+              className="h-8 w-8 object-contain"
+              unoptimized
             />
-          <span className="font-headline text-xl font-bold text-primary">
+          <span className="font-headline text-xl font-bold" style={{ color: '#1a4d3a' }}>
             KUA Banjarmasin Utara
           </span>
         </Link>
@@ -318,8 +319,10 @@ export function AppHeader() {
                       alt="Logo Kemenag"
                       width={28}
                       height={28}
+                      className="object-contain"
+                      unoptimized
                     />
-                  <span className="font-headline text-lg font-bold text-primary">
+                  <span className="font-headline text-lg font-bold" style={{ color: '#1a4d3a' }}>
                     KUA Banjarmasin Utara
                   </span>
                 </Link>
