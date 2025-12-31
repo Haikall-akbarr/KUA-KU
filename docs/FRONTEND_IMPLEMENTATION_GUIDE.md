@@ -48,7 +48,7 @@ File `.env.local` atau environment variables:
 
 ```env
 # API Base URL
-NEXT_PUBLIC_API_URL=https://simnikah-api-production-5583.up.railway.app
+NEXT_PUBLIC_API_URL=https://simnikah-api-production-c05d.up.railway.app
 
 # Optional: Timeout untuk request
 NEXT_PUBLIC_API_TIMEOUT=30000

@@ -745,6 +745,7 @@ export function StaffCreateRegistrationForm({ onSuccess }: StaffCreateRegistrati
                     <div className="grid grid-cols-3 gap-2">
                       {timeSlots.map((slot) => {
                         const isKUA = tempatNikah === 'Di KUA';
+                        // Check for new structure: must have both kua and luar_kua objects (even if null/undefined)
                         const hasNewStructure = slot.kua !== undefined || slot.luar_kua !== undefined;
                         
                         let kuaCount = 0;
@@ -757,19 +758,24 @@ export function StaffCreateRegistrationForm({ onSuccess }: StaffCreateRegistrati
                           // New structure dengan kua dan luar_kua terpisah
                           kuaCount = slot.kua?.jumlah_total || 0;
                           luarKuaCount = slot.luar_kua?.jumlah_total || 0;
-                          totalCount = kuaCount + luarKuaCount;
+                          // Total count should be sum of both, but also check if API provides total field
+                          totalCount = (slot as any).total?.jumlah_total ?? (kuaCount + luarKuaCount);
                           
                           if (isKUA) {
-                            // Untuk KUA: bisa dipilih jika kua < 1 DAN total < 3
-                            const kuaAvailable = slot.kua?.tersedia && kuaCount < 1;
+                            // Untuk KUA: bisa dipilih jika kua tersedia, kua < 1, DAN total < 3
+                            const kuaAvailable = slot.kua?.tersedia !== false && kuaCount < 1;
                             const totalNotFull = totalCount < 3;
                             isAvailable = kuaAvailable && totalNotFull;
                             isDisabled = !isAvailable || kuaCount >= 1 || totalCount >= 3;
                           } else {
                             // Untuk Luar KUA: bisa dipilih jika luar_kua < 3 DAN total < 3
-                            const luarKuaAvailable = slot.luar_kua?.tersedia && luarKuaCount < 3;
+                            // PENTING: Untuk "Di Luar KUA", kita hanya perlu cek kapasitas, bukan tersedia
+                            // karena tersedia bisa false jika ada booking di KUA, tapi luar KUA masih bisa
+                            const luarKuaNotFull = luarKuaCount < 3;
                             const totalNotFull = totalCount < 3;
-                            isAvailable = luarKuaAvailable && totalNotFull;
+                            // Slot tersedia jika: luar_kua belum penuh DAN total belum penuh
+                            // Jangan cek slot.luar_kua?.tersedia karena itu bisa false meskipun masih ada slot
+                            isAvailable = luarKuaNotFull && totalNotFull;
                             isDisabled = !isAvailable || luarKuaCount >= 3 || totalCount >= 3;
                           }
                         } else {
@@ -779,11 +785,13 @@ export function StaffCreateRegistrationForm({ onSuccess }: StaffCreateRegistrati
                           
                           if (isKUA) {
                             // Untuk KUA: max 1
-                            isAvailable = slot.tersedia && currentCount < 1 && totalCount < 3;
+                            isAvailable = slot.tersedia !== false && currentCount < 1 && totalCount < 3;
                             isDisabled = !isAvailable || currentCount >= 1 || totalCount >= 3;
                           } else {
                             // Untuk Luar KUA: max 3
-                            isAvailable = slot.tersedia && currentCount < 3 && totalCount < 3;
+                            // In legacy structure, if tersedia is not explicitly false, assume available
+                            // Tapi untuk "Di Luar KUA", kita hanya perlu cek jumlah, bukan tersedia
+                            isAvailable = currentCount < 3 && totalCount < 3;
                             isDisabled = !isAvailable || currentCount >= 3 || totalCount >= 3;
                           }
                         }
@@ -812,26 +820,46 @@ export function StaffCreateRegistrationForm({ onSuccess }: StaffCreateRegistrati
                             {hasNewStructure ? (
                               !isDisabled ? (
                                 <span className="text-xs mt-1 opacity-75">
-                                  {isKUA ? `${kuaCount}/1` : `${luarKuaCount}/3`}
+                                  {isKUA ? `KUA: ${kuaCount}/1` : `Luar: ${luarKuaCount}/3`}
+                                  {totalCount > 0 && (
+                                    <span className="block">Total: {totalCount}/3</span>
+                                  )}
                                 </span>
                               ) : (
                                 <span className="text-xs mt-1 text-destructive">
                                   {isKUA
                                     ? kuaCount >= 1
-                                      ? 'Penuh'
+                                      ? 'KUA penuh'
                                       : totalCount >= 3
                                       ? 'Total penuh'
+                                      : slot.kua?.tersedia === false
+                                      ? 'Tidak tersedia'
                                       : 'Tidak tersedia'
-                                    : luarKuaCount >= 3
-                                    ? 'Penuh'
+                                    : (slot.luar_kua?.jumlah_total || 0) >= 3
+                                    ? 'Luar KUA penuh'
                                     : totalCount >= 3
                                     ? 'Total penuh'
+                                    : slot.luar_kua?.tersedia === false
+                                    ? 'Tidak tersedia'
                                     : 'Tidak tersedia'}
                                 </span>
                               )
                             ) : (
-                              !slot.tersedia && (
-                                <span className="text-xs mt-1 text-destructive">Terbooking</span>
+                              // Legacy structure
+                              isDisabled ? (
+                                <span className="text-xs mt-1 text-destructive">
+                                  {isKUA
+                                    ? (slot.jumlah_nikah || 0) >= 1
+                                      ? 'Penuh'
+                                      : 'Terbooking'
+                                    : (slot.jumlah_nikah || 0) >= 3
+                                    ? 'Penuh'
+                                    : 'Terbooking'}
+                                </span>
+                              ) : (
+                                <span className="text-xs mt-1 opacity-75">
+                                  {isKUA ? '0/1' : `${slot.jumlah_nikah || 0}/3`}
+                                </span>
                               )
                             )}
                           </Button>

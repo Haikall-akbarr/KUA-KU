@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 // Helper function to ensure URL has protocol
 function ensureProtocol(url: string): string {
-  if (!url) return 'https://simnikah-api-production-5583.up.railway.app';
+  if (!url) return 'https://simnikah-api-production-c05d.up.railway.app';
   
   // If URL already has protocol, return as is
   if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -14,8 +14,8 @@ function ensureProtocol(url: string): string {
 }
 
 // Get and normalize TARGET URL
-const rawTarget = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
-const TARGET = ensureProtocol(rawTarget || 'https://simnikah-api-production-5583.up.railway.app');
+const rawTarget = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-c05d.up.railway.app';
+const TARGET = ensureProtocol(rawTarget || 'https://simnikah-api-production-c05d.up.railway.app');
 
 // Log target URL in development (not in production for security)
 if (process.env.NODE_ENV !== 'production') {

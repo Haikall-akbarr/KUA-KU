@@ -18,6 +18,7 @@ import {
   LogOut 
 } from 'lucide-react';
 import { getAllRegistrations, approveRegistration, handleApiError, getStaffDashboard } from '@/lib/simnikah-api';
+import { useToast } from '@/hooks/use-toast';
 
 interface Registration {
   id: string; // ID numerik untuk API calls
@@ -37,6 +38,7 @@ export default function StaffDashboard() {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const router = useRouter();
+  const { toast } = useToast();
 
   const loadDashboardData = async () => {
     try {
@@ -142,12 +144,19 @@ export default function StaffDashboard() {
       
       // Reload registrations from API
       await loadRegistrations();
-      
-      alert(`✅ Pendaftaran disetujui! Status berubah menjadi "Disetujui". Kepala KUA akan menugaskan penghulu.`);
+
+      toast({
+        title: 'Pendaftaran disetujui',
+        description: 'Status berubah menjadi "Disetujui". Kepala KUA akan menugaskan penghulu.',
+      });
     } catch (error) {
       console.error('Error approving registration:', error);
       const errorMessage = handleApiError(error);
-      alert(`Gagal menyetujui pendaftaran: ${errorMessage}`);
+      toast({
+        title: 'Gagal menyetujui pendaftaran',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     }
   };
 
@@ -162,12 +171,19 @@ export default function StaffDashboard() {
       
       // Reload registrations from API
       await loadRegistrations();
-      
-      alert(`❌ Pendaftaran ditolak. Calon pasangan perlu memperbaiki dokumen mereka.`);
+
+      toast({
+        title: 'Pendaftaran ditolak',
+        description: 'Calon pasangan perlu memperbaiki dokumen mereka.',
+      });
     } catch (error) {
       console.error('Error rejecting registration:', error);
       const errorMessage = handleApiError(error);
-      alert(`Gagal menolak pendaftaran: ${errorMessage}`);
+      toast({
+        title: 'Gagal menolak pendaftaran',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     }
   };
 

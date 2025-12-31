@@ -23,6 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { submitMarriageRegistrationForm, type MarriageRegistrationFormState } from "@/app/daftar-nikah/actions";
+import { getAvailableTimeSlots } from "@/lib/simnikah-api";
 import { Loader2, CalendarIcon, User, Users, FileText, CheckCircle, Info, MapPin, Building, Clock, FileUp, FileCheck2, AlertCircle } from "lucide-react";
 import { educationLevels, occupations } from "@/lib/form-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -63,7 +64,10 @@ const FieldErrorMessage = ({ name }: { name: string }) => {
 
 const Step1 = () => {
     const { control, watch, setValue, trigger } = useFormContext<FullFormData>();
+    const { toast } = useToast();
     const [weddingDateOpen, setWeddingDateOpen] = useState(false);
+    const [timeSlots, setTimeSlots] = useState<any[]>([]);
+    const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
 
     const selectedProvince = watch("province");
     const selectedRegency = watch("regency");
@@ -86,27 +90,74 @@ const Step1 = () => {
         }
     }, [selectedDistrict, setValue]);
 
+    // Load time slots when date is selected
+    useEffect(() => {
+        if (weddingDate) {
+            const loadTimeSlots = async () => {
+                setLoadingTimeSlots(true);
+                try {
+                    const dateStr = format(weddingDate, 'yyyy-MM-dd');
+                    const data = await getAvailableTimeSlots(dateStr);
+                    setTimeSlots(data.data?.time_slots || []);
+                    // Reset selected time when slots are loaded
+                    const currentTime = watch('weddingTime');
+                    if (currentTime) {
+                        const slot = data.data?.time_slots?.find((s: any) => s.waktu === currentTime);
+                        const isKUA = weddingLocation === 'Di KUA';
+                        const isAvailable = isKUA 
+                            ? (slot?.kua?.tersedia && (slot?.kua?.jumlah_total || 0) < 1 && (slot?.total?.jumlah_total || 0) < 3)
+                            : (slot?.luar_kua?.tersedia && (slot?.luar_kua?.jumlah_total || 0) < 3 && (slot?.total?.jumlah_total || 0) < 3);
+                        if (!isAvailable) {
+                            setValue('weddingTime', '');
+                        }
+                    }
+                } catch (error: any) {
+                    console.error('Error loading time slots:', error);
+                    toast({
+                        title: 'Gagal Memuat Slot Waktu',
+                        description: error.message || 'Tidak dapat memuat slot waktu tersedia. Silakan coba lagi.',
+                        variant: 'destructive',
+                    });
+                    setTimeSlots([]);
+                } finally {
+                    setLoadingTimeSlots(false);
+                }
+            };
+            loadTimeSlots();
+        } else {
+            setTimeSlots([]);
+        }
+    }, [weddingDate, toast, setValue, watch, weddingLocation]);
+
+    // Reset selected time when tempat nikah changes
+    useEffect(() => {
+        if (weddingLocation) {
+            setValue('weddingTime', '');
+        }
+    }, [weddingLocation, setValue]);
+
+    // Get available times from API response
     const getAvailableTimes = () => {
-        if (!weddingDate) return [];
+        if (!weddingDate || timeSlots.length === 0) return [];
         
-        if (weddingLocation === 'Di Luar KUA') {
-            return Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
-        }
-
-        const dayOfWeek = getDay(weddingDate); 
-        if (dayOfWeek === 0 || dayOfWeek === 6) return []; 
-
-        if (dayOfWeek === 5) { // Friday
-            return [
-                ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
-                ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
-            ];
-        } else { // Monday - Thursday
-            return [
-                 ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
-                 ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
-            ];
-        }
+        const isKUA = weddingLocation === 'Di KUA';
+        
+        return timeSlots
+            .filter((slot: any) => {
+                if (isKUA) {
+                    // Untuk KUA: bisa dipilih jika kua tersedia, kua < 1, dan total < 3
+                    return slot.kua?.tersedia 
+                        && (slot.kua?.jumlah_total || 0) < 1 
+                        && (slot.total?.jumlah_total || 0) < 3;
+                } else {
+                    // Untuk Luar KUA: bisa dipilih jika luar_kua tersedia, luar_kua < 3, dan total < 3
+                    return slot.luar_kua?.tersedia 
+                        && (slot.luar_kua?.jumlah_total || 0) < 3 
+                        && (slot.total?.jumlah_total || 0) < 3;
+                }
+            })
+            .map((slot: any) => slot.waktu)
+            .sort();
     };
     
     const availableTimes = getAvailableTimes();
@@ -154,32 +205,6 @@ const Step1 = () => {
         setTimeout(() => {
             trigger('dispensationNumber');
         }, 100);
-
-        const currentTime = watch('weddingTime');
-        let newAvailableTimes: string[] = [];
-
-        if (weddingLocation === 'Di KUA') {
-            const dayOfWeek = getDay(date);
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                 if (dayOfWeek === 5) {
-                    newAvailableTimes = [
-                        ...Array.from({ length: 3 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
-                        ...Array.from({ length: 3 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
-                    ];
-                } else {
-                    newAvailableTimes = [
-                        ...Array.from({ length: 4 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`),
-                        ...Array.from({ length: 2 }, (_, i) => `${(i + 14).toString().padStart(2, '0')}:00`)
-                    ];
-                }
-            }
-        } else if (weddingLocation === 'Di Luar KUA') {
-            newAvailableTimes = Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
-        }
-        
-        if (!newAvailableTimes.includes(currentTime)) {
-            setValue('weddingTime', '');
-        }
         
         setWeddingDateOpen(false);
     };
@@ -317,15 +342,36 @@ const Step1 = () => {
                 <div className="space-y-2">
                      <Label htmlFor="weddingTime">Jam Akad <span className="text-destructive">*</span></Label>
                     <Controller name="weddingTime" control={control} render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!weddingDate}>
-                            <SelectTrigger id="weddingTime"><SelectValue placeholder="Pilih Jam Akad" /></SelectTrigger>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!weddingDate || loadingTimeSlots}>
+                            <SelectTrigger id="weddingTime">
+                                <SelectValue placeholder={loadingTimeSlots ? "Memuat slot waktu..." : "Pilih Jam Akad"} />
+                            </SelectTrigger>
                             <SelectContent>
-                                {availableTimes.length > 0 ? (
-                                    availableTimes.map(time => (
-                                        <SelectItem key={time} value={time}>{time} WITA</SelectItem>
-                                    ))
+                                {loadingTimeSlots ? (
+                                    <SelectItem value="loading" disabled>Memuat slot waktu...</SelectItem>
+                                ) : availableTimes.length > 0 ? (
+                                    availableTimes.map(time => {
+                                        const slot = timeSlots.find((s: any) => s.waktu === time);
+                                        const isKUA = weddingLocation === 'Di KUA';
+                                        const kuaCount = slot?.kua?.jumlah_total || 0;
+                                        const luarKuaCount = slot?.luar_kua?.jumlah_total || 0;
+                                        const totalCount = slot?.total?.jumlah_total || 0;
+                                        
+                                        return (
+                                            <SelectItem key={time} value={time}>
+                                                {time} WITA
+                                                {slot && (
+                                                    <span className="text-xs text-muted-foreground ml-2">
+                                                        ({isKUA ? `KUA: ${kuaCount}/1` : `Luar: ${luarKuaCount}/3`}, Total: {totalCount}/3)
+                                                    </span>
+                                                )}
+                                            </SelectItem>
+                                        );
+                                    })
                                 ) : (
-                                    <SelectItem value="disabled" disabled>Pilih tanggal & lokasi dulu</SelectItem>
+                                    <SelectItem value="disabled" disabled>
+                                        {!weddingDate ? "Pilih tanggal dulu" : !weddingLocation ? "Pilih lokasi dulu" : "Tidak ada slot tersedia"}
+                                    </SelectItem>
                                 )}
                             </SelectContent>
                         </Select>

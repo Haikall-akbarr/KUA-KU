@@ -1,12 +1,12 @@
 /**
  * Penghulu Service Layer
  * Handles all API calls related to Penghulu dashboard functionality
- * API Base: https://simnikah-api-production-5583.up.railway.app
+ * API Base: https://simnikah-api-production-c05d.up.railway.app
  */
 
 import { getAssignedRegistrations as getAssignedRegistrationsAPI, handleApiError } from './simnikah-api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-c05d.up.railway.app';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

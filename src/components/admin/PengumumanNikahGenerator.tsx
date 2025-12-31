@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { format, startOfWeek, endOfWeek, addDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addDays, differenceInYears, parseISO } from 'date-fns';
 import { id as IndonesianLocale } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -200,80 +200,271 @@ export function PengumumanNikahGenerator({ role = 'staff' }: PengumumanNikahGene
     }
   };
 
-  // Generate HTML content from data
+  // Helper function untuk get bulan tahun dari periode
+  const getBulanTahun = (tanggalAwal: string, tanggalAkhir: string): string => {
+    try {
+      const start = new Date(tanggalAwal);
+      const bulan = format(start, 'MMMM', { locale: IndonesianLocale }).toUpperCase();
+      const tahun = start.getFullYear();
+      return `${bulan} ${tahun}`;
+    } catch {
+      return format(new Date(), 'MMMM yyyy', { locale: IndonesianLocale }).toUpperCase();
+    }
+  };
+
+  // Generate HTML content from data - Format Excel Standar KUA (15 kolom, Landscape A4)
   const generateHTMLFromData = (data: PengumumanListResponse) => {
-    const { registrations, kop_surat, periode } = data.data;
+    const { registrations, kop_surat, periode, tanggal_awal, tanggal_akhir } = data.data;
     const today = new Date();
     const formattedDate = format(today, 'dd MMMM yyyy', { locale: IndonesianLocale });
+    const bulanTahun = getBulanTahun(tanggal_awal || '', tanggal_akhir || '');
 
-    const rows = registrations.map((reg, index) => `
-      <tr>
-        <td style="text-align: center;">${index + 1}</td>
-        <td>
-          <strong>${reg.calon_suami.nama_lengkap}</strong><br>
-          <small>Bin ...</small>
-        </td>
-        <td>
-          <strong>${reg.calon_istri.nama_lengkap}</strong><br>
-          <small>Binti ...</small>
-        </td>
-        <td>
-          ${format(new Date(reg.tanggal_nikah), 'EEEE, dd MMMM yyyy', { locale: IndonesianLocale })}<br>
-          ${reg.waktu_nikah} WITA
-        </td>
-        <td>${reg.tempat_nikah}</td>
-      </tr>
-    `).join('');
+    const rows = registrations.map((reg, index) => {
+      // Gunakan data yang sudah diformat dari backend (sesuai dokumentasi terbaru)
+      // Jika backend belum mengirim field tersebut, fallback ke perhitungan manual
+      const hari = reg.hari || (() => {
+        try {
+          const tanggalNikah = new Date(reg.tanggal_nikah);
+          const hariFormat = format(tanggalNikah, 'EEEE', { locale: IndonesianLocale }).toUpperCase();
+          const hariMap: { [key: string]: string } = {
+            'SENIN': 'SENIN',
+            'SELASA': 'SELASA',
+            'RABU': 'RABU',
+            'KAMIS': 'KAMIS',
+            'JUMAT': 'JUM\'AT',
+            'SABTU': 'SABTU',
+            'MINGGU': 'AHAD',
+          };
+          return hariMap[hariFormat] || hariFormat;
+        } catch {
+          return '-';
+        }
+      })();
+      
+      const tanggal = reg.tanggal || (() => {
+        try {
+          return new Date(reg.tanggal_nikah).getDate().toString();
+        } catch {
+          return '-';
+        }
+      })();
+      
+      // Gunakan waktu_nikah_formatted jika ada, jika tidak format manual
+      const waktu = reg.waktu_nikah_formatted || reg.waktu_nikah?.replace(':', '.') || '-';
+      
+      // Gunakan usia dari backend jika ada, jika tidak hitung manual
+      const usiaPria = reg.calon_suami.usia ?? (() => {
+        if (reg.calon_suami.tanggal_lahir) {
+          try {
+            return differenceInYears(new Date(), parseISO(reg.calon_suami.tanggal_lahir));
+          } catch {
+            return '-';
+          }
+        }
+        return '-';
+      })();
+      
+      const usiaWanita = reg.calon_istri.usia ?? (() => {
+        if (reg.calon_istri.tanggal_lahir) {
+          try {
+            return differenceInYears(new Date(), parseISO(reg.calon_istri.tanggal_lahir));
+          } catch {
+            return '-';
+          }
+        }
+        return '-';
+      })();
+      
+      // Get data lainnya
+      const namaPria = reg.calon_suami.nama_lengkap || '-';
+      const namaWanita = reg.calon_istri.nama_lengkap || '-';
+      const pendkPria = reg.calon_suami.pendidikan_terakhir || '-';
+      const pendkWanita = reg.calon_istri.pendidikan_terakhir || '-';
+      const waliNikah = reg.wali_nikah?.nama_dan_bin || '-';
+      const penghulu = reg.penghulu?.nama_lengkap || '-';
+      const kelurahan = reg.kelurahan || '-';
+      
+      // Tempat nikah: jika "Di KUA" tampilkan "Di KUA", jika "Di Luar KUA" tampilkan alamat_akad
+      const tempat = reg.tempat_nikah === 'Di KUA' 
+        ? 'Di KUA' 
+        : (reg.alamat_akad || reg.tempat_nikah || '-');
+
+      return `
+        <tr>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 8pt;">${index + 1}</td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 8pt;">${namaPria}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 8pt;">${usiaPria}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 8pt;">${pendkPria}</td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 8pt;">${namaWanita}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 8pt;">${usiaWanita}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 8pt;">${pendkWanita}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 8pt;">${hari}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 8pt;">${tanggal}</td>
+          <td style="border: 1px solid #000; padding: 4px; text-align: center; font-size: 8pt;">${waktu}</td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 8pt;">${tempat}</td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 8pt;">${waliNikah}</td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 8pt;">${penghulu}</td>
+          <td style="border: 1px solid #000; padding: 4px; font-size: 8pt;">${kelurahan}</td>
+        </tr>
+      `;
+    }).join('');
 
     return `
-      <div class="page-content">
-        <div class="kop-surat">
-          ${kop_surat.logo_url ? `<img src="${kop_surat.logo_url}" alt="Logo" style="height: 80px; width: auto; margin-bottom: 10px;">` : ''}
-          <h3 style="margin: 0; font-size: 14pt; font-weight: bold;">KEMENTERIAN AGAMA REPUBLIK INDONESIA</h3>
-          <h3 style="margin: 0; font-size: 14pt; font-weight: bold;">KANTOR KEMENTERIAN AGAMA ${kop_surat.kota?.toUpperCase() || '...' }</h3>
-          <h2 style="margin: 5px 0; font-size: 16pt; font-weight: bold;">${kop_surat.nama_kua?.toUpperCase() || 'KANTOR URUSAN AGAMA'}</h2>
-          <p style="margin: 0; font-size: 11pt;">${kop_surat.alamat_kua || ''}, ${kop_surat.kota || ''}, ${kop_surat.provinsi || ''} ${kop_surat.kode_pos || ''}</p>
-          <p style="margin: 0; font-size: 11pt;">Telepon: ${kop_surat.telepon || '-'}, Email: ${kop_surat.email || '-'}</p>
-          <hr style="border: 2px solid #000; margin-top: 10px; margin-bottom: 2px;">
-          <hr style="border: 1px solid #000; margin-top: 0; margin-bottom: 20px;">
-        </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Jadual Nikah ${bulanTahun}</title>
+        <style>
+          @page {
+            size: A4 landscape;
+            margin: 1cm;
+          }
+          body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 11pt;
+            margin: 0;
+            padding: 0;
+          }
+          .page-content {
+            width: 100%;
+            max-width: 29.7cm;
+            margin: 0 auto;
+            padding: 0.5cm;
+          }
+          .kop-surat {
+            margin-bottom: 15px;
+            text-align: center;
+          }
+          .kop-surat img {
+            height: 80px;
+            width: auto;
+            margin-bottom: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .kop-surat h3 {
+            margin: 0;
+            font-size: 11pt;
+            font-weight: bold;
+            line-height: 1.2;
+            text-align: center;
+          }
+          .kop-surat h2 {
+            margin: 5px 0;
+            font-size: 12pt;
+            font-weight: bold;
+            text-align: center;
+          }
+          .kop-surat p {
+            margin: 0;
+            font-size: 9pt;
+            line-height: 1.3;
+            text-align: center;
+          }
+          .judul {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 15px 0;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 8pt;
+          }
+          table th {
+            border: 1px solid #000;
+            padding: 4px;
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+            font-size: 8pt;
+          }
+          table td {
+            border: 1px solid #000;
+            padding: 4px;
+            font-size: 8pt;
+          }
+          .ttd {
+            margin-top: 30px;
+            text-align: right;
+            float: right;
+            width: 40%;
+          }
+          .ttd p {
+            margin: 5px 0;
+            font-size: 11pt;
+          }
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            .page-content {
+              max-width: 100%;
+              padding: 0;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="page-content">
+          <div class="kop-surat">
+            ${kop_surat.logo_url ? `<img src="${kop_surat.logo_url}" alt="Logo">` : ''}
+            <h3>KEMENTERIAN AGAMA REPUBLIK INDONESIA</h3>
+            <h3>KANTOR KEMENTERIAN AGAMA ${kop_surat.kota?.toUpperCase() || ''}</h3>
+            <h2>${kop_surat.nama_kua?.toUpperCase() || 'KANTOR URUSAN AGAMA'}</h2>
+            <p>${kop_surat.alamat_kua || ''}, ${kop_surat.kota || ''}, ${kop_surat.provinsi || ''} ${kop_surat.kode_pos || ''}</p>
+            <p>Telepon: ${kop_surat.telepon || '-'}, Email: ${kop_surat.email || '-'}</p>
+            <hr style="border: 2px solid #000; margin-top: 10px; margin-bottom: 2px;">
+            <hr style="border: 1px solid #000; margin-top: 0; margin-bottom: 20px;">
+          </div>
 
-        <div class="nomor-surat">
-           <p><strong>PENGUMUMAN NIKAH</strong></p>
-           <p>Nomor: B-..../Kua...../Pw.01/..../${new Date().getFullYear()}</p>
-        </div>
+          <div class="judul">
+            JADUAL NIKAH ${bulanTahun}
+          </div>
 
-        <div class="isi-surat">
-          <p>Berdasarkan Peraturan Menteri Agama Nomor 20 Tahun 2019 tentang Pencatatan Pernikahan, Kepala KUA Kecamatan ${kop_surat.nama_kua?.replace('KANTOR URUSAN AGAMA ', '') || '...'} mengumumkan Kehendak Nikah calon pengantin sebagai berikut:</p>
-
-          <p>Periode: <strong>${periode}</strong></p>
-
-          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+          <table>
             <thead>
               <tr>
-                <th style="border: 1px solid #000; padding: 8px; background-color: #f0f0f0;">No</th>
-                <th style="border: 1px solid #000; padding: 8px; background-color: #f0f0f0;">Calon Suami</th>
-                <th style="border: 1px solid #000; padding: 8px; background-color: #f0f0f0;">Calon Istri</th>
-                <th style="border: 1px solid #000; padding: 8px; background-color: #f0f0f0;">Tanggal / Waktu</th>
-                <th style="border: 1px solid #000; padding: 8px; background-color: #f0f0f0;">Tempat Nikah</th>
+                <th rowspan="2" style="vertical-align: middle; text-align: center;">NO<br>URUT</th>
+                <th colspan="6" style="text-align: center;">DATA CALON PENGANTIN</th>
+                <th colspan="7" style="text-align: center;">PELAKSANAAN NIKAH</th>
+              </tr>
+              <tr>
+                <th style="text-align: center;">PRIA / BIN</th>
+                <th style="text-align: center;">USIA</th>
+                <th style="text-align: center;">PENDK</th>
+                <th style="text-align: center;">WANITA / BINTI</th>
+                <th style="text-align: center;">USIA</th>
+                <th style="text-align: center;">PENDK</th>
+                <th style="text-align: center;">HARI</th>
+                <th style="text-align: center;">TGL</th>
+                <th style="text-align: center;">JAM</th>
+                <th style="text-align: center;">TEMPAT</th>
+                <th style="text-align: center;">WALINIKAH</th>
+                <th style="text-align: center;">PENGHULU</th>
+                <th style="text-align: center;">KELURAHAN</th>
               </tr>
             </thead>
             <tbody>
-              ${rows.length > 0 ? rows : '<tr><td colspan="5" style="text-align: center; padding: 20px; border: 1px solid #000;">Tidak ada data pendaftaran nikah pada periode ini.</td></tr>'}
+              ${rows.length > 0 ? rows : '<tr><td colspan="14" style="text-align: center; padding: 20px;">Tidak ada data pendaftaran nikah pada periode ini.</td></tr>'}
             </tbody>
           </table>
 
-          <p>Demikian pengumuman ini disampaikan untuk diketahui masyarakat luas. Bagi masyarakat yang mengetahui adanya halangan pernikahan bagi calon pengantin tersebut di atas, agar segera memberitahukan kepada Kepala KUA Kecamatan setempat selambat-lambatnya sebelum pelaksanaan pernikahan.</p>
+          <div class="ttd">
+            <p>${kop_surat.kota || 'Banjarmasin'}, ${formattedDate}</p>
+            <p>Kepala KUA,</p>
+            <br><br><br><br>
+            <p style="font-weight: bold; text-decoration: underline;">(.............................................)</p>
+            <p>NIP. .............................................</p>
+          </div>
         </div>
-
-        <div class="ttd" style="margin-top: 50px; text-align: right; float: right; width: 40%;">
-          <p>${kop_surat.kota || 'Banjarmasin'}, ${formattedDate}</p>
-          <p>Kepala KUA,</p>
-          <br><br><br><br>
-          <p style="font-weight: bold; text-decoration: underline;">(.............................................)</p>
-          <p>NIP. .............................................</p>
-        </div>
-      </div>
+      </body>
+      </html>
     `;
   };
 
@@ -305,22 +496,101 @@ export function PengumumanNikahGenerator({ role = 'staff' }: PengumumanNikahGene
       // Prepare custom kop surat jika ada
       const customKop: CustomKopSurat | undefined = showCustomKop ? kopSurat : undefined;
 
-      // Generate HTML langsung dari API backend
-      // Sesuai dokumentasi: API mengembalikan HTML string
-      const htmlContent = role === 'kepala_kua'
-        ? await generatePengumumanNikahKepalaKUA(requestBody, customKop)
-        : await generatePengumumanNikah(requestBody, customKop);
-
-      // Parse dan validasi HTML response
-      const parsedHTML = parsePengumumanHTML(htmlContent);
-      
-      setHtml(parsedHTML);
-      
-      toast({
-        title: 'Berhasil!',
-        description: 'Surat pengumuman nikah berhasil di-generate dari server',
-        variant: 'default',
-      });
+      // Coba generate dari backend API dulu
+      let htmlContent: string | null = null;
+      try {
+        htmlContent = role === 'kepala_kua'
+          ? await generatePengumumanNikahKepalaKUA(requestBody, customKop)
+          : await generatePengumumanNikah(requestBody, customKop);
+        
+        console.log('📄 HTML Content received:', {
+          length: htmlContent?.length || 0,
+          preview: htmlContent?.substring(0, 200) || 'empty',
+          startsWithHTML: htmlContent?.trim().startsWith('<!') || htmlContent?.trim().startsWith('<html'),
+        });
+        
+        // Parse dan validasi HTML response
+        let parsedHTML: string;
+        try {
+          parsedHTML = parsePengumumanHTML(htmlContent);
+        } catch (parseError: any) {
+          console.warn('⚠️ HTML parsing failed, using raw content:', parseError.message);
+          // Jika parsing gagal, gunakan raw content (mungkin HTML valid tapi tidak dimulai dengan <!)
+          parsedHTML = htmlContent || '';
+        }
+        
+        console.log('✅ Setting HTML to state:', {
+          length: parsedHTML.length,
+          hasContent: parsedHTML.length > 0,
+        });
+        
+        setHtml(parsedHTML);
+        
+        toast({
+          title: 'Berhasil!',
+          description: 'Surat pengumuman nikah berhasil di-generate dari server',
+          variant: 'default',
+        });
+      } catch (backendError: any) {
+        // Jika backend error atau tidak ada data, gunakan data dari list dan generate di frontend
+        console.warn('⚠️ Backend generate failed, using frontend generation:', backendError.message);
+        
+        // Ambil data dari list yang sudah di-fetch (atau fetch ulang jika belum ada)
+        let listDataToUse = listData;
+        if (!listDataToUse || listDataToUse.data.registrations.length === 0) {
+          // Fetch list data jika belum ada
+          listDataToUse = role === 'kepala_kua'
+            ? await getPengumumanListKepalaKUA(requestBody)
+            : await getPengumumanList(requestBody);
+        }
+        
+        // Pastikan ada data
+        if (!listDataToUse || !listDataToUse.data || listDataToUse.data.registrations.length === 0) {
+          throw new Error('Tidak ada data pendaftaran untuk periode yang dipilih');
+        }
+        
+        // Generate HTML dari data list menggunakan fungsi yang sudah ada
+        // Merge kop surat dengan default values
+        const defaultKopSurat = {
+          nama_kua: 'KANTOR URUSAN AGAMA',
+          alamat_kua: '',
+          kota: '',
+          provinsi: '',
+          kode_pos: '',
+          telepon: '',
+          email: '',
+          website: '',
+          logo_url: '',
+        };
+        
+        const kopSuratToUse = {
+          ...defaultKopSurat,
+          ...listDataToUse.data.kop_surat,
+          ...(customKop || {}),
+          ...(showCustomKop ? kopSurat : {}),
+        };
+        
+        htmlContent = generateHTMLFromData({
+          ...listDataToUse,
+          data: {
+            ...listDataToUse.data,
+            kop_surat: kopSuratToUse,
+          },
+        });
+        
+        console.log('📄 Frontend-generated HTML:', {
+          length: htmlContent.length,
+          preview: htmlContent.substring(0, 200),
+        });
+        
+        setHtml(htmlContent);
+        
+        toast({
+          title: 'Berhasil!',
+          description: `Surat pengumuman nikah berhasil di-generate dari ${listDataToUse.data.total} pendaftaran`,
+          variant: 'default',
+        });
+      }
     } catch (err: any) {
       console.error('Error generating pengumuman:', err);
       
@@ -628,7 +898,7 @@ export function PengumumanNikahGenerator({ role = 'staff' }: PengumumanNikahGene
                             <span className="font-medium">Tempat:</span> {reg.tempat_nikah}
                           </div>
                           <div>
-                            <span className="font-medium">Wali:</span> {reg.wali_nikah.nama_dan_bin}
+                            <span className="font-medium">Wali:</span> {reg.wali_nikah?.nama_dan_bin || 'Data tidak tersedia'}
                           </div>
                         </div>
                       </div>
@@ -666,22 +936,35 @@ export function PengumumanNikahGenerator({ role = 'staff' }: PengumumanNikahGene
               <CardHeader>
                 <CardTitle>Preview Surat Pengumuman</CardTitle>
                 <CardDescription>
-                  Surat pengumuman dalam format HTML. Gunakan tombol Print untuk mencetak atau Download untuk menyimpan.
+                  Surat pengumuman dalam format HTML (A4 Landscape, 15 kolom). Gunakan tombol Print untuk mencetak atau Download untuk menyimpan.
+                  {process.env.NODE_ENV === 'development' && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      (HTML length: {html.length} chars)
+                    </span>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="border rounded-lg overflow-auto bg-white">
-                  <div 
-                    className="p-4"
-                    style={{
-                      fontFamily: "'Times New Roman', Times, serif",
-                      maxWidth: '21cm',
-                      margin: '0 auto',
-                      background: 'white',
-                    }}
-                    dangerouslySetInnerHTML={{ __html: html }}
-                  />
-                </div>
+                {html.trim().length === 0 ? (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      HTML content is empty. Please try generating again.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="border rounded-lg overflow-auto bg-white" style={{ maxHeight: '80vh' }}>
+                    <iframe
+                      srcDoc={html}
+                      style={{
+                        width: '100%',
+                        minHeight: '600px',
+                        border: 'none',
+                      }}
+                      title="Preview Pengumuman Nikah"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

@@ -1,6 +1,6 @@
 // src/lib/staff-verification-service.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-c05d.up.railway.app';
 
 interface VerificationRequest {
   approved: boolean;

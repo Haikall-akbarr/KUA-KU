@@ -13,11 +13,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Calendar, AlertCircle, Clock, MapPin, Loader2, ChevronDown, ChevronUp, History, Eye, CheckCircle } from 'lucide-react';
 import { getAssignedRegistrations, completeMarriage, handleApiError } from '@/lib/simnikah-api';
 import { format, parseISO, isPast, isToday, isFuture } from 'date-fns';
 import { id as IndonesianLocale } from 'date-fns/locale';
 import { PenghuluLocationView } from '@/components/kuaku/PenghuluLocationView';
+import { useToast } from '@/hooks/use-toast';
 
 export default function JadwalPage() {
   const [schedule, setSchedule] = useState<any[]>([]);
@@ -27,6 +38,11 @@ export default function JadwalPage() {
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<any | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [completingId, setCompletingId] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; target: any | null }>({
+    open: false,
+    target: null,
+  });
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadSchedule = async () => {
@@ -295,21 +311,27 @@ export default function JadwalPage() {
     ? Math.min((todaySchedule / KAPASITAS_PER_PENGHULU_PER_HARI) * 100, 100) 
     : 0;
 
-  // Handle complete marriage
-  const handleCompleteMarriage = async (item: any) => {
-    if (!confirm(`Apakah Anda yakin ingin menandai pernikahan ${item.nomor_pendaftaran || item.id} sebagai selesai?`)) {
-      return;
-    }
+  // Open confirmation dialog with selected registration
+  const handleOpenConfirmComplete = (item: any) => {
+    setConfirmDialog({ open: true, target: item });
+  };
 
-    const regId = item.id || item.nomor_pendaftaran;
+  // Execute completion after confirmation
+  const handleCompleteMarriage = async () => {
+    if (!confirmDialog.target) return;
+
+    const regId = confirmDialog.target.id || confirmDialog.target.nomor_pendaftaran;
     setCompletingId(regId);
     try {
       await completeMarriage(regId, {
         catatan: 'Pernikahan telah dilaksanakan dengan baik'
       });
-      
-      alert('✅ Pernikahan berhasil ditandai sebagai selesai!');
-      
+
+      toast({
+        title: 'Pernikahan selesai',
+        description: `${confirmDialog.target.nomor_pendaftaran || regId} berhasil ditandai selesai.`,
+      });
+
       // Update local state immediately
       setSchedule((prev) => 
         prev.map((s: any) => 
@@ -318,17 +340,22 @@ export default function JadwalPage() {
             : s
         )
       );
-      
-      // Reload schedule after a short delay to get fresh data from API
+
+      // Optional refresh for fresh data
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 800);
     } catch (error) {
       console.error('Error completing marriage:', error);
       const errorMessage = handleApiError(error);
-      alert(`Gagal menandai pernikahan sebagai selesai: ${errorMessage}`);
+      toast({
+        title: 'Gagal menandai selesai',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setCompletingId(null);
+      setConfirmDialog({ open: false, target: null });
     }
   };
 
@@ -628,7 +655,7 @@ export default function JadwalPage() {
                                 <Button
                                   variant="default"
                                   size="sm"
-                                  onClick={() => handleCompleteMarriage(item)}
+                                  onClick={() => handleOpenConfirmComplete(item)}
                                   disabled={completingId === (item.id || item.nomor_pendaftaran)}
                                   className="w-full bg-green-600 hover:bg-green-700"
                                 >
@@ -880,6 +907,58 @@ export default function JadwalPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation dialog for marking marriage complete */}
+      <AlertDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDialog({ open: false, target: null });
+        }}
+      >
+        <AlertDialogContent className="sm:max-w-lg">
+          <AlertDialogHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-700">
+                <CheckCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-lg">Tandai pernikahan selesai?</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm text-muted-foreground">
+                  Tindakan ini akan menandai pernikahan sebagai selesai dan memindahkannya ke riwayat.
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+
+          {confirmDialog.target && (
+            <div className="rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">{confirmDialog.target.calon_suami || confirmDialog.target.calon_laki_laki?.nama_dan_bin || 'Calon suami'}</p>
+              <p className="font-medium text-foreground">{confirmDialog.target.calon_istri || confirmDialog.target.calon_perempuan?.nama_dan_binti || 'Calon istri'}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Nomor pendaftaran: {confirmDialog.target.nomor_pendaftaran || confirmDialog.target.id}
+              </p>
+            </div>
+          )}
+
+          <AlertDialogFooter className="pt-2">
+            <AlertDialogCancel disabled={!!completingId}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleCompleteMarriage}
+              disabled={!!completingId}
+            >
+              {completingId ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Menandai...
+                </div>
+              ) : (
+                'Ya, tandai selesai'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

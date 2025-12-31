@@ -5,7 +5,7 @@
 **Nama Project:** KUA-KU (SimNikah)  
 **Teknologi:** Next.js 15.2.3, React 18, TypeScript  
 **Port Development:** 9002  
-**Base API:** https://simnikah-api-production-5583.up.railway.app
+**Base API:** https://simnikah-api-production-c05d.up.railway.app
 
 Aplikasi web pendamping Simkah untuk pendataan & penjadwalan nikah di KUA Banjarmasin Utara.
 
@@ -218,7 +218,7 @@ USER_ROLES = ['user_biasa']  // Calon pengantin
 
 ### Base API:
 - **File:** `src/lib/simnikah-api.ts`
-- **Base URL:** `https://simnikah-api-production-5583.up.railway.app`
+- **Base URL:** `https://simnikah-api-production-c05d.up.railway.app`
 - **Axios Instance:** `src/lib/api.ts`
 
 ### Endpoints Penting:

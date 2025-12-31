@@ -1,7 +1,7 @@
 
 import axios from 'axios';
 
-const DEFAULT_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
+const DEFAULT_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-c05d.up.railway.app';
 
 // Use a same-origin proxy for client-side requests to avoid CORS during development.
 // In the browser we want axios to call `/api/proxy/...` so the Next server forwards to the external API.
@@ -39,28 +39,55 @@ api.interceptors.response.use(
       // Check if response is HTML (error page) instead of JSON
       const contentType = response.headers['content-type'] || response.headers['Content-Type'] || '';
       const responseType = response.config?.responseType;
+      const status = response.status;
       
       // Allow HTML response if:
       // 1. responseType is explicitly set to 'text' (for endpoints that return HTML like pengumuman)
-      // 2. Status is 200 (success)
-      const isExpectedHTML = responseType === 'text' && response.status === 200;
+      // 2. Status is 200 (success) - HTML pengumuman should be 200
+      const isExpectedHTML = responseType === 'text' && status === 200;
       
-      if (contentType.includes('text/html') && !isExpectedHTML) {
-        console.error('⚠️ API returned HTML instead of JSON. Content-Type:', contentType);
+      // If HTML is expected (responseType: 'text' and status 200), return as is without any processing
+      if (isExpectedHTML) {
+        console.log('✅ HTML response received (expected) - returning as is');
+        // Don't process HTML response, return immediately
+        return response;
+      }
+      
+      // Check for HTML error pages (status 500 or other error statuses with HTML content)
+      if (contentType.includes('text/html') && (status >= 400 || status < 200)) {
+        console.error('⚠️ API returned HTML error page. Status:', status, 'Content-Type:', contentType);
         const error: any = new Error('API returned HTML error page instead of JSON response');
         error.response = {
           ...response,
-          data: { error: 'Invalid response format', message: 'Server returned HTML instead of JSON' }
+          status: status || 500,
+          data: { 
+            error: 'API returned HTML error page', 
+            message: `Server returned HTML instead of JSON. Status: ${status}`,
+            status: status
+          }
         };
         error.isAxiosError = true;
         throw error;
       }
       
-      // If HTML is expected (responseType: 'text'), return as is without any processing
-      if (isExpectedHTML) {
-        console.log('✅ HTML response received (expected) - returning as is');
-        // Don't process HTML response, return immediately
-        return response;
+      // Check for HTML content in response data even if content-type is not set correctly
+      if (typeof response.data === 'string' && responseType !== 'text' && status >= 400) {
+        const trimmed = response.data.trim();
+        if (trimmed.startsWith('<') || trimmed.startsWith('<!') || trimmed.startsWith('<?xml')) {
+          console.error('⚠️ API response data is HTML error page. Status:', status);
+          const error: any = new Error('API returned HTML error page instead of JSON response');
+          error.response = {
+            ...response,
+            status: status || 500,
+            data: { 
+              error: 'API returned HTML error page', 
+              message: `Server returned HTML instead of JSON. Status: ${status}`,
+              status: status
+            }
+          };
+          error.isAxiosError = true;
+          throw error;
+        }
       }
       
       // Also check if response.data is a string that looks like HTML

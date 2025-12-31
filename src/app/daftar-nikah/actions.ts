@@ -23,7 +23,7 @@ const formatDateForAPI = (value: any): string | undefined => {
 };
 
 // Use env var for API base (server-side)
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-5583.up.railway.app';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://simnikah-api-production-c05d.up.railway.app';
 
 export async function submitMarriageRegistrationForm(
   prevState: MarriageRegistrationFormState,

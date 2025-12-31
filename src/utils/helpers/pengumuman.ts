@@ -13,17 +13,39 @@ export const parsePengumumanHTML = (html: string): string => {
 
   // Check if response is HTML
   const trimmed = html.trim();
-  if (!trimmed.startsWith('<!') && !trimmed.startsWith('<html')) {
-    // Might be error message or JSON error
-    if (trimmed.startsWith('{')) {
-      try {
-        const errorData = JSON.parse(trimmed);
-        throw new Error(errorData.error || errorData.message || 'Error generating pengumuman');
-      } catch {
-        throw new Error('Invalid response format: expected HTML but got JSON or other format');
+  
+  // Check if it's JSON error first
+  if (trimmed.startsWith('{')) {
+    try {
+      const errorData = JSON.parse(trimmed);
+      throw new Error(errorData.error || errorData.message || 'Error generating pengumuman');
+    } catch (e: any) {
+      // If it's our error, re-throw it
+      if (e.message && e.message.includes('Error generating')) {
+        throw e;
       }
+      // Otherwise, might be valid HTML that starts with { (unlikely but possible)
     }
-    throw new Error('Invalid HTML response: response does not start with HTML tag');
+  }
+  
+  // Check if it's HTML - be more flexible with validation
+  const isHTML = trimmed.startsWith('<!') || 
+                 trimmed.startsWith('<html') || 
+                 trimmed.startsWith('<HTML') ||
+                 trimmed.startsWith('<div') ||
+                 trimmed.startsWith('<DIV') ||
+                 trimmed.includes('<html') ||
+                 trimmed.includes('<body') ||
+                 trimmed.includes('<table') ||
+                 trimmed.includes('<div');
+  
+  if (!isHTML) {
+    // If it doesn't look like HTML, check if it's an error message
+    if (trimmed.length < 100 && (trimmed.toLowerCase().includes('error') || trimmed.toLowerCase().includes('not found'))) {
+      throw new Error(`Invalid response: ${trimmed}`);
+    }
+    // Otherwise, might be partial HTML or valid content, return as is
+    console.warn('⚠️ Response does not look like standard HTML, but returning as is');
   }
 
   return html;
